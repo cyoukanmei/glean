@@ -35,12 +35,31 @@ class ArticleSummary {
   final int level;
   final int wordCount;
   final int publishedAt;
+
+  /// Keyset position of this article in the feed order.
+  FeedCursor get cursor => FeedCursor(publishedAt, id);
+}
+
+/// Position after which the next feed page starts.
+///
+/// Keyset (seek) pagination instead of OFFSET: pages stay stable when new
+/// articles are inserted at the top by a refresh, and each page is an index
+/// range scan regardless of depth.
+class FeedCursor {
+  const FeedCursor(this.publishedAt, this.id);
+
+  final int publishedAt;
+  final String id;
 }
 
 class ArticleRepository {
-  ArticleRepository(this._db);
+  ArticleRepository(this._db, {this._ready});
 
   final DatabaseExecutor _db;
+
+  /// Completes once the seed import has finished; reads wait for it so the
+  /// UI can start (and show skeletons) before the first launch import ends.
+  final Future<void>? _ready;
 
   static const _summaryColumns = [
     'id',
@@ -53,17 +72,43 @@ class ArticleRepository {
     'published_at',
   ];
 
-  /// Newest first; ties broken by id so the order is stable for paging.
-  Future<List<ArticleSummary>> list() async {
+  /// One feed page, newest first (ties broken by id).
+  ///
+  /// [category] null means all categories; empty [levels] means all levels.
+  Future<List<ArticleSummary>> page({
+    String? category,
+    Set<int> levels = const {},
+    FeedCursor? after,
+    int limit = 10,
+  }) async {
+    await _ready;
+    final where = <String>[];
+    final args = <Object?>[];
+    if (category != null) {
+      where.add('category = ?');
+      args.add(category);
+    }
+    if (levels.isNotEmpty) {
+      where.add('level IN (${List.filled(levels.length, '?').join(', ')})');
+      args.addAll(levels);
+    }
+    if (after != null) {
+      where.add('(published_at < ? OR (published_at = ? AND id < ?))');
+      args.addAll([after.publishedAt, after.publishedAt, after.id]);
+    }
     final rows = await _db.query(
       'articles',
       columns: _summaryColumns,
+      where: where.isEmpty ? null : where.join(' AND '),
+      whereArgs: args,
       orderBy: 'published_at DESC, id DESC',
+      limit: limit,
     );
     return rows.map(ArticleSummary.fromRow).toList();
   }
 
   Future<List<String>> paragraphs(String id) async {
+    await _ready;
     final rows = await _db.query(
       'articles',
       columns: ['body'],
@@ -72,5 +117,53 @@ class ArticleRepository {
     );
     if (rows.isEmpty) return const [];
     return (jsonDecode(rows.single['body']! as String) as List).cast<String>();
+  }
+
+  Future<Set<String>> knownIds(Iterable<String> ids) async {
+    await _ready;
+    final list = ids.toList();
+    if (list.isEmpty) return {};
+    final rows = await _db.query(
+      'articles',
+      columns: ['id'],
+      where: 'id IN (${List.filled(list.length, '?').join(', ')})',
+      whereArgs: list,
+    );
+    return {for (final r in rows) r['id']! as String};
+  }
+
+  /// Stores articles fetched from the server. Idempotent: re-inserting an
+  /// article keeps the stored copy unless the server's content is newer.
+  Future<void> upsertAll(List<Map<String, Object?>> articles) async {
+    await _ready;
+    final batch = _db.batch();
+    for (final a in articles) {
+      batch.rawInsert(
+        '''
+        INSERT INTO articles (id, title, summary, cover, category, level,
+          body, word_count, published_at, content_version)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          title = excluded.title, summary = excluded.summary,
+          cover = excluded.cover, category = excluded.category,
+          level = excluded.level, body = excluded.body,
+          word_count = excluded.word_count,
+          content_version = excluded.content_version
+        WHERE excluded.content_version > articles.content_version''',
+        [
+          a['id'],
+          a['title'],
+          a['summary'],
+          a['cover'],
+          a['category'],
+          a['level'],
+          jsonEncode(a['paragraphs']),
+          a['word_count'],
+          a['published_at'],
+          a['content_version'] ?? 1,
+        ],
+      );
+    }
+    await batch.commit(noResult: true);
   }
 }

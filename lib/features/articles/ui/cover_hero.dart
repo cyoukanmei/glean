@@ -13,22 +13,28 @@ class CoverHero extends StatelessWidget {
   const CoverHero({
     super.key,
     required this.article,
+    required this.surface,
     required this.borderRadius,
   });
 
   final ArticleSummary article;
+
+  /// Which list the card lives in (e.g. a category tab). The same article can
+  /// sit in several kept-alive tabs at once, so the tag must include it.
+  final String surface;
   final double borderRadius;
 
   static const listRadius = 12.0;
   static const headerRadius = 0.0;
 
-  static Object tagFor(String articleId) => 'cover-$articleId';
+  static Object tagFor(String surface, String articleId) =>
+      'cover-$surface-$articleId';
 
   @override
   Widget build(BuildContext context) {
     final navigator = Navigator.maybeOf(context);
     return Hero(
-      tag: tagFor(article.id),
+      tag: tagFor(surface, article.id),
       transitionOnUserGestures: true,
       // Same curves as SwipeBackPageRoute's slide, so cover and page move
       // together; both turn linear while a back gesture drives the route.

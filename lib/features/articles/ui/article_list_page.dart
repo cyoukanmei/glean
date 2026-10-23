@@ -1,109 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/navigation/swipe_back_route.dart';
-import '../../reader/ui/reader_page.dart';
-import '../data/article_repository.dart';
-import 'cover_hero.dart';
+import '../../../app/providers.dart';
+import '../../../core/analytics/analytics.dart';
+import '../../../core/widgets/offline_banner.dart';
+import 'article_feed.dart';
+import 'labels.dart';
 
-class ArticleListPage extends StatefulWidget {
-  const ArticleListPage({super.key, required this.repository});
+/// Home: category tabs, difficulty filter and one paged feed per tab.
+class ArticleListPage extends ConsumerStatefulWidget {
+  const ArticleListPage({super.key});
 
-  final ArticleRepository repository;
+  /// null = all categories.
+  static const tabs = <String?>[null, 'tech', 'business', 'culture', 'daily'];
 
   @override
-  State<ArticleListPage> createState() => _ArticleListPageState();
+  ConsumerState<ArticleListPage> createState() => _ArticleListPageState();
 }
 
-class _ArticleListPageState extends State<ArticleListPage> {
-  late final Future<List<ArticleSummary>> _articles = widget.repository.list();
+class _ArticleListPageState extends ConsumerState<ArticleListPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs = TabController(
+    length: ArticleListPage.tabs.length,
+    vsync: this,
+  )..addListener(_onTabChanged);
 
-  void _open(ArticleSummary article) {
-    Navigator.of(context).push(
-      SwipeBackPageRoute<void>(
-        settings: RouteSettings(name: '/article/${article.id}'),
-        builder: (_) =>
-            ReaderPage(article: article, repository: widget.repository),
-      ),
-    );
+  void _onTabChanged() {
+    if (_tabs.indexIsChanging) return;
+    Analytics.track('category_switch', {
+      'category': ArticleListPage.tabs[_tabs.index] ?? 'all',
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final offline = ref.watch(onlineProvider).value == false;
     return Scaffold(
-      appBar: AppBar(title: const Text('English Reader')),
-      body: FutureBuilder(
-        future: _articles,
-        builder: (context, snap) {
-          final articles = snap.data;
-          if (articles == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: articles.length,
-            itemBuilder: (context, i) => _ArticleCard(
-              article: articles[i],
-              onTap: () => _open(articles[i]),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ArticleCard extends StatelessWidget {
-  const _ArticleCard({required this.article, required this.onTap});
-
-  final ArticleSummary article;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox.square(
-              dimension: 84,
-              child: CoverHero(
-                article: article,
-                borderRadius: CoverHero.listRadius,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    article.title,
-                    style: theme.textTheme.titleMedium,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    article.summary,
-                    style: theme.textTheme.bodySmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${article.category} · L${article.level} · '
-                    '${article.wordCount} words',
-                    style: theme.textTheme.labelSmall,
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        title: const Text('English Reader'),
+        bottom: TabBar(
+          controller: _tabs,
+          // The indicator stretches towards the next tab and then catches up,
+          // tracking the TabBarView swipe frame by frame.
+          indicatorAnimation: TabIndicatorAnimation.elastic,
+          indicatorSize: TabBarIndicatorSize.label,
+          tabs: [
+            for (final c in ArticleListPage.tabs)
+              Tab(text: c == null ? '全部' : categoryLabels[c]),
           ],
         ),
+      ),
+      body: Column(
+        children: [
+          OfflineBanner(offline: offline),
+          const _LevelFilterBar(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabs,
+              children: [
+                for (final c in ArticleListPage.tabs)
+                  ArticleFeed(key: PageStorageKey(c ?? 'all'), category: c),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LevelFilterBar extends ConsumerWidget {
+  const _LevelFilterBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(levelFilterProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Row(
+        children: [
+          for (final level in levelLabels.keys) ...[
+            FilterChip(
+              label: Text(levelLabels[level]!),
+              selected: selected.contains(level),
+              // The last selected level cannot be turned off.
+              onSelected: selected.length == 1 && selected.contains(level)
+                  ? null
+                  : (_) => ref.read(levelFilterProvider.notifier).toggle(level),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ],
       ),
     );
   }

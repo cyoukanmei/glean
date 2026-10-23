@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/providers.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
+import '../../articles/ui/labels.dart';
 
-class ReaderPage extends StatefulWidget {
-  const ReaderPage({
-    super.key,
-    required this.article,
-    required this.repository,
-  });
+class ReaderPage extends ConsumerStatefulWidget {
+  const ReaderPage({super.key, required this.article, required this.surface});
 
   /// Already loaded by the list, so the header (and the cover Hero's
   /// destination) is built on the very first frame.
   final ArticleSummary article;
-  final ArticleRepository repository;
+
+  /// List the article was opened from; must match its card's Hero tag.
+  final String surface;
 
   @override
-  State<ReaderPage> createState() => _ReaderPageState();
+  ConsumerState<ReaderPage> createState() => _ReaderPageState();
 }
 
-class _ReaderPageState extends State<ReaderPage> {
+class _ReaderPageState extends ConsumerState<ReaderPage> {
   static const _headerHeight = 220.0;
 
-  late final Future<List<String>> _paragraphs = widget.repository.paragraphs(
-    widget.article.id,
-  );
+  late final Future<List<String>> _paragraphs = ref
+      .read(articleRepositoryProvider)
+      .paragraphs(widget.article.id);
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +42,7 @@ class _ReaderPageState extends State<ReaderPage> {
                   height: _headerHeight + MediaQuery.paddingOf(context).top,
                   child: CoverHero(
                     article: article,
+                    surface: widget.surface,
                     borderRadius: CoverHero.headerRadius,
                   ),
                 ),
@@ -65,8 +67,7 @@ class _ReaderPageState extends State<ReaderPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                '${article.category} · Level ${article.level} · '
-                '${article.wordCount} words',
+                articleMeta(article.category, article.level, article.wordCount),
                 style: theme.textTheme.labelMedium,
               ),
             ),
