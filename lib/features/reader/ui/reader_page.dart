@@ -13,12 +13,21 @@ import '../../../core/widgets/state_illustration.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
 import '../../articles/ui/labels.dart';
+import '../../vocab/application/word_picking.dart';
+import '../../vocab/data/vocab_repository.dart';
+import '../../vocab/ui/word_sheet.dart';
 import '../application/reading_session.dart';
 import '../data/progress_repository.dart';
+import 'reader_paragraph.dart';
 import 'reading_progress_bar.dart';
 
 class ReaderPage extends ConsumerStatefulWidget {
-  const ReaderPage({super.key, required this.article, required this.surface});
+  const ReaderPage({
+    super.key,
+    required this.article,
+    required this.surface,
+    this.jumpTo,
+  });
 
   /// Already loaded by the list, so the header (and the cover Hero's
   /// destination) is built on the very first frame.
@@ -26,6 +35,13 @@ class ReaderPage extends ConsumerStatefulWidget {
 
   /// List the article was opened from; must match its card's Hero tag.
   final String surface;
+
+  /// Opened from the word list: scroll to where the word was saved and flash
+  /// it, instead of restoring the last reading position.
+  final WordSource? jumpTo;
+
+  /// Jump-back flash: two amber pulses over the word.
+  static const pulseDuration = Duration(milliseconds: 1200);
 
   /// Body entrance: waits for the page transition (the cover lands first),
   /// pauses briefly, then fades the text up into place.
@@ -67,7 +83,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   late final Future<_Loaded> _loaded = _load();
 
   /// Read in initState: dispose() must not touch `ref`.
-  late final ProgressRevision _progressRevision;
+  late final Revision _progressRevision;
 
   late final AnimationController _entrance = AnimationController(
     vsync: this,
@@ -95,6 +111,36 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   bool _celebrating = false;
   bool _finished = false;
 
+  /// Lower-cased forms of every saved word, underlined in the text.
+  Set<String> _collected = const {};
+
+  /// Word whose definition sheet is open.
+  (int paragraph, TextRange range)? _selection;
+
+  /// Word being flashed after a jump from the word list.
+  (int paragraph, TextRange range)? _pulseAt;
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: ReaderPage.pulseDuration,
+  );
+  late final Animation<double> _pulseOpacity = _pulse.drive(
+    TweenSequence([
+      for (final (from, to) in const [
+        (0.0, 1.0),
+        (1.0, 0.0),
+        (0.0, 1.0),
+        (1.0, 0.0),
+      ])
+        TweenSequenceItem(
+          tween: Tween(
+            begin: from,
+            end: to,
+          ).chain(CurveTween(curve: Curves.easeInOut)),
+          weight: 1,
+        ),
+    ]),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -104,7 +150,70 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
       onResume: () => _setForeground(true),
       onInactive: () => _setForeground(false),
     );
+    _loadCollected();
     _start();
+  }
+
+  Future<void> _loadCollected() async {
+    final forms = await ref
+        .read(vocabRepositoryProvider)
+        .collectedForms(_userId);
+    if (mounted) setState(() => _collected = forms);
+  }
+
+  /// Long-press: mark the word, look it up, show the sheet, unmark.
+  Future<void> _lookup(String text, int paragraph, TextRange range) async {
+    final word = text.substring(range.start, range.end);
+    _session?.onInteraction();
+    HapticFeedback.selectionClick();
+    setState(() => _selection = (paragraph, range));
+    final entry = await ref.read(dictionaryRepositoryProvider).lookup(word);
+    Analytics.track('word_lookup', {
+      'word': word.toLowerCase(),
+      'found': entry != null,
+      'article_id': widget.article.id,
+    });
+    if (!mounted) return;
+    await WordSheet.show(
+      context,
+      word: word,
+      entry: entry,
+      source: WordSource(
+        articleId: widget.article.id,
+        paraIndex: paragraph,
+        charStart: range.start,
+        charEnd: range.end,
+        sentence: sentenceAround(text, range),
+      ),
+    );
+    if (mounted) setState(() => _selection = null);
+  }
+
+  /// Opened from the word list: bring the saved word's paragraph to the
+  /// upper part of the screen, then flash the word.
+  Future<void> _jump(WordSource source) async {
+    final boxes = _paragraphBoxes();
+    if (!_scroll.hasClients || source.paraIndex >= boxes.length) return;
+    final p = _scroll.position;
+    final (top, _) = boxes[source.paraIndex];
+    final target = (top - p.viewportDimension * 0.25).clamp(
+      0.0,
+      p.maxScrollExtent,
+    );
+    await _scroll.animateTo(
+      target,
+      duration: ReaderPage.restoreGlide,
+      curve: Curves.easeInOutCubic,
+    );
+    if (!mounted) return;
+    setState(
+      () => _pulseAt = (
+        source.paraIndex,
+        TextRange(start: source.charStart, end: source.charEnd),
+      ),
+    );
+    await _pulse.forward(from: 0);
+    if (mounted) setState(() => _pulseAt = null);
   }
 
   Future<_Loaded> _load() async {
@@ -173,7 +282,11 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     // Record the first screen even without scrolling: a short article that
     // fits on screen is fully seen without a single scroll event.
     _onScroll();
-    if (loaded.saved != null) await _restore(loaded.saved!);
+    if (widget.jumpTo case final source?) {
+      await _jump(source);
+    } else if (loaded.saved != null) {
+      await _restore(loaded.saved!);
+    }
   }
 
   void _tick() {
@@ -313,11 +426,13 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     _scroll.dispose();
     _progress.dispose();
     _entrance.dispose();
+    _pulse.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(vocabRevisionProvider, (_, _) => _loadCollected());
     final article = widget.article;
     final topInset = MediaQuery.paddingOf(context).top;
     return Scaffold(
@@ -361,6 +476,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                               for (final _ in paragraphs) GlobalKey(),
                             ];
                           }
+                          final pulseAt = _pulseAt;
                           return _Body(
                             article: article,
                             paragraphs: paragraphs,
@@ -369,6 +485,13 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                                 _finished ||
                                 snap.data?.saved?.status ==
                                     ReadingStatus.finished,
+                            collected: _collected,
+                            selection: _selection,
+                            pulse: pulseAt == null
+                                ? null
+                                : (pulseAt.$1, pulseAt.$2, _pulseOpacity),
+                            onWord: (i, range) =>
+                                _lookup(paragraphs[i], i, range),
                           );
                         },
                       ),
@@ -452,6 +575,10 @@ class _Body extends StatelessWidget {
     required this.paragraphs,
     required this.paragraphKeys,
     required this.finished,
+    required this.collected,
+    required this.selection,
+    required this.pulse,
+    required this.onWord,
   });
 
   final ArticleSummary article;
@@ -460,6 +587,11 @@ class _Body extends StatelessWidget {
 
   /// Shows the "done" illustration after the last paragraph.
   final bool finished;
+
+  final Set<String> collected;
+  final (int, TextRange)? selection;
+  final (int, TextRange, Animation<double>)? pulse;
+  final void Function(int paragraph, TextRange range) onWord;
 
   @override
   Widget build(BuildContext context) {
@@ -487,9 +619,13 @@ class _Body extends StatelessWidget {
                 Padding(
                   key: paragraphKeys[i],
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    p,
+                  child: ReaderParagraph(
+                    text: p,
                     style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+                    collected: collected,
+                    selected: selection?.$1 == i ? selection!.$2 : null,
+                    pulse: pulse?.$1 == i ? (pulse!.$2, pulse!.$3) : null,
+                    onWord: (range) => onWord(i, range),
                   ),
                 ),
             ],
@@ -541,6 +677,7 @@ class _RestoreHint extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
         child: AnimatedOpacity(
+          key: const Key('restore-hint'),
           opacity: visible ? 1 : 0,
           duration: const Duration(milliseconds: 200),
           child: Material(

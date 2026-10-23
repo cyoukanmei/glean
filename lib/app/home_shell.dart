@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/analytics/analytics.dart';
 import '../core/widgets/state_illustration.dart';
 import '../features/articles/ui/article_list_page.dart';
+import '../features/vocab/ui/vocab_page.dart';
 
 /// Bottom navigation: 首页 / 共读 / 生词本 / 我的.
 ///
@@ -46,12 +47,7 @@ class _HomeShellState extends State<HomeShell> {
             hint: '中英读后分享，即将上线',
             width: 300,
           ),
-          _ComingSoon(
-            title: '生词本',
-            illustration: StateIllustration.emptyVocabulary,
-            headline: '还没有收藏生词',
-            hint: '阅读时长按单词即可收藏',
-          ),
+          VocabPage(),
           _ComingSoon(
             title: '我的',
             illustration: StateIllustration.readingComplete,

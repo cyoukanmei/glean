@@ -29,9 +29,11 @@ class VocabItem {
     required this.source,
     required this.status,
     required this.createdAt,
+    this.articleTitle,
   });
 
   factory VocabItem.fromRow(Map<String, Object?> row) => VocabItem(
+    articleTitle: row['article_title'] as String?,
     id: row['id']! as String,
     word: row['word']! as String,
     lemma: row['lemma']! as String,
@@ -54,6 +56,9 @@ class VocabItem {
   final WordSource source;
   final int status;
   final int createdAt;
+
+  /// Title of the source article, when listed with [VocabRepository.list].
+  final String? articleTitle;
 }
 
 class VocabRepository {
@@ -135,13 +140,43 @@ class VocabRepository {
     return rows.isNotEmpty;
   }
 
-  Future<List<VocabItem>> list(String userId) async {
+  /// The active entry for [lemma], if collected.
+  Future<VocabItem?> find(String userId, String lemma) async {
     final rows = await _db.query(
       'vocab',
-      where: 'user_id = ? AND deleted_at IS NULL',
-      whereArgs: [userId],
-      orderBy: 'created_at DESC',
+      where: 'user_id = ? AND lemma = ? AND deleted_at IS NULL',
+      whereArgs: [userId, lemma],
+    );
+    return rows.isEmpty ? null : VocabItem.fromRow(rows.single);
+  }
+
+  /// Newest first, with the source article's title for display.
+  Future<List<VocabItem>> list(String userId) async {
+    final rows = await _db.rawQuery(
+      '''
+      SELECT v.*, a.title AS article_title
+      FROM vocab v LEFT JOIN articles a ON a.id = v.article_id
+      WHERE v.user_id = ? AND v.deleted_at IS NULL
+      ORDER BY v.created_at DESC''',
+      [userId],
     );
     return rows.map(VocabItem.fromRow).toList();
+  }
+
+  /// Lower-cased surface forms and headwords of every collected word, so the
+  /// reader can mark them in any article ("you saved this one").
+  Future<Set<String>> collectedForms(String userId) async {
+    final rows = await _db.query(
+      'vocab',
+      columns: ['word', 'lemma'],
+      where: 'user_id = ? AND deleted_at IS NULL',
+      whereArgs: [userId],
+    );
+    return {
+      for (final r in rows) ...[
+        (r['word']! as String).toLowerCase(),
+        (r['lemma']! as String).toLowerCase(),
+      ],
+    };
   }
 }

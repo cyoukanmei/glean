@@ -8,6 +8,8 @@ import '../features/articles/data/article_remote.dart';
 import '../features/articles/data/article_repository.dart';
 import '../features/reader/data/progress_repository.dart';
 import '../features/reader/data/reading_time_repository.dart';
+import '../features/vocab/data/dictionary_repository.dart';
+import '../features/vocab/data/vocab_repository.dart';
 
 /// Opened in `main` before `runApp`; overridden in the root ProviderScope.
 final databaseProvider = Provider<Database>(
@@ -43,20 +45,32 @@ final readingTimeRepositoryProvider = Provider(
   (ref) => ReadingTimeRepository(ref.watch(databaseProvider)),
 );
 
-/// Bumped after the reader flushes progress, so "continue reading" refreshes.
-class ProgressRevision extends Notifier<int> {
+final vocabRepositoryProvider = Provider(
+  (ref) => VocabRepository(ref.watch(databaseProvider)),
+);
+
+final dictionaryRepositoryProvider = Provider(
+  (ref) => DictionaryRepository(ref.watch(databaseProvider)),
+);
+
+/// A counter other widgets watch to know "data X changed, reload".
+class Revision extends Notifier<int> {
   @override
   int build() => 0;
 
-  /// Called from a write that outlives the reader; the scope may be gone.
+  /// May be called from a write that outlives its widget; the scope may be
+  /// gone by then.
   void bump() {
     if (ref.mounted) state++;
   }
 }
 
-final progressRevisionProvider = NotifierProvider<ProgressRevision, int>(
-  ProgressRevision.new,
-);
+/// Bumped after the reader flushes progress, so "continue reading" refreshes.
+final progressRevisionProvider = NotifierProvider<Revision, int>(Revision.new);
+
+/// Bumped when a word is collected or removed anywhere, so the word list and
+/// the reader's highlights stay in sync.
+final vocabRevisionProvider = NotifierProvider<Revision, int>(Revision.new);
 
 final articleRemoteProvider = Provider(
   (ref) => MockArticleRemote(
@@ -102,13 +116,4 @@ final levelFilterProvider = NotifierProvider<LevelFilter, Set<int>>(
 
 /// Bumped when articles were added (e.g. by a refresh in one tab) so every
 /// kept-alive feed reloads, not only the one that was pulled.
-class FeedRevision extends Notifier<int> {
-  @override
-  int build() => 0;
-
-  void bump() => state++;
-}
-
-final feedRevisionProvider = NotifierProvider<FeedRevision, int>(
-  FeedRevision.new,
-);
+final feedRevisionProvider = NotifierProvider<Revision, int>(Revision.new);

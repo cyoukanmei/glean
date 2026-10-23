@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glean/app/providers.dart';
 import 'package:glean/core/navigation/swipe_back_route.dart';
 import 'package:glean/core/widgets/celebration.dart';
+import 'package:glean/core/widgets/collect_button.dart';
 import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:glean/features/reader/ui/reader_page.dart';
+import 'package:glean/features/reader/ui/reader_paragraph.dart';
+import 'package:glean/features/vocab/data/vocab_repository.dart';
 
 import '../../helpers/fakes.dart';
 
@@ -40,6 +44,9 @@ Future<FakeProgressRepository> _open(
   int paragraphs = 2,
   int words = 2,
   FakeProgressRepository? progress,
+  FakeVocabRepository? vocab,
+  FakeDictionaryRepository? dictionary,
+  WordSource? jumpTo,
 }) async {
   final repo = progress ?? FakeProgressRepository();
   await tester.pumpWidget(
@@ -49,6 +56,12 @@ Future<FakeProgressRepository> _open(
         progressRepositoryProvider.overrideWithValue(repo),
         readingTimeRepositoryProvider.overrideWithValue(
           FakeReadingTimeRepository(),
+        ),
+        vocabRepositoryProvider.overrideWithValue(
+          vocab ?? FakeVocabRepository(),
+        ),
+        dictionaryRepositoryProvider.overrideWithValue(
+          dictionary ?? FakeDictionaryRepository(),
         ),
       ],
       child: MaterialApp(
@@ -61,6 +74,7 @@ Future<FakeProgressRepository> _open(
                   builder: (_) => ReaderPage(
                     article: _article(words: words),
                     surface: 'all',
+                    jumpTo: jumpTo,
                   ),
                 ),
               ),
@@ -103,6 +117,32 @@ Future<void> _close(WidgetTester tester) async {
   tester.state<NavigatorState>(find.byType(Navigator)).pop();
   await tester.pumpAndSettle();
 }
+
+/// Screen centre of the first [word] in paragraph [index], from the laid-out
+/// text, so a long-press lands exactly on it.
+Offset _wordCenter(WidgetTester tester, int index, String word) {
+  final paragraph = find.byType(ReaderParagraph).at(index);
+  final text = tester.widget<ReaderParagraph>(paragraph).text;
+  final render = tester.renderObject<RenderParagraph>(
+    find.descendant(of: paragraph, matching: find.byType(RichText)),
+  );
+  final start = text.indexOf(word);
+  final box = render
+      .getBoxesForSelection(
+        TextSelection(baseOffset: start, extentOffset: start + word.length),
+      )
+      .first;
+  return render.localToGlobal(box.toRect().center);
+}
+
+/// The hint stays in the tree while hidden (it fades), so check its opacity.
+bool _hintVisible(WidgetTester tester) =>
+    tester
+        .widget<AnimatedOpacity>(find.byKey(const Key('restore-hint')))
+        .opacity ==
+    1;
+
+final _dictionary = FakeDictionaryRepository({'reading': ('read', 'v. 读，阅读')});
 
 void main() {
   testWidgets('body stays hidden during the transition, then fades in', (
@@ -170,7 +210,7 @@ void main() {
     await _run(tester, const Duration(seconds: 2));
 
     expect(_scroll(tester).pixels, moreOrLessEquals(900, epsilon: 1));
-    expect(find.textContaining('已回到上次位置'), findsOneWidget);
+    expect(_hintVisible(tester), isTrue);
 
     await tester.tap(find.text('回到开头'));
     await _run(tester, const Duration(seconds: 1));
@@ -211,6 +251,95 @@ void main() {
     expect(find.byType(CelebrationBurst), findsNothing);
     expect(repo.finishedCalls, 0);
     expect(find.byKey(const Key('reader-finished')), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('long-press looks a word up; saving bounces and underlines', (
+    tester,
+  ) async {
+    final vocab = FakeVocabRepository();
+    await _open(tester, paragraphs: 3, vocab: vocab, dictionary: _dictionary);
+    await _run(tester, const Duration(seconds: 1));
+
+    await tester.longPressAt(_wordCenter(tester, 0, 'reading'));
+    await _run(tester, const Duration(milliseconds: 600));
+    expect(find.text('v. 读，阅读'), findsOneWidget);
+    expect(find.text('原形 read'), findsOneWidget);
+    expect(find.text('收藏到生词本'), findsOneWidget);
+    // The word stays marked while its sheet is open.
+    expect(
+      tester
+          .widget<ReaderParagraph>(find.byType(ReaderParagraph).first)
+          .selected,
+      isNotNull,
+    );
+
+    await tester.tap(find.byType(CollectButton));
+    await tester.pump(); // the bounce starts on this frame
+    await tester.pump(const Duration(milliseconds: 120));
+    final scale = tester
+        .widget<ScaleTransition>(find.byKey(const Key('collect-icon-scale')))
+        .scale
+        .value;
+    expect(scale, isNot(1.0), reason: 'mid-bounce');
+    await _run(tester, CollectButton.bounce);
+    expect(find.text('已收藏'), findsOneWidget);
+
+    final saved = vocab.items.single;
+    expect(saved.lemma, 'read');
+    expect(saved.word, 'reading');
+    expect(saved.source.paraIndex, 0);
+    expect(saved.source.sentence, contains('reading'));
+
+    // Close the sheet: the selection clears, the saved word is underlined.
+    await tester.tapAt(const Offset(400, 40));
+    await _run(tester, const Duration(milliseconds: 600));
+    final first = tester.widget<ReaderParagraph>(
+      find.byType(ReaderParagraph).first,
+    );
+    expect(first.selected, isNull);
+    expect(first.collected, contains('reading'));
+    await _close(tester);
+  });
+
+  testWidgets('a word missing from the dictionary cannot be saved', (
+    tester,
+  ) async {
+    await _open(tester, paragraphs: 3, dictionary: _dictionary);
+    await _run(tester, const Duration(seconds: 1));
+    await tester.longPressAt(_wordCenter(tester, 0, 'wraps'));
+    await _run(tester, const Duration(milliseconds: 600));
+    expect(find.text('本地词典里没有这个词'), findsOneWidget);
+    expect(find.byType(CollectButton), findsNothing);
+    await tester.tapAt(const Offset(400, 40));
+    await _run(tester, const Duration(milliseconds: 600));
+    await _close(tester);
+  });
+
+  testWidgets('opening from the word list scrolls to the word and flashes it', (
+    tester,
+  ) async {
+    const source = WordSource(
+      articleId: 'a1',
+      paraIndex: 12,
+      charStart: 14,
+      charEnd: 18,
+    );
+    await _open(tester, paragraphs: 20, words: 2000, jumpTo: source);
+    await _run(tester, const Duration(milliseconds: 1500));
+
+    expect(_scroll(tester).pixels, greaterThan(500));
+    final flashing = tester.widget<ReaderParagraph>(
+      find.byType(ReaderParagraph).at(12),
+    );
+    expect(flashing.pulse?.$1, const TextRange(start: 14, end: 18));
+
+    await _run(tester, ReaderPage.pulseDuration);
+    expect(
+      tester.widget<ReaderParagraph>(find.byType(ReaderParagraph).at(12)).pulse,
+      isNull,
+    );
+    expect(_hintVisible(tester), isFalse);
     await _close(tester);
   });
 }
