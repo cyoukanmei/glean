@@ -107,6 +107,17 @@ class ArticleRepository {
     return rows.map(ArticleSummary.fromRow).toList();
   }
 
+  Future<ArticleSummary?> byId(String id) async {
+    await _ready;
+    final rows = await _db.query(
+      'articles',
+      columns: _summaryColumns,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return rows.isEmpty ? null : ArticleSummary.fromRow(rows.single);
+  }
+
   Future<List<String>> paragraphs(String id) async {
     await _ready;
     final rows = await _db.query(

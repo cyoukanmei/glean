@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
-import '../../../core/navigation/swipe_back_route.dart';
 import '../../../core/widgets/stagger_in.dart';
-import '../../reader/ui/reader_page.dart';
+import '../../reader/ui/continue_reading_card.dart';
+import '../../reader/ui/open_reader.dart';
 import '../data/article_repository.dart';
 import 'article_card.dart';
 
@@ -182,19 +182,6 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
     }
   }
 
-  void _open(ArticleSummary article) {
-    Analytics.track('article_open', {
-      'article_id': article.id,
-      'surface': widget.surface,
-    });
-    Navigator.of(context).push(
-      SwipeBackPageRoute<void>(
-        settings: RouteSettings(name: '/article/${article.id}'),
-        builder: (_) => ReaderPage(article: article, surface: widget.surface),
-      ),
-    );
-  }
-
   bool _onScroll(ScrollNotification n) {
     if (n.depth == 0 && n.metrics.extentAfter < 600) _loadMore();
     return false;
@@ -208,6 +195,8 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
       if (!_refreshing) _reload();
     });
 
+    // 推荐 (all categories) opens with the "continue reading" card.
+    final showContinue = widget.category == null;
     final Widget body;
     if (_skeleton) {
       body = const ArticleListSkeleton();
@@ -221,15 +210,20 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _items.length + 1,
-          itemBuilder: (context, i) {
+          itemCount: _items.length + 1 + (showContinue ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (showContinue) {
+              if (index == 0) return const ContinueReadingCard();
+              index--;
+            }
+            final i = index;
             if (i == _items.length) {
               return _Footer(loading: _loadingMore, end: !_hasMore);
             }
             final card = ArticleCard(
               article: _items[i],
               surface: widget.surface,
-              onTap: () => _open(_items[i]),
+              onTap: () => openReader(context, _items[i], widget.surface),
             );
             return i < _staggered
                 ? StaggerIn(animation: _stagger, index: i, child: card)

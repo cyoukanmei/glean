@@ -143,4 +143,21 @@ class ProgressRepository {
     );
     return rows.isEmpty ? null : ReadingProgress.fromRow(rows.first);
   }
+
+  /// The article read most recently and not finished yet, for the
+  /// "continue reading" card.
+  Future<(String articleId, ReadingProgress progress)?> lastUnfinished(
+    String userId,
+  ) async {
+    final rows = await _db.query(
+      'reading_progress',
+      where: 'user_id = ? AND status = ?',
+      whereArgs: [userId, ReadingStatus.reading],
+      orderBy: 'last_read_at DESC',
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final row = rows.single;
+    return (row['article_id']! as String, ReadingProgress.fromRow(row));
+  }
 }

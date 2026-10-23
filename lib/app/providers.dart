@@ -6,6 +6,8 @@ import 'package:sqflite/sqflite.dart';
 
 import '../features/articles/data/article_remote.dart';
 import '../features/articles/data/article_repository.dart';
+import '../features/reader/data/progress_repository.dart';
+import '../features/reader/data/reading_time_repository.dart';
 
 /// Opened in `main` before `runApp`; overridden in the root ProviderScope.
 final databaseProvider = Provider<Database>(
@@ -27,6 +29,33 @@ final articleRepositoryProvider = Provider(
     ref.watch(databaseProvider),
     ready: ref.watch(seedReadyProvider),
   ),
+);
+
+/// Signed-in user. A fixed local id until login lands; every per-user table
+/// already keys on it, so switching to real accounts needs no migration.
+final currentUserIdProvider = Provider<String>((ref) => 'guest');
+
+final progressRepositoryProvider = Provider(
+  (ref) => ProgressRepository(ref.watch(databaseProvider)),
+);
+
+final readingTimeRepositoryProvider = Provider(
+  (ref) => ReadingTimeRepository(ref.watch(databaseProvider)),
+);
+
+/// Bumped after the reader flushes progress, so "continue reading" refreshes.
+class ProgressRevision extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  /// Called from a write that outlives the reader; the scope may be gone.
+  void bump() {
+    if (ref.mounted) state++;
+  }
+}
+
+final progressRevisionProvider = NotifierProvider<ProgressRevision, int>(
+  ProgressRevision.new,
 );
 
 final articleRemoteProvider = Provider(

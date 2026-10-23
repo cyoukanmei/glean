@@ -10,7 +10,7 @@ import 'app/providers.dart';
 import 'core/db/app_database.dart';
 import 'core/db/seed_importer.dart';
 import 'core/navigation/swipe_back_route.dart';
-import 'features/articles/ui/article_list_page.dart';
+import 'app/home_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,7 +69,7 @@ class GleanApp extends StatelessWidget {
       // the parallax secondary animation while the top page slides.
       onGenerateRoute: (settings) => SwipeBackPageRoute<void>(
         settings: settings,
-        builder: (_) => const ArticleListPage(),
+        builder: (_) => const HomeShell(),
       ),
     );
   }

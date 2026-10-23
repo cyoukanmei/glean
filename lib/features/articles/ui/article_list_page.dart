@@ -52,7 +52,7 @@ class _ArticleListPageState extends ConsumerState<ArticleListPage>
           indicatorSize: TabBarIndicatorSize.label,
           tabs: [
             for (final c in ArticleListPage.tabs)
-              Tab(text: c == null ? '全部' : categoryLabels[c]),
+              Tab(text: c == null ? '推荐' : categoryLabels[c]),
           ],
         ),
       ),

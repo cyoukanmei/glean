@@ -1,12 +1,20 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../app/providers.dart';
+import '../../../core/analytics/analytics.dart';
+import '../../../core/widgets/celebration.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
 import '../../articles/ui/labels.dart';
+import '../application/reading_session.dart';
+import '../data/progress_repository.dart';
+import 'reading_progress_bar.dart';
 
 class ReaderPage extends ConsumerStatefulWidget {
   const ReaderPage({super.key, required this.article, required this.surface});
@@ -24,17 +32,41 @@ class ReaderPage extends ConsumerStatefulWidget {
   static const entranceDuration = Duration(milliseconds: 280);
   static const entranceRise = 12.0;
 
+  /// Session bookkeeping cadence (see [ReadingSession]).
+  static const tickInterval = Duration(milliseconds: 250);
+
+  /// Restoring the last position: skipped for tiny offsets; long jumps snap
+  /// to one screen before the target and glide the rest.
+  static const restoreMinOffset = 24.0;
+  static const restoreGlide = Duration(milliseconds: 500);
+  static const restoreHintFor = Duration(seconds: 3);
+
   @override
   ConsumerState<ReaderPage> createState() => _ReaderPageState();
 }
 
+/// Everything the page needs before it can track and restore reading.
+class _Loaded {
+  const _Loaded(this.paragraphs, this.saved, this.priorActiveMs);
+
+  final List<String> paragraphs;
+  final ReadingProgress? saved;
+  final int priorActiveMs;
+}
+
 class _ReaderPageState extends ConsumerState<ReaderPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _headerHeight = 220.0;
 
-  late final Future<List<String>> _paragraphs = ref
-      .read(articleRepositoryProvider)
-      .paragraphs(widget.article.id);
+  /// Reading settings arrive later; positions already store the scale so a
+  /// changed font size restores by paragraph anchor instead of pixels.
+  static const _fontScale = 1.0;
+
+  late final String _userId = ref.read(currentUserIdProvider);
+  late final Future<_Loaded> _loaded = _load();
+
+  /// Read in initState: dispose() must not touch `ref`.
+  late final ProgressRevision _progressRevision;
 
   late final AnimationController _entrance = AnimationController(
     vsync: this,
@@ -44,13 +76,43 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     CurveTween(curve: Curves.easeOutCubic),
   );
 
+  final _scroll = ScrollController();
+  final _contentKey = GlobalKey();
+  List<GlobalKey> _paragraphKeys = const [];
+  final _progress = ValueNotifier<double>(0);
+
   final _transitionDone = Completer<void>();
   Animation<double>? _routeAnimation;
+
+  ReadingSession? _session;
+  Timer? _ticker;
+  late final AppLifecycleListener _lifecycle;
+  bool _foreground = true;
+
+  bool _restoreHint = false;
+  Timer? _restoreHintTimer;
+  bool _celebrating = false;
 
   @override
   void initState() {
     super.initState();
-    _startEntrance();
+    _progressRevision = ref.read(progressRevisionProvider.notifier);
+    _scroll.addListener(_onScroll);
+    _lifecycle = AppLifecycleListener(
+      onResume: () => _setForeground(true),
+      onInactive: () => _setForeground(false),
+    );
+    _start();
+  }
+
+  Future<_Loaded> _load() async {
+    final id = widget.article.id;
+    final (paragraphs, saved, prior) = await (
+      ref.read(articleRepositoryProvider).paragraphs(id),
+      ref.read(progressRepositoryProvider).get(_userId, id),
+      ref.read(readingTimeRepositoryProvider).totalActiveMs(_userId, id),
+    ).wait;
+    return _Loaded(paragraphs, saved, prior);
   }
 
   @override
@@ -83,17 +145,165 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     if (!_transitionDone.isCompleted) _transitionDone.complete();
   }
 
-  /// Plays once per page: a back swipe that is cancelled midway completes
-  /// the route animation again but must not replay the entrance.
-  Future<void> _startEntrance() async {
-    await Future.wait([_transitionDone.future, _paragraphs]);
+  /// Entrance plays once per page: a back swipe that is cancelled midway
+  /// completes the route animation again but must not replay it. After the
+  /// entrance the reader glides back to where it left off.
+  Future<void> _start() async {
+    final (loaded, _) = await (_loaded, _transitionDone.future).wait;
+    if (!mounted) return;
+    _session = ReadingSession(
+      userId: _userId,
+      articleId: widget.article.id,
+      wordCount: widget.article.wordCount,
+      sessionId: const Uuid().v4(),
+      progress: ref.read(progressRepositoryProvider),
+      time: ref.read(readingTimeRepositoryProvider),
+      priorActiveMs: loaded.priorActiveMs,
+      alreadyFinished: loaded.saved?.status == ReadingStatus.finished,
+      onFinished: _celebrate,
+    )..restoreMaxProgress(loaded.saved?.maxProgress ?? 0);
+    _ticker = Timer.periodic(ReaderPage.tickInterval, (_) => _tick());
+
     await Future<void>.delayed(ReaderPage.entranceDelay);
-    if (mounted) _entrance.forward();
+    if (!mounted) return;
+    await _entrance.forward();
+    if (!mounted) return;
+    // Record the first screen even without scrolling: a short article that
+    // fits on screen is fully seen without a single scroll event.
+    _onScroll();
+    if (loaded.saved != null) await _restore(loaded.saved!);
+  }
+
+  void _tick() {
+    final session = _session;
+    if (session == null) return;
+    final visible = ModalRoute.of(context)?.isCurrent ?? true;
+    session.setActive(visible && _foreground);
+    session.tick();
+  }
+
+  void _setForeground(bool foreground) {
+    _foreground = foreground;
+    // Flush right away: an inactive app may be killed without another tick.
+    if (!foreground) _session?.flush();
+  }
+
+  void _onScroll() {
+    final position = _currentPosition();
+    if (position == null) return;
+    _progress.value = position.progress;
+    _session?.onPosition(position);
+  }
+
+  /// Paragraph tops and heights in scroll-content coordinates.
+  List<(double top, double height)> _paragraphBoxes() {
+    final content = _contentKey.currentContext?.findRenderObject();
+    if (content is! RenderBox) return const [];
+    return [
+      for (final key in _paragraphKeys)
+        if (key.currentContext?.findRenderObject() case final RenderBox box)
+          (
+            box.localToGlobal(Offset.zero, ancestor: content).dy,
+            box.size.height,
+          ),
+    ];
+  }
+
+  ReadingPosition? _currentPosition() {
+    if (!_scroll.hasClients) return null;
+    final p = _scroll.position;
+    final offset = p.pixels;
+    final viewport = p.viewportDimension;
+    final content = p.maxScrollExtent + viewport;
+    // Share of the article that has been on screen; short articles that fit
+    // entirely count as fully seen.
+    final progress = content <= 0
+        ? 0.0
+        : ((offset + viewport) / content).clamp(0.0, 1.0);
+
+    var para = 0;
+    var delta = 0.0;
+    final boxes = _paragraphBoxes();
+    for (var i = 0; i < boxes.length; i++) {
+      final (top, height) = boxes[i];
+      if (top > offset) break;
+      para = i;
+      delta = height <= 0 ? 0 : ((offset - top) / height).clamp(0.0, 1.0);
+    }
+    return ReadingPosition(
+      scrollOffset: offset,
+      anchorPara: para,
+      anchorDelta: delta,
+      fontScale: _fontScale,
+      progress: progress.toDouble(),
+    );
+  }
+
+  Future<void> _restore(ReadingProgress saved) async {
+    if (!_scroll.hasClients) return;
+    final pos = saved.position;
+    var target = pos.scrollOffset;
+    if ((pos.fontScale - _fontScale).abs() > 0.001) {
+      final boxes = _paragraphBoxes();
+      if (pos.anchorPara < boxes.length) {
+        final (top, height) = boxes[pos.anchorPara];
+        target = top + pos.anchorDelta * height;
+      }
+    }
+    final p = _scroll.position;
+    target = target.clamp(0.0, p.maxScrollExtent);
+    if (target < ReaderPage.restoreMinOffset) return;
+
+    if (target - p.pixels > p.viewportDimension * 3) {
+      _scroll.jumpTo(target - p.viewportDimension);
+    }
+    setState(() => _restoreHint = true);
+    _restoreHintTimer = Timer(ReaderPage.restoreHintFor, () {
+      if (mounted) setState(() => _restoreHint = false);
+    });
+    await _scroll.animateTo(
+      target,
+      duration: ReaderPage.restoreGlide,
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  void _backToTop() {
+    _restoreHintTimer?.cancel();
+    setState(() => _restoreHint = false);
+    _scroll.animateTo(
+      0,
+      duration: ReaderPage.restoreGlide,
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  void _celebrate() {
+    if (!mounted) return;
+    HapticFeedback.mediumImpact();
+    Analytics.track('article_finish', {'article_id': widget.article.id});
+    setState(() => _celebrating = true);
   }
 
   @override
   void dispose() {
+    _ticker?.cancel();
+    _restoreHintTimer?.cancel();
+    _lifecycle.dispose();
     _routeAnimation?.removeStatusListener(_onRouteStatus);
+    final session = _session;
+    if (session != null) {
+      Analytics.track('read_duration', {
+        'article_id': widget.article.id,
+        'active_ms': session.activeMs,
+        'max_progress': session.maxProgress,
+      });
+      // Survives the widget: the write completes, then "continue reading"
+      // refreshes with the final position.
+      session.flush().whenComplete(_progressRevision.bump);
+    }
+    _scroll.dispose();
+    _progress.dispose();
     _entrance.dispose();
     super.dispose();
   }
@@ -101,62 +311,139 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   @override
   Widget build(BuildContext context) {
     final article = widget.article;
+    final topInset = MediaQuery.paddingOf(context).top;
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Stack(
-              children: [
-                SizedBox(
-                  height: _headerHeight + MediaQuery.paddingOf(context).top,
-                  child: CoverHero(
-                    article: article,
-                    surface: widget.surface,
-                    borderRadius: CoverHero.headerRadius,
-                  ),
-                ),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: IconButton.filledTonal(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const BackButtonIcon(),
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
+      body: Stack(
+        children: [
+          Listener(
+            onPointerDown: (_) => _session?.onInteraction(),
+            child: SingleChildScrollView(
+              controller: _scroll,
+              child: Column(
+                key: _contentKey,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: _headerHeight + topInset,
+                    child: CoverHero(
+                      article: article,
+                      surface: widget.surface,
+                      borderRadius: CoverHero.headerRadius,
                     ),
                   ),
-                ),
-              ],
-            ),
-            FadeTransition(
-              key: const Key('reader-body'),
-              opacity: _entranceCurve,
-              child: AnimatedBuilder(
-                animation: _entranceCurve,
-                builder: (context, child) => Transform.translate(
-                  offset: Offset(
-                    0,
-                    ReaderPage.entranceRise * (1 - _entranceCurve.value),
+                  FadeTransition(
+                    key: const Key('reader-body'),
+                    opacity: _entranceCurve,
+                    child: AnimatedBuilder(
+                      animation: _entranceCurve,
+                      builder: (context, child) => Transform.translate(
+                        offset: Offset(
+                          0,
+                          ReaderPage.entranceRise * (1 - _entranceCurve.value),
+                        ),
+                        child: child,
+                      ),
+                      child: FutureBuilder(
+                        future: _loaded,
+                        builder: (context, snap) {
+                          final paragraphs =
+                              snap.data?.paragraphs ?? const <String>[];
+                          if (_paragraphKeys.length != paragraphs.length) {
+                            _paragraphKeys = [
+                              for (final _ in paragraphs) GlobalKey(),
+                            ];
+                          }
+                          return _Body(
+                            article: article,
+                            paragraphs: paragraphs,
+                            paragraphKeys: _paragraphKeys,
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                  child: child,
-                ),
-                child: _Body(article: article, paragraphs: _paragraphs),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          // Status-bar scrim: clear over the cover, fades in once text would
+          // scroll under the system icons.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topInset,
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _scroll,
+                builder: (context, _) {
+                  final offset = _scroll.hasClients ? _scroll.offset : 0.0;
+                  final t = ((offset - _headerHeight + 40) / 40).clamp(
+                    0.0,
+                    1.0,
+                  );
+                  return ColoredBox(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: t),
+                  );
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            top: topInset,
+            left: 0,
+            right: 0,
+            child: ReadingProgressBar(progress: _progress),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: IconButton.filledTonal(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const BackButtonIcon(),
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 24,
+            child: SafeArea(
+              child: Center(
+                child: _RestoreHint(
+                  visible: _restoreHint,
+                  progress: _progress,
+                  onBackToTop: _backToTop,
+                ),
+              ),
+            ),
+          ),
+          if (_celebrating)
+            Positioned.fill(
+              child: CelebrationBurst(
+                label: '读完啦',
+                onDone: () => setState(() => _celebrating = false),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.article, required this.paragraphs});
+  const _Body({
+    required this.article,
+    required this.paragraphs,
+    required this.paragraphKeys,
+  });
 
   final ArticleSummary article;
-  final Future<List<String>> paragraphs;
+  final List<String> paragraphs;
+  final List<GlobalKey> paragraphKeys;
 
   @override
   Widget build(BuildContext context) {
@@ -175,29 +462,81 @@ class _Body extends StatelessWidget {
             style: theme.textTheme.labelMedium,
           ),
         ),
-        FutureBuilder(
-          future: paragraphs,
-          builder: (context, snap) {
-            final list = snap.data ?? const <String>[];
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 48),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final p in list)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(
-                        p,
-                        style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (i, p) in paragraphs.indexed)
+                Padding(
+                  key: paragraphKeys[i],
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    p,
+                    style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// "Back where you left off" pill shown after restoring a position.
+class _RestoreHint extends StatelessWidget {
+  const _RestoreHint({
+    required this.visible,
+    required this.progress,
+    required this.onBackToTop,
+  });
+
+  final bool visible;
+  final ValueListenable<double> progress;
+  final VoidCallback onBackToTop;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return IgnorePointer(
+      ignoring: !visible,
+      child: AnimatedSlide(
+        offset: visible ? Offset.zero : const Offset(0, 0.6),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        child: AnimatedOpacity(
+          opacity: visible ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: Material(
+            color: scheme.inverseSurface,
+            shape: const StadiumBorder(),
+            elevation: 3,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16, right: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ValueListenableBuilder(
+                    valueListenable: progress,
+                    builder: (context, v, _) => Text(
+                      '已回到上次位置 · ${(v * 100).round()}%',
+                      style: TextStyle(color: scheme.onInverseSurface),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: onBackToTop,
+                    child: Text(
+                      '回到开头',
+                      style: TextStyle(color: scheme.inversePrimary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/fakes.dart';
+
 /// Repository whose reads complete only when the test says so.
 class _ControlledRepo implements ArticleRepository {
   final pending = <Completer<List<ArticleSummary>>>[];
@@ -55,6 +57,7 @@ Future<_ControlledRepo> _pumpFeed(WidgetTester tester) async {
         prefsProvider.overrideWithValue(prefs),
         articleRepositoryProvider.overrideWithValue(repo),
         onlineProvider.overrideWith((ref) => Stream.value(true)),
+        progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
       ],
       child: const MaterialApp(
         home: Scaffold(body: ArticleFeed(category: null)),
