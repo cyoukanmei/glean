@@ -4,7 +4,7 @@
 /// new database and an upgraded one always go through the same statements.
 library;
 
-const int kSchemaVersion = 3;
+const int kSchemaVersion = 5;
 
 const List<String> schemaV1 = [
   '''
@@ -188,5 +188,28 @@ const Map<int, List<String>> migrations = {
     'ALTER TABLE users ADD COLUMN avatar TEXT',
     'ALTER TABLE users ADD COLUMN bio TEXT',
     'ALTER TABLE users ADD COLUMN daily_goal_min INTEGER NOT NULL DEFAULT 15',
+  ],
+  // v4: per-article marks for 我的 → 收藏 / 稍后再读. Soft-deleted and
+  // versioned like vocab, so they sync with the same last-write-wins rule.
+  4: [
+    '''
+  CREATE TABLE article_marks (
+    user_id TEXT NOT NULL,
+    article_id TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('favorite', 'later')),
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    deleted_at INTEGER,
+    version INTEGER NOT NULL DEFAULT 0,
+    dirty INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (user_id, article_id, kind)
+  ) WITHOUT ROWID''',
+    'CREATE INDEX idx_marks_list '
+        'ON article_marks(user_id, kind, deleted_at, created_at DESC)',
+  ],
+  // v5: community stats shown on list rows (from the seed / server).
+  5: [
+    'ALTER TABLE articles ADD COLUMN readers INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE articles ADD COLUMN favorites INTEGER NOT NULL DEFAULT 0',
   ],
 };

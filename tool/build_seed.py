@@ -14,6 +14,7 @@ the subset of entries that the articles actually use is written out.
 
 import argparse
 import csv
+import hashlib
 import json
 import re
 import sys
@@ -22,7 +23,8 @@ from pathlib import Path
 
 # v2: dictionary also covers the remote pool.
 # v3: chapter 1 of ten classic novels (Project Gutenberg), with authors.
-SEED_VERSION = 3
+# v4: community stats (readers / favorites) per article.
+SEED_VERSION = 4
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content" / "articles"
 REMOTE = ROOT / "content" / "remote"
@@ -48,6 +50,21 @@ def load_articles(folder, ids):
     return articles
 
 
+def community_stats(a):
+    """Mock "how many people read / starred this", stable per article id.
+
+    Easier levels and classics draw more readers; 6-16 % of readers star it.
+    Stands in for numbers a real backend would aggregate.
+    """
+    h = int(hashlib.sha1(a["id"].encode()).hexdigest()[:8], 16)
+    base = {1: 5200, 2: 3100, 3: 1700}[a["level"]]
+    if a["category"] == "classic":
+        base = int(base * 1.8)
+    readers = int(base * (0.45 + (h % 1000) / 1000))
+    favorites = int(readers * (0.06 + ((h >> 10) % 100) / 1000))
+    return readers, favorites
+
+
 def build_articles(articles, cover_offset=0):
     out = []
     for i, a in enumerate(sorted(articles, key=lambda a: a["id"])):
@@ -63,6 +80,8 @@ def build_articles(articles, cover_offset=0):
             "word_count": sum(len(WORD_RE.findall(p)) for p in a["paragraphs"]),
             "content_version": a.get("content_version", 1),
             "author": a.get("author"),
+            "readers": community_stats(a)[0],
+            "favorites": community_stats(a)[1],
             "paragraphs": a["paragraphs"],
         }
         if "published_at" in a:

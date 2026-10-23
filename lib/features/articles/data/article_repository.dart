@@ -15,6 +15,8 @@ class ArticleSummary {
     required this.wordCount,
     required this.publishedAt,
     this.author,
+    this.readers = 0,
+    this.favorites = 0,
   });
 
   factory ArticleSummary.fromRow(Map<String, Object?> row) => ArticleSummary(
@@ -27,6 +29,8 @@ class ArticleSummary {
     wordCount: row['word_count']! as int,
     publishedAt: row['published_at']! as int,
     author: row['author'] as String?,
+    readers: row['readers'] as int? ?? 0,
+    favorites: row['favorites'] as int? ?? 0,
   );
 
   final String id;
@@ -41,8 +45,43 @@ class ArticleSummary {
   /// Set for classic novels.
   final String? author;
 
+  /// How many people read / starred it (community stats from the server;
+  /// mock numbers from the seed here).
+  final int readers;
+  final int favorites;
+
   /// Keyset position of this article in the feed order.
   FeedCursor get cursor => FeedCursor(publishedAt, id);
+}
+
+/// One search result: where the query matched and a snippet around it.
+class SearchHit {
+  const SearchHit({
+    required this.article,
+    required this.inTitle,
+    required this.count,
+    this.paragraph,
+    this.matchStart,
+    this.snippet,
+    this.snippetOffset = 0,
+  });
+
+  final ArticleSummary article;
+  final bool inTitle;
+
+  /// Occurrences in the body.
+  final int count;
+
+  /// First body match: paragraph index and offset in that paragraph.
+  final int? paragraph;
+  final int? matchStart;
+
+  /// Text around the first body match (with … where cut).
+  final String? snippet;
+
+  /// Offset of [snippet]'s first character in the paragraph, minus the
+  /// leading ellipsis if any.
+  final int snippetOffset;
 }
 
 /// Position after which the next feed page starts.
@@ -76,6 +115,8 @@ class ArticleRepository {
     'word_count',
     'published_at',
     'author',
+    'readers',
+    'favorites',
   ];
 
   /// One feed page, newest first (ties broken by id).
@@ -119,6 +160,82 @@ class ArticleRepository {
       limit: limit,
     );
     return rows.map(ArticleSummary.fromRow).toList();
+  }
+
+  /// Full-text search over title, summary and body, case-insensitive.
+  ///
+  /// SQLite narrows the candidates (LIKE on the stored text); ranking and
+  /// snippets are done here: title matches first, then by how often the
+  /// body mentions the query, then newest.
+  Future<List<SearchHit>> search(String query, {int limit = 30}) async {
+    await _ready;
+    final q = query.trim();
+    if (q.isEmpty) return const [];
+    final like = '%${q.replaceAll('%', r'\%').replaceAll('_', r'\_')}%';
+    final rows = await _db.query(
+      'articles',
+      columns: [..._summaryColumns, 'body'],
+      where:
+          r"title LIKE ? ESCAPE '\' OR summary LIKE ? ESCAPE '\' "
+          r"OR body LIKE ? ESCAPE '\'",
+      whereArgs: [like, like, like],
+    );
+    final needle = q.toLowerCase();
+    final hits = <SearchHit>[];
+    for (final row in rows) {
+      final article = ArticleSummary.fromRow(row);
+      final paragraphs = (jsonDecode(row['body']! as String) as List)
+          .cast<String>();
+      var count = 0;
+      int? para;
+      int? at;
+      for (final (i, p) in paragraphs.indexed) {
+        final lower = p.toLowerCase();
+        var from = lower.indexOf(needle);
+        if (from >= 0 && para == null) {
+          para = i;
+          at = from;
+        }
+        while (from >= 0) {
+          count++;
+          from = lower.indexOf(needle, from + needle.length);
+        }
+      }
+      final inTitle = article.title.toLowerCase().contains(needle);
+      if (!inTitle &&
+          count == 0 &&
+          !article.summary.toLowerCase().contains(needle)) {
+        continue; // matched only JSON escaping in the stored body
+      }
+      String? snippet;
+      var offset = 0;
+      if (para != null) {
+        final p = paragraphs[para];
+        final start = (at! - 40).clamp(0, p.length);
+        final end = (at + needle.length + 60).clamp(0, p.length);
+        snippet =
+            '${start > 0 ? '…' : ''}${p.substring(start, end)}'
+            '${end < p.length ? '…' : ''}';
+        offset = start - (start > 0 ? 1 : 0);
+      }
+      hits.add(
+        SearchHit(
+          article: article,
+          inTitle: inTitle,
+          count: count,
+          paragraph: para,
+          matchStart: at,
+          snippet: snippet,
+          snippetOffset: offset,
+        ),
+      );
+    }
+    hits.sort((a, b) {
+      if (a.inTitle != b.inTitle) return a.inTitle ? -1 : 1;
+      if (a.count != b.count) return b.count.compareTo(a.count);
+      return b.article.publishedAt.compareTo(a.article.publishedAt);
+    });
+    return hits.take(limit).toList();
   }
 
   /// The article next to [article] in feed order: the newer one (shown above
@@ -195,8 +312,9 @@ class ArticleRepository {
       batch.rawInsert(
         '''
         INSERT INTO articles (id, title, summary, cover, category, level,
-          body, word_count, published_at, content_version)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          body, word_count, published_at, content_version, readers,
+          favorites)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           title = excluded.title, summary = excluded.summary,
           cover = excluded.cover, category = excluded.category,
@@ -215,6 +333,8 @@ class ArticleRepository {
           a['word_count'],
           a['published_at'],
           a['content_version'] ?? 1,
+          a['readers'] ?? 0,
+          a['favorites'] ?? 0,
         ],
       );
     }

@@ -1,3 +1,4 @@
+import 'package:glean/features/library/data/marks_repository.dart';
 import 'package:glean/features/reader/data/progress_repository.dart';
 import 'package:glean/features/reader/data/reading_time_repository.dart';
 import 'package:glean/features/vocab/data/dictionary_repository.dart';
@@ -65,6 +66,12 @@ class FakeVocabRepository implements VocabRepository {
 
   @override
   Future<void> restore(String id) async => deleted.remove(id);
+
+  /// id -> status set through [setStatus].
+  final statuses = <String, int>{};
+
+  @override
+  Future<void> setStatus(String id, int status) async => statuses[id] = status;
 
   @override
   Future<bool> isCollected(String userId, String lemma) async =>
@@ -176,3 +183,26 @@ ReadingProgress progressAt(
   lastReadAt: 0,
   updatedAt: 0,
 );
+
+/// In-memory 收藏 / 稍后再读.
+class FakeMarksRepository implements MarksRepository {
+  final marks = <(String, MarkKind)>{};
+
+  @override
+  Future<void> set(
+    String userId,
+    String articleId,
+    MarkKind kind, {
+    required bool on,
+  }) async =>
+      on ? marks.add((articleId, kind)) : marks.remove((articleId, kind));
+
+  @override
+  Future<Set<MarkKind>> of(String userId, String articleId) async => {
+    for (final (id, kind) in marks)
+      if (id == articleId) kind,
+  };
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}

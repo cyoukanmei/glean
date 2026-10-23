@@ -89,6 +89,32 @@ void main() {
     },
   );
 
+  test('community stats refresh on every seed version', () async {
+    final db = await openTestDb();
+    SeedBundle seed(int version, int readers) => SeedBundle(
+      version: version,
+      articles: [
+        {..._article(contentVersion: 1, title: 't'), 'readers': readers},
+      ],
+      dictEntries: const [],
+      wordForms: const {},
+    );
+    await SeedImporter.importIfNeeded(db, seed(1, 100));
+    await SeedImporter.importIfNeeded(db, seed(2, 250));
+    final row = (await db.query('articles')).single;
+    expect(row['readers'], 250, reason: 'same content_version, new stats');
+    expect(row['favorites'], 0);
+  });
+
+  test('every seed article carries readers and favorites', () async {
+    final db = await openTestDb();
+    await SeedImporter.importIfNeeded(db, realSeed);
+    final zero = await db.rawQuery(
+      'SELECT COUNT(*) AS n FROM articles WHERE readers = 0 OR favorites = 0',
+    );
+    expect(zero.single['n'], 0);
+  });
+
   test('a failed import rolls back completely', () async {
     final db = await openTestDb();
     final broken = SeedBundle(

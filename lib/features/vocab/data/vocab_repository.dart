@@ -189,4 +189,23 @@ class VocabRepository {
     );
     return rows.single['n']! as int;
   }
+
+  /// Learning status after a review: [VocabStatus.fresh] .. [VocabStatus.mastered].
+  Future<void> setStatus(String id, int status) {
+    final now = _clock();
+    return _db.rawUpdate(
+      'UPDATE vocab SET status = ?, dirty = 1, updated_at = ? '
+      'WHERE id = ? AND status != ?',
+      [status, now, id, status],
+    );
+  }
+}
+
+/// Learning states of a saved word.
+abstract final class VocabStatus {
+  static const fresh = 0;
+  static const known = 1;
+  static const mastered = 2;
+
+  static const labels = {fresh: '新词', known: '认识', mastered: '已掌握'};
 }

@@ -115,4 +115,22 @@ void main() {
     expect(await repo.countFromArticle(_user, 'tech-1-a'), 1);
     expect(await repo.countFromArticle('someone-else', 'tech-1-a'), 0);
   });
+
+  test('setStatus records the review and marks the word for sync', () async {
+    final db = await openTestDb();
+    final repo = VocabRepository(db, clock: FakeClock().call);
+    await _collect(repo);
+    final item = (await repo.list(_user)).single;
+    await db.update('vocab', {'dirty': 0});
+
+    await repo.setStatus(item.id, VocabStatus.mastered);
+    final row = (await db.query('vocab')).single;
+    expect(row['status'], VocabStatus.mastered);
+    expect(row['dirty'], 1);
+    expect(row['updated_at'], greaterThan(item.createdAt));
+
+    await db.update('vocab', {'dirty': 0});
+    await repo.setStatus(item.id, VocabStatus.mastered);
+    expect((await db.query('vocab')).single['dirty'], 0, reason: 'no-op');
+  });
 }

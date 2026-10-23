@@ -80,7 +80,12 @@ class AuthRepository {
   /// the first account that logs in on the device.
   static const guestId = 'guest';
 
-  static const _userTables = ['reading_progress', 'reading_segments', 'vocab'];
+  static const _userTables = [
+    'reading_progress',
+    'reading_segments',
+    'vocab',
+    'article_marks',
+  ];
 
   static final _usernamePattern = RegExp(r'^[A-Za-z0-9_]{3,20}$');
 

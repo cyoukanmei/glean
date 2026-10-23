@@ -52,8 +52,9 @@ abstract final class SeedImporter {
         batch.rawInsert(
           '''
           INSERT INTO articles (id, title, summary, cover, category, level,
-            body, word_count, published_at, content_version, author)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            body, word_count, published_at, content_version, author,
+            readers, favorites)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             title = excluded.title, summary = excluded.summary,
             cover = excluded.cover, category = excluded.category,
@@ -75,7 +76,14 @@ abstract final class SeedImporter {
             a['published_at'],
             a['content_version'] ?? 1,
             a['author'],
+            a['readers'] ?? 0,
+            a['favorites'] ?? 0,
           ],
+        );
+        // Stats change without a content change, so they always refresh.
+        batch.rawUpdate(
+          'UPDATE articles SET readers = ?, favorites = ? WHERE id = ?',
+          [a['readers'] ?? 0, a['favorites'] ?? 0, a['id']],
         );
       }
       for (final e in seed.dictEntries) {

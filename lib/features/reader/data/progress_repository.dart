@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../../../core/clock.dart';
+import '../../articles/data/article_repository.dart';
 
 class ReadingStatus {
   static const unread = 0;
@@ -159,6 +160,27 @@ class ProgressRepository {
     if (rows.isEmpty) return null;
     final row = rows.single;
     return (row['article_id']! as String, ReadingProgress.fromRow(row));
+  }
+
+  /// Reading history: every article this user opened, most recent first.
+  Future<List<(ArticleSummary, ReadingProgress)>> history(
+    String userId, {
+    int limit = 200,
+  }) async {
+    final rows = await _db.rawQuery(
+      '''
+      SELECT p.*, a.id, a.title, a.summary, a.cover, a.category, a.level,
+        a.word_count, a.published_at, a.author, a.readers, a.favorites
+      FROM reading_progress p JOIN articles a ON a.id = p.article_id
+      WHERE p.user_id = ?
+      ORDER BY p.last_read_at DESC
+      LIMIT ?''',
+      [userId, limit],
+    );
+    return [
+      for (final r in rows)
+        (ArticleSummary.fromRow(r), ReadingProgress.fromRow(r)),
+    ];
   }
 
   /// Furthest progress and status per article, for list cards.
