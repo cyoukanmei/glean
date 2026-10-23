@@ -7,8 +7,10 @@ import 'cover_hero.dart';
 import 'labels.dart';
 
 /// A book on a shelf grid: a 3:4 cover with a soft drop shadow and a spine
-/// shade, a corner badge (progress, 读完), a gold star when starred, then
-/// the title and a short meta line.
+/// shade. On the cover: the category (coloured tag, top left), a gold star
+/// when starred (top right), and over a bottom scrim the level with a
+/// progress badge (75%, 读完). Under it the title and a meta line: reading
+/// time and the author (classics) or how many people read it.
 class BookTile extends StatelessWidget {
   const BookTile({
     super.key,
@@ -34,10 +36,19 @@ class BookTile extends StatelessWidget {
   final bool badgeAccent;
   final bool starred;
 
-  /// Defaults to "名著 · 6 分钟".
+  /// Defaults to "3 分钟 · 5215 人在读" (author instead for classics).
   final String? meta;
 
   static const radius = 6.0;
+
+  /// Tag colour per category.
+  static const categoryColors = {
+    'classic': Color(0xFF8C2F39),
+    'tech': Color(0xFF2F6FB5),
+    'business': Color(0xFFB7791F),
+    'culture': Color(0xFF7A4FB0),
+    'daily': Color(0xFF2E8A62),
+  };
 
   /// Height of the text under the cover, for grids' main-axis extent.
   static double textHeight(BuildContext context) =>
@@ -92,9 +103,72 @@ class BookTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Bottom scrim so the white text reads on any picture.
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 40,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(radius),
+                          ),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0x00000000), Color(0x99000000)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    top: 7,
+                    child: Container(
+                      key: const Key('book-category'),
+                      padding: const EdgeInsets.fromLTRB(5, 1.5, 6, 1.5),
+                      decoration: BoxDecoration(
+                        color:
+                            categoryColors[article.category] ??
+                            GleanColors.tint,
+                        borderRadius: const BorderRadius.horizontal(
+                          right: Radius.circular(6),
+                        ),
+                      ),
+                      child: Text(
+                        categoryLabels[article.category] ?? article.category,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 6,
+                    bottom: 5,
+                    right: badge == null ? 6 : 44,
+                    child: Text(
+                      levelLabels[article.level] ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(color: Color(0x66000000), blurRadius: 4),
+                        ],
+                      ),
+                    ),
+                  ),
                   if (starred)
                     Positioned(
-                      left: 6,
+                      right: 6,
                       top: 6,
                       child: Container(
                         key: const Key('book-star'),
@@ -155,8 +229,13 @@ class BookTile extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             meta ??
-                '${categoryLabels[article.category] ?? article.category}'
-                    ' · ${readingMinutes(article.wordCount)} 分钟',
+                [
+                  '${readingMinutes(article.wordCount)} 分钟',
+                  if (article.author case final a?)
+                    a
+                  else if (article.readers > 0)
+                    '${compactCount(article.readers)} 人在读',
+                ].join(' · '),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 11, color: GleanColors.label2),

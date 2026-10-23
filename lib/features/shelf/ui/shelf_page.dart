@@ -285,7 +285,6 @@ class _ShelfPageState extends ConsumerState<ShelfPage>
           return BookTile(
             article: a,
             surface: '${ShelfPage.surface}-popular',
-            meta: '${a.readers} 人在读',
             onTap: () => openReader(context, a, '${ShelfPage.surface}-popular'),
           );
         },
