@@ -6,6 +6,8 @@ import 'package:sqflite/sqflite.dart';
 
 import '../features/articles/data/article_remote.dart';
 import '../features/articles/data/article_repository.dart';
+import '../features/auth/application/auth.dart';
+import '../features/auth/data/auth_repository.dart';
 import '../features/reader/data/progress_repository.dart';
 import '../features/reader/data/reading_time_repository.dart';
 import '../features/vocab/data/dictionary_repository.dart';
@@ -33,9 +35,15 @@ final articleRepositoryProvider = Provider(
   ),
 );
 
-/// Signed-in user. A fixed local id until login lands; every per-user table
-/// already keys on it, so switching to real accounts needs no migration.
-final currentUserIdProvider = Provider<String>((ref) => 'guest');
+final authRepositoryProvider = Provider(
+  (ref) => AuthRepository(ref.watch(databaseProvider)),
+);
+
+/// Id every per-user table is keyed on: the signed-in account, or the local
+/// guest id while signed out.
+final currentUserIdProvider = Provider<String>(
+  (ref) => ref.watch(authProvider)?.id ?? AuthRepository.guestId,
+);
 
 final progressRepositoryProvider = Provider(
   (ref) => ProgressRepository(ref.watch(databaseProvider)),

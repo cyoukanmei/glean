@@ -10,8 +10,10 @@ import 'app/providers.dart';
 import 'core/db/app_database.dart';
 import 'core/db/seed_importer.dart';
 import 'core/navigation/swipe_back_route.dart';
-import 'app/home_shell.dart';
+import 'app/app_root.dart';
 import 'core/design/glean_theme.dart';
+import 'features/auth/application/auth.dart';
+import 'features/auth/data/auth_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,7 @@ Future<void> main() async {
   // Not awaited: the UI starts right away and reads wait on this, so the
   // first launch shows the list skeleton while the seed is imported.
   final seedReady = _importSeed(db);
+  final user = await _restoreSession(db, prefs);
 
   runApp(
     ProviderScope(
@@ -30,6 +33,7 @@ Future<void> main() async {
         databaseProvider.overrideWithValue(db),
         prefsProvider.overrideWithValue(prefs),
         seedReadyProvider.overrideWithValue(seedReady),
+        initialUserProvider.overrideWithValue(user),
       ],
       child: const GleanApp(),
     ),
@@ -58,6 +62,16 @@ Future<void> _importSeed(Database db) async {
   debugPrint('[seed] imported=$imported in ${sw.elapsedMilliseconds}ms');
 }
 
+/// The account behind the saved token, if it is still valid. An unknown or
+/// expired token is dropped, so the app opens on the login page.
+Future<AuthUser?> _restoreSession(Database db, SharedPreferences prefs) async {
+  final token = prefs.getString(AuthNotifier.tokenKey);
+  if (token == null) return null;
+  final user = await AuthRepository(db).userForToken(token);
+  if (user == null) await prefs.remove(AuthNotifier.tokenKey);
+  return user;
+}
+
 class GleanApp extends StatelessWidget {
   const GleanApp({super.key});
 
@@ -72,7 +86,7 @@ class GleanApp extends StatelessWidget {
       // the parallax secondary animation while the top page slides.
       onGenerateRoute: (settings) => SwipeBackPageRoute<void>(
         settings: settings,
-        builder: (_) => const HomeShell(),
+        builder: (_) => const AppRoot(),
       ),
     );
   }
