@@ -6,6 +6,7 @@ import 'package:glean/core/widgets/stagger_in.dart';
 import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:glean/features/articles/ui/article_card.dart';
 import 'package:glean/features/articles/ui/article_feed.dart';
+import 'package:glean/features/reader/data/progress_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,6 +23,7 @@ class _ControlledRepo implements ArticleRepository {
   Future<List<ArticleSummary>> page({
     String? category,
     Set<int> levels = const {},
+    String query = '',
     FeedCursor? after,
     int limit = 10,
   }) {
@@ -48,7 +50,10 @@ List<ArticleSummary> _articles(int n) => [
     ),
 ];
 
-Future<_ControlledRepo> _pumpFeed(WidgetTester tester) async {
+Future<_ControlledRepo> _pumpFeed(
+  WidgetTester tester, {
+  FakeProgressRepository? progress,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final repo = _ControlledRepo();
@@ -58,7 +63,9 @@ Future<_ControlledRepo> _pumpFeed(WidgetTester tester) async {
         prefsProvider.overrideWithValue(prefs),
         articleRepositoryProvider.overrideWithValue(repo),
         onlineProvider.overrideWith((ref) => Stream.value(true)),
-        progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
+        progressRepositoryProvider.overrideWithValue(
+          progress ?? FakeProgressRepository(),
+        ),
       ],
       child: const MaterialApp(
         home: Scaffold(body: ArticleFeed(category: null)),
@@ -130,10 +137,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 130));
 
     expect(find.byType(Shimmer), findsOneWidget);
-    final opacity = tester.widget<AnimatedOpacity>(
+    final opacity = tester.widget<SliverAnimatedOpacity>(
       find.ancestor(
         of: find.byType(Shimmer),
-        matching: find.byType(AnimatedOpacity),
+        matching: find.byType(SliverAnimatedOpacity),
       ),
     );
     expect(opacity.opacity, 1);
@@ -173,5 +180,17 @@ void main() {
     expect(opacityOf(0), 1);
     expect(opacityOf(4), 1);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('cards show saved progress and finished state', (tester) async {
+    final progress = FakeProgressRepository()
+      ..cards['a0'] = (1.0, ReadingStatus.finished)
+      ..cards['a1'] = (0.4, ReadingStatus.reading);
+    final repo = await _pumpFeed(tester, progress: progress);
+    repo.pending.single.complete(_articles(3));
+    await tester.pumpAndSettle();
+
+    expect(find.text('已读完 ✓'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 }

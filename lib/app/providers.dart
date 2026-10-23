@@ -105,8 +105,16 @@ class LevelFilter extends Notifier<Set<int>> {
     final next = {...state};
     if (!next.remove(level)) next.add(level);
     if (next.isEmpty) return;
-    state = next;
-    ref.read(prefsProvider).setStringList(_key, [for (final l in next) '$l']);
+    _set(next);
+  }
+
+  /// Single choice from the segmented control; null means every level.
+  void select(int? level) => _set(level == null ? all : {level});
+
+  void _set(Set<int> levels) {
+    if (levels.length == state.length && levels.containsAll(state)) return;
+    state = levels;
+    ref.read(prefsProvider).setStringList(_key, [for (final l in levels) '$l']);
   }
 }
 

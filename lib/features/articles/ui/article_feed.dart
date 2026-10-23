@@ -1,25 +1,46 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
+import '../../../core/design/glean_colors.dart';
 import '../../../core/widgets/stagger_in.dart';
 import '../../../core/widgets/state_illustration.dart';
+import '../../reader/data/progress_repository.dart';
 import '../../reader/ui/continue_reading_card.dart';
 import '../../reader/ui/open_reader.dart';
 import '../data/article_repository.dart';
 import 'article_card.dart';
 
-/// One category tab: keyset-paged list with skeleton, stagger-in,
-/// pull-to-refresh and load-more.
+/// The home feed: one bouncing scroll view with the page's [header] on top,
+/// then (on 推荐) the continue-reading card, a section header and the
+/// keyset-paged article group with skeleton, stagger-in, pull-to-refresh and
+/// load-more.
+///
+/// Changing [category], [query] or the level filter fades the list out and
+/// reloads it in place; the header stays put.
 class ArticleFeed extends ConsumerStatefulWidget {
-  const ArticleFeed({super.key, required this.category});
+  const ArticleFeed({
+    super.key,
+    required this.category,
+    this.query = '',
+    this.header = const [],
+    this.sectionHeader,
+  });
 
   /// null = all categories.
   final String? category;
+  final String query;
+
+  /// Box widgets laid out above the feed (large title, search, tabs).
+  final List<Widget> header;
+
+  /// Shown between the continue card and the list.
+  final Widget? sectionHeader;
 
   String get surface => category ?? 'all';
 
@@ -28,7 +49,7 @@ class ArticleFeed extends ConsumerStatefulWidget {
 }
 
 class _ArticleFeedState extends ConsumerState<ArticleFeed>
-    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   static const pageSize = 10;
 
   /// Local reads are usually far below this, so the skeleton only shows when
@@ -47,6 +68,7 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
   );
 
   List<ArticleSummary> _items = const [];
+  Map<String, CardProgress> _progress = const {};
   bool _loaded = false;
   bool _skeleton = false;
   bool _failed = false;
@@ -62,12 +84,17 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
   int _generation = 0;
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   void initState() {
     super.initState();
     _reload();
+  }
+
+  @override
+  void didUpdateWidget(ArticleFeed old) {
+    super.didUpdateWidget(old);
+    if (old.category != widget.category || old.query != widget.query) {
+      _reload(fade: true);
+    }
   }
 
   @override
@@ -85,9 +112,25 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
         .page(
           category: widget.category,
           levels: ref.read(levelFilterProvider),
+          query: widget.query,
           after: after,
           limit: pageSize,
         );
+  }
+
+  Future<Map<String, CardProgress>> _fetchProgress(
+    List<ArticleSummary> items,
+  ) async {
+    final rows = await ref
+        .read(progressRepositoryProvider)
+        .forArticles(ref.read(currentUserIdProvider), items.map((a) => a.id));
+    return {
+      for (final MapEntry(:key, value: (max, status)) in rows.entries)
+        key: CardProgress(
+          maxProgress: max,
+          finished: status == ReadingStatus.finished,
+        ),
+    };
   }
 
   Future<void> _reload({bool fade = false}) async {
@@ -112,8 +155,10 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
     });
 
     List<ArticleSummary>? page;
+    var progress = const <String, CardProgress>{};
     try {
       page = await _fetch();
+      progress = await _fetchProgress(page);
     } catch (e, st) {
       debugPrint('[feed] load failed: $e\n$st');
     }
@@ -128,10 +173,18 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
       _loadingMore = false;
       _failed = page == null;
       _items = page ?? const [];
+      _progress = progress;
       _hasMore = (page?.length ?? 0) == pageSize;
       _staggered = min(_items.length, StaggerIn.maxItems);
     });
     _stagger.forward(from: 0);
+  }
+
+  Future<void> _reloadProgress() async {
+    final gen = _generation;
+    final progress = await _fetchProgress(_items);
+    if (!mounted || gen != _generation) return;
+    setState(() => _progress = progress);
   }
 
   Future<void> _loadMore() async {
@@ -139,8 +192,10 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
     final gen = _generation;
     setState(() => _loadingMore = true);
     final List<ArticleSummary> page;
+    final Map<String, CardProgress> progress;
     try {
       page = await _fetch(after: _items.last.cursor);
+      progress = await _fetchProgress(page);
     } catch (e) {
       debugPrint('[feed] load more failed: $e');
       if (mounted && gen == _generation) setState(() => _loadingMore = false);
@@ -149,6 +204,7 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
     if (!mounted || gen != _generation) return;
     setState(() {
       _items = [..._items, ...page];
+      _progress = {..._progress, ...progress};
       _hasMore = page.length == pageSize;
       _loadingMore = false;
     });
@@ -190,66 +246,136 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     ref.listen(levelFilterProvider, (_, _) => _reload(fade: true));
     ref.listen(feedRevisionProvider, (_, _) {
       if (!_refreshing) _reload();
     });
+    ref.listen(progressRevisionProvider, (_, _) => _reloadProgress());
 
-    // 推荐 (all categories) opens with the "continue reading" card.
-    final showContinue = widget.category == null;
-    final Widget body;
+    final offline = ref.watch(onlineProvider).value == false;
+    // 推荐 (all categories, no search) opens with the continue-reading card.
+    final showContinue = widget.category == null && widget.query.isEmpty;
+
+    final Widget content;
     if (_skeleton) {
-      body = const ArticleListSkeleton();
+      content = const SliverToBoxAdapter(child: ArticleListSkeleton());
     } else if (!_loaded) {
-      body = const SizedBox.expand();
+      content = const SliverToBoxAdapter();
     } else if (_items.isEmpty) {
-      final offline = ref.watch(onlineProvider).value == false;
-      body = _Message(
-        StateIllustration(
-          asset: offline
-              ? StateIllustration.offline
-              : StateIllustration.emptyArticles,
-          title: _failed ? '加载失败' : '没有符合条件的文章',
-          message: _failed ? '下拉重试' : '换个难度试试，或下拉看看有没有新文章',
+      content = SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: Center(
+            child: StateIllustration(
+              asset: offline
+                  ? StateIllustration.offline
+                  : StateIllustration.emptyArticles,
+              title: _failed
+                  ? '加载失败'
+                  : widget.query.isEmpty
+                  ? '没有符合条件的文章'
+                  : '没有找到相关文章',
+              message: _failed ? '下拉重试' : '换个难度或关键词试试，或下拉看看有没有新文章',
+            ),
+          ),
         ),
       );
     } else {
-      body = NotificationListener<ScrollNotification>(
-        onNotification: _onScroll,
-        child: ListView.builder(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: _items.length + 1 + (showContinue ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (showContinue) {
-              if (index == 0) return const ContinueReadingCard();
-              index--;
-            }
-            final i = index;
-            if (i == _items.length) {
-              return _Footer(loading: _loadingMore, end: !_hasMore);
-            }
-            final card = ArticleCard(
-              article: _items[i],
+      content = SliverList.builder(
+        itemCount: _items.length,
+        itemBuilder: (context, i) {
+          final article = _items[i];
+          final row = GroupedRow(
+            first: i == 0,
+            last: i == _items.length - 1,
+            child: ArticleCard(
+              article: article,
               surface: widget.surface,
-              onTap: () => openReader(context, _items[i], widget.surface),
-            );
-            return i < _staggered
-                ? StaggerIn(animation: _stagger, index: i, child: card)
-                : card;
-          },
-        ),
+              progress: _progress[article.id],
+              onTap: () => openReader(context, article, widget.surface),
+            ),
+          );
+          return i < _staggered
+              ? StaggerIn(animation: _stagger, index: i, child: row)
+              : row;
+        },
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: AnimatedOpacity(
-        opacity: _fadedOut ? 0 : 1,
-        duration: fadeOut,
-        child: body,
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          CupertinoSliverRefreshControl(onRefresh: _refresh),
+          SliverList.list(children: widget.header),
+          SliverToBoxAdapter(child: _OfflineStrip(offline: offline)),
+          if (showContinue)
+            const SliverToBoxAdapter(child: ContinueReadingCard()),
+          if (widget.sectionHeader case final header?)
+            SliverToBoxAdapter(child: header),
+          SliverAnimatedOpacity(
+            opacity: _fadedOut ? 0 : 1,
+            duration: fadeOut,
+            sliver: content,
+          ),
+          if (_loaded && _items.isNotEmpty)
+            SliverToBoxAdapter(
+              child: _Footer(loading: _loadingMore, end: !_hasMore),
+            ),
+          SliverPadding(padding: EdgeInsets.only(bottom: bottom + 8)),
+        ],
       ),
+    );
+  }
+}
+
+/// Warm strip that slides open when the device goes offline.
+class _OfflineStrip extends StatelessWidget {
+  const _OfflineStrip({required this.offline});
+
+  final bool offline;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: offline
+          ? Container(
+              key: const Key('offline-strip'),
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: GleanColors.warnBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.wifi_off_rounded,
+                    size: 18,
+                    color: GleanColors.warnInk,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '离线模式 · 正在显示本地内容',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w500,
+                        color: GleanColors.warnInk,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox(width: double.infinity),
     );
   }
 }
@@ -266,32 +392,14 @@ class _Footer extends StatelessWidget {
       height: 56,
       child: Center(
         child: loading
-            ? const SizedBox.square(
-                dimension: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
+            ? const CupertinoActivityIndicator()
             : end
-            ? Text('没有更多了', style: Theme.of(context).textTheme.labelSmall)
+            ? const Text(
+                '没有更多了',
+                style: TextStyle(fontSize: 13, color: GleanColors.label3),
+              )
             : null,
       ),
-    );
-  }
-}
-
-/// Scrollable so pull-to-refresh still works on an empty list.
-class _Message extends StatelessWidget {
-  const _Message(this.child);
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        const SizedBox(height: 64),
-        Center(child: child),
-      ],
     );
   }
 }

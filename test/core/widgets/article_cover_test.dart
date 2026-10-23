@@ -19,7 +19,7 @@ void main() {
       await _pump(tester, c);
       final image = tester.widget<Image>(find.byType(Image));
       expect((image.image as AssetImage).assetName, 'assets/covers/$c.webp');
-      expect(image.fit, BoxFit.contain);
+      expect(image.fit, BoxFit.cover);
     }
   });
 

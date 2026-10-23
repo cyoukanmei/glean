@@ -44,4 +44,12 @@ void main() {
     });
     expect(c.read(levelFilterProvider), {1, 2, 3});
   });
+
+  test('select keeps one level, null restores all', () async {
+    final c = await _container({});
+    c.read(levelFilterProvider.notifier).select(2);
+    expect(c.read(levelFilterProvider), {2});
+    c.read(levelFilterProvider.notifier).select(null);
+    expect(c.read(levelFilterProvider), {1, 2, 3});
+  });
 }

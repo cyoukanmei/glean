@@ -24,7 +24,7 @@ class CoverHero extends StatelessWidget {
   final String surface;
   final double borderRadius;
 
-  static const listRadius = 12.0;
+  static const listRadius = 16.0;
   static const headerRadius = 0.0;
 
   static Object tagFor(String surface, String articleId) =>

@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-/// Article cover: the designer's category illustration, shown whole on its
-/// own cream background (square thumbnails show it edge to edge; the wide
-/// reader header letterboxes it instead of cropping the motif).
+/// Article cover: the designer's category illustration filling its box
+/// (square thumbnails show it whole; the wide reader header crops top and
+/// bottom of the cream margin and fades into the page below).
 ///
 /// Only four images exist and each is 720 px, so they are decoded once at
 /// full size and shared by every card; no per-size decoding means nothing
@@ -54,7 +54,7 @@ class ArticleCover extends StatelessWidget {
               color: illustration.$2,
               child: Image.asset(
                 illustration.$1,
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
                 filterQuality: FilterQuality.medium,
                 gaplessPlayback: true,
                 width: double.infinity,

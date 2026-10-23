@@ -74,10 +74,12 @@ class ArticleRepository {
 
   /// One feed page, newest first (ties broken by id).
   ///
-  /// [category] null means all categories; empty [levels] means all levels.
+  /// [category] null means all categories; empty [levels] means all levels;
+  /// [query] matches title or summary, case-insensitively.
   Future<List<ArticleSummary>> page({
     String? category,
     Set<int> levels = const {},
+    String query = '',
     FeedCursor? after,
     int limit = 10,
   }) async {
@@ -87,6 +89,12 @@ class ArticleRepository {
     if (category != null) {
       where.add('category = ?');
       args.add(category);
+    }
+    final q = query.trim();
+    if (q.isNotEmpty) {
+      final like = '%${q.replaceAll('%', r'\%').replaceAll('_', r'\_')}%';
+      where.add(r"(title LIKE ? ESCAPE '\' OR summary LIKE ? ESCAPE '\')");
+      args.addAll([like, like]);
     }
     if (levels.isNotEmpty) {
       where.add('level IN (${List.filled(levels.length, '?').join(', ')})');
@@ -105,6 +113,28 @@ class ArticleRepository {
       limit: limit,
     );
     return rows.map(ArticleSummary.fromRow).toList();
+  }
+
+  /// The article next to [article] in feed order: the newer one (shown above
+  /// it) or the older one (below). Drives the reader's 上一篇 / 下一篇.
+  Future<ArticleSummary?> neighbor(
+    ArticleSummary article, {
+    required bool newer,
+  }) async {
+    await _ready;
+    final rows = await _db.query(
+      'articles',
+      columns: _summaryColumns,
+      where: newer
+          ? '(published_at > ? OR (published_at = ? AND id > ?))'
+          : '(published_at < ? OR (published_at = ? AND id < ?))',
+      whereArgs: [article.publishedAt, article.publishedAt, article.id],
+      orderBy: newer
+          ? 'published_at ASC, id ASC'
+          : 'published_at DESC, id DESC',
+      limit: 1,
+    );
+    return rows.isEmpty ? null : ArticleSummary.fromRow(rows.single);
   }
 
   Future<ArticleSummary?> byId(String id) async {

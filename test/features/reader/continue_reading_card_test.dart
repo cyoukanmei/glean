@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glean/app/providers.dart';
+import 'package:glean/core/design/progress_ring.dart';
 import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:glean/features/reader/ui/continue_reading_card.dart';
 
@@ -50,7 +51,7 @@ void main() {
     expect(find.textContaining('继续阅读'), findsNothing);
   });
 
-  testWidgets('bar glides from 0 to the saved progress', (tester) async {
+  testWidgets('ring glides from 0 to the saved progress', (tester) async {
     await _pump(
       tester,
       FakeProgressRepository(unfinished: ('a1', progressAt(0, progress: 0.63))),
@@ -59,14 +60,12 @@ void main() {
     expect(find.text('Half-read article'), findsOneWidget);
 
     await tester.pump(ContinueReadingCard.barGlide ~/ 4);
-    final mid = tester
-        .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
-        .value!;
+    final mid = tester.widget<ProgressRing>(find.byType(ProgressRing)).value;
     expect(mid, greaterThan(0));
     expect(mid, lessThan(0.63));
 
     await tester.pumpAndSettle();
-    expect(find.text('已读 63%'), findsOneWidget);
+    expect(find.text('63%'), findsOneWidget);
   });
 
   testWidgets('reloads and pushes forward after the reader saves', (
@@ -77,11 +76,11 @@ void main() {
     );
     final container = await _pump(tester, progress);
     await tester.pumpAndSettle();
-    expect(find.text('已读 30%'), findsOneWidget);
+    expect(find.text('30%'), findsOneWidget);
 
     progress.unfinished = ('a1', progressAt(0, progress: 0.8));
     container.read(progressRevisionProvider.notifier).bump();
     await tester.pumpAndSettle();
-    expect(find.text('已读 80%'), findsOneWidget);
+    expect(find.text('80%'), findsOneWidget);
   });
 }

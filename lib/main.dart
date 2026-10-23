@@ -11,6 +11,7 @@ import 'core/db/app_database.dart';
 import 'core/db/seed_importer.dart';
 import 'core/navigation/swipe_back_route.dart';
 import 'app/home_shell.dart';
+import 'core/design/glean_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +65,9 @@ class GleanApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '拾读 Glean',
-      theme: ThemeData(colorSchemeSeed: Colors.teal),
+      theme: gleanTheme(),
+      scrollBehavior: const GleanScrollBehavior(),
+      debugShowCheckedModeBanner: false,
       // Every page uses SwipeBackPageRoute, so the page underneath also gets
       // the parallax secondary animation while the top page slides.
       onGenerateRoute: (settings) => SwipeBackPageRoute<void>(

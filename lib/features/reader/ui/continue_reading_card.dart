@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../core/design/glean_colors.dart';
+import '../../../core/design/ios_widgets.dart';
+import '../../../core/design/progress_ring.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
 import '../../articles/ui/labels.dart';
 import 'open_reader.dart';
 
 /// "Continue reading" card at the top of 推荐: the most recently read
-/// unfinished article, with a progress bar that glides to the saved value.
+/// unfinished article on a deep teal card, with a ring that glides to the
+/// saved progress.
 ///
 /// Reloads whenever the reader flushes progress, so coming back from an
-/// article pushes the bar forward to where the reader just stopped.
+/// article pushes the ring forward to where the reader just stopped.
 class ContinueReadingCard extends ConsumerStatefulWidget {
   const ContinueReadingCard({super.key});
 
@@ -69,80 +73,116 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final wordsLeft = (article.wordCount * (1 - progress)).round();
+    final remaining = wordsLeft < 40
+        ? '马上读完'
+        : '还剩约 ${readingMinutes(wordsLeft)} 分钟';
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Material(
-        color: scheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(16),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () =>
-              openReader(context, article, ContinueReadingCard.surface),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                SizedBox.square(
-                  dimension: 64,
-                  child: CoverHero(
-                    article: article,
-                    surface: ContinueReadingCard.surface,
-                    borderRadius: CoverHero.listRadius,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '继续阅读 · ${categoryLabels[article.category]}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: scheme.onSecondaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        article.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      // Starts from 0 on first show, then glides between
-                      // saved values on later reloads.
-                      TweenAnimationBuilder<double>(
-                        key: const Key('continue-progress'),
-                        tween: Tween(begin: 0, end: progress),
-                        duration: ContinueReadingCard.barGlide,
-                        curve: Curves.easeOutCubic,
-                        builder: (context, v, _) => Row(
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(3),
-                                child: LinearProgressIndicator(
-                                  value: v,
-                                  minHeight: 6,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '已读 ${(v * 100).round()}%',
-                              style: theme.textTheme.labelSmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right_rounded),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: PressableScale(
+        onTap: () => openReader(context, article, ContinueReadingCard.surface),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                GleanColors.tint,
+                Color(0xFF115E59),
+                GleanColors.tintDeep,
               ],
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x660F766E),
+                blurRadius: 28,
+                offset: Offset(0, 12),
+                spreadRadius: -12,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              SizedBox.square(
+                dimension: 64,
+                child: CoverHero(
+                  article: article,
+                  surface: ContinueReadingCard.surface,
+                  borderRadius: 14,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '继续阅读 · ${categoryLabels[article.category]}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.4,
+                        color: Color(0xBFFFFFFF),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      article.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.schedule_rounded,
+                          size: 14,
+                          color: Color(0xC7FFFFFF),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          remaining,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xC7FFFFFF),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Starts from 0 on first show, then glides between saved values
+              // on later reloads.
+              TweenAnimationBuilder<double>(
+                key: const Key('continue-progress'),
+                tween: Tween(begin: 0, end: progress),
+                duration: ContinueReadingCard.barGlide,
+                curve: Curves.easeOutCubic,
+                builder: (context, v, _) => ProgressRing(
+                  value: v,
+                  color: GleanColors.mintLight,
+                  trackColor: const Color(0x38FFFFFF),
+                  child: Text(
+                    '${(v * 100).round()}%',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

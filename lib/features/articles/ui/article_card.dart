@@ -1,33 +1,47 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design/glean_colors.dart';
+import '../../../core/design/ios_widgets.dart';
 import '../../../core/widgets/shimmer.dart';
 import '../data/article_repository.dart';
 import 'cover_hero.dart';
 import 'labels.dart';
 
+/// Reading state shown on a card.
+class CardProgress {
+  const CardProgress({required this.maxProgress, required this.finished});
+
+  final double maxProgress;
+  final bool finished;
+}
+
+/// Feed row: cover, two-line title, level badge + meta, and either a thin
+/// progress line (started) or "已读完" (finished). Presses scale like iOS.
 class ArticleCard extends StatelessWidget {
   const ArticleCard({
     super.key,
     required this.article,
     required this.surface,
     required this.onTap,
+    this.progress,
   });
 
-  static const coverSize = 84.0;
+  static const coverSize = 78.0;
 
   final ArticleSummary article;
   final String surface;
   final VoidCallback onTap;
+  final CardProgress? progress;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
+    final p = progress;
+    final started = p != null && !p.finished && p.maxProgress > 0.02;
+    return PressableScale(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.all(14),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox.square(
               dimension: coverSize,
@@ -44,26 +58,62 @@ class ArticleCard extends StatelessWidget {
                 children: [
                   Text(
                     article.title,
-                    style: theme.textTheme.titleMedium,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    article.summary,
-                    style: theme.textTheme.bodySmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      letterSpacing: -0.2,
+                      color: GleanColors.label,
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    articleMeta(
-                      article.category,
-                      article.level,
-                      article.wordCount,
-                    ),
-                    style: theme.textTheme.labelSmall,
+                  Row(
+                    children: [
+                      LevelBadge(
+                        level: article.level,
+                        label: levelLabels[article.level] ?? '',
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '${categoryLabels[article.category]} · '
+                          '${article.wordCount} 词 · '
+                          '${readingMinutes(article.wordCount)} 分钟',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: GleanColors.label2,
+                          ),
+                        ),
+                      ),
+                      if (p?.finished ?? false) ...[
+                        const SizedBox(width: 6),
+                        const Text(
+                          '已读完 ✓',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: GleanColors.tint,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
+                  if (started) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: p.maxProgress,
+                        minHeight: 3,
+                        backgroundColor: GleanColors.fill,
+                        color: GleanColors.tint,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -74,49 +124,112 @@ class ArticleCard extends StatelessWidget {
   }
 }
 
-/// Placeholder list with the same geometry as [ArticleCard], so content
+/// Wraps one row of an inset group built from separate sliver items: rounds
+/// the outer corners of the first and last rows and draws the hairline.
+class GroupedRow extends StatelessWidget {
+  const GroupedRow({
+    super.key,
+    required this.first,
+    required this.last,
+    required this.child,
+    this.dividerIndent = 14 + ArticleCard.coverSize + 14,
+    this.painted = true,
+  });
+
+  final bool first;
+  final bool last;
+  final Widget child;
+  final double dividerIndent;
+
+  /// False lays the row out identically but draws no background or
+  /// hairline (used for the shimmer layer above the skeleton's background).
+  final bool painted;
+
+  @override
+  Widget build(BuildContext context) {
+    const r = Radius.circular(14);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.vertical(
+          top: first ? r : Radius.zero,
+          bottom: last ? r : Radius.zero,
+        ),
+        child: ColoredBox(
+          color: painted ? GleanColors.card : Colors.transparent,
+          child: Column(
+            children: [
+              if (!first)
+                painted
+                    ? Hairline(indent: dividerIndent)
+                    : const SizedBox(height: 0.5),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Placeholder group with the same geometry as the cards, so content
 /// replaces it without the layout jumping.
 class ArticleListSkeleton extends StatelessWidget {
-  const ArticleListSkeleton({super.key, this.count = 6});
+  const ArticleListSkeleton({super.key, this.count = 5});
 
   final int count;
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer(
-      child: ListView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: count,
-        itemBuilder: (context, i) => const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SkeletonBox(
-                width: ArticleCard.coverSize,
-                height: ArticleCard.coverSize,
-                radius: CoverHero.listRadius,
-              ),
-              SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    // Two identical layers: white group below, placeholder blocks above.
+    // The shimmer shades every opaque pixel of its child, so it wraps only
+    // the blocks; one ticker still drives the whole list.
+    return Stack(
+      children: [
+        _rows(painted: true, blocks: false),
+        Shimmer(child: _rows(painted: false, blocks: true)),
+      ],
+    );
+  }
+
+  Widget _rows({required bool painted, required bool blocks}) {
+    return Column(
+      children: [
+        for (var i = 0; i < count; i++)
+          GroupedRow(
+            first: i == 0,
+            last: i == count - 1,
+            painted: painted,
+            child: Opacity(
+              opacity: blocks ? 1 : 0,
+              child: const Padding(
+                padding: EdgeInsets.all(14),
+                child: Row(
                   children: [
-                    SkeletonBox(height: 18),
-                    SizedBox(height: 8),
-                    SkeletonBox(width: 180, height: 18),
-                    SizedBox(height: 10),
-                    SkeletonBox(height: 12),
-                    SizedBox(height: 6),
-                    SkeletonBox(width: 120, height: 12),
+                    SkeletonBox(
+                      width: ArticleCard.coverSize,
+                      height: ArticleCard.coverSize,
+                      radius: CoverHero.listRadius,
+                    ),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SkeletonBox(height: 16),
+                          SizedBox(height: 8),
+                          SkeletonBox(width: 160, height: 16),
+                          SizedBox(height: 12),
+                          SkeletonBox(width: 110, height: 11),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+      ],
     );
   }
 }

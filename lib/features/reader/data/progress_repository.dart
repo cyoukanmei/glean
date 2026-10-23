@@ -160,4 +160,37 @@ class ProgressRepository {
     final row = rows.single;
     return (row['article_id']! as String, ReadingProgress.fromRow(row));
   }
+
+  /// Furthest progress and status per article, for list cards.
+  Future<Map<String, (double maxProgress, int status)>> forArticles(
+    String userId,
+    Iterable<String> articleIds,
+  ) async {
+    final ids = articleIds.toList();
+    if (ids.isEmpty) return {};
+    final rows = await _db.query(
+      'reading_progress',
+      columns: ['article_id', 'max_progress', 'status'],
+      where:
+          'user_id = ? AND article_id IN (${List.filled(ids.length, '?').join(', ')})',
+      whereArgs: [userId, ...ids],
+    );
+    return {
+      for (final r in rows)
+        r['article_id']! as String: (
+          (r['max_progress']! as num).toDouble(),
+          r['status']! as int,
+        ),
+    };
+  }
+
+  /// Number of articles this user has finished.
+  Future<int> finishedCount(String userId) async {
+    final rows = await _db.rawQuery(
+      'SELECT COUNT(*) AS n FROM reading_progress '
+      'WHERE user_id = ? AND status = ?',
+      [userId, ReadingStatus.finished],
+    );
+    return rows.single['n']! as int;
+  }
 }

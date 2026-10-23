@@ -118,6 +118,18 @@ class FakeProgressRepository implements ProgressRepository {
   Future<(String, ReadingProgress)?> lastUnfinished(String userId) async =>
       unfinished;
 
+  /// Returned by [forArticles], filtered to the requested ids.
+  final cards = <String, (double, int)>{};
+
+  @override
+  Future<Map<String, (double, int)>> forArticles(
+    String userId,
+    Iterable<String> articleIds,
+  ) async => {for (final id in articleIds) id: ?cards[id]};
+
+  @override
+  Future<int> finishedCount(String userId) async => finishedCalls;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
