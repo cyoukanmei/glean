@@ -718,7 +718,7 @@ class _ColorThemeCell extends ConsumerWidget {
       value: current.label,
       onTap: () => showModalBottomSheet<void>(
         context: context,
-        backgroundColor: GleanColors.sheet,
+        backgroundColor: GleanColors.card,
         builder: (_) => const _ColorThemeSheet(),
       ),
     );

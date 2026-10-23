@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Colour schemes the user can pick in 我的 → 主题配色.
 enum ColorTheme {
-  /// Cream paper and deep green, from the splash illustration (default).
-  paper('纸感', '米白 · 墨绿'),
+  /// Warm grey page, white cards, deep green from the splash illustration
+  /// (default).
+  paper('纸感', '暖灰 · 墨绿'),
 
   /// iOS white and teal.
   classic('经典', '白 · 青绿');
@@ -33,25 +34,41 @@ abstract final class GleanColors {
       Color(_paper ? (dark ? pd : pl) : (dark ? cd : cl));
 
   // Surfaces and text (grouped style).
+
+  /// The page. Paper is a low-saturation warm grey, so white cards stand off
+  /// it clearly; the illustration's cream is kept for the splash.
   static Color get background =>
-      _p(0xFFFAF1E2, 0xFF15130F, 0xFFF2F2F7, 0xFF000000);
+      _p(0xFFF4F1EB, 0xFF15130F, 0xFFF2F2F7, 0xFF000000);
 
-  /// Cards and grouped lists. Paper uses a sage tint from the leaves in the
-  /// illustration rather than a near-white, which looked bleached on cream.
-  static Color get card => _p(0xFFEEEEDF, 0xFF23271F, 0xFFFFFFFF, 0xFF1C1C1E);
+  /// Cards, grouped lists and sheets.
+  static Color get card => _p(0xFFFFFFFF, 0xFF221F1B, 0xFFFFFFFF, 0xFF1C1C1E);
 
-  /// Bottom sheets: the page colour on paper (a sage sheet reads as a card),
-  /// the card colour on classic.
-  static Color get sheet => _paper ? background : card;
+  /// Text fields and unselected chips: white with a hairline on paper, the
+  /// system grey fill on classic.
+  static Color get field => _p(0xFFFFFFFF, 0xFF26231F, 0x1F767680, 0x3D767680);
 
-  /// Article lists laid straight on the page with hairlines between rows,
-  /// like a book's contents page (paper), or as one inset group (classic).
-  static bool get listsOnPaper => _paper;
+  /// Soft lift for standalone cards on the light paper page; none elsewhere
+  /// (dark surfaces separate by tone, classic follows iOS's flat groups).
+  static List<BoxShadow> get cardShadow => _paper && !dark
+      ? const [
+          BoxShadow(
+            color: Color(0x0A3C280A),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+          BoxShadow(
+            color: Color(0x1A3C280A),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+            spreadRadius: -14,
+          ),
+        ]
+      : const [];
   static Color get label => _p(0xFF2A2620, 0xFFF3ECDF, 0xFF1C1C1E, 0xFFFFFFFF);
   static Color get label2 => _p(0xA0473D30, 0x99EDE3D2, 0x9E3C3C43, 0x99EBEBF5);
   static Color get label3 => _p(0x58473D30, 0x4DEDE3D2, 0x523C3C43, 0x4DEBEBF5);
   static Color get separator =>
-      _p(0x2E6B5B45, 0x80544C40, 0x243C3C43, 0x99545458);
+      _p(0x1F6B5B45, 0x80544C40, 0x243C3C43, 0x99545458);
   static Color get fill => _p(0x1F8A7A60, 0x3D7A6E5C, 0x1F767680, 0x3D767680);
   static Color get fill2 => _p(0x148A7A60, 0x2E7A6E5C, 0x14767680, 0x2E767680);
 
@@ -60,7 +77,7 @@ abstract final class GleanColors {
 
   /// Frosted bars and floating controls.
   static Color get barGlass =>
-      _p(0xD9FCF6EA, 0xC7221F1A, 0xC7F9F9FB, 0xC71C1C1E);
+      _p(0xE0FFFFFF, 0xC7221F1A, 0xC7F9F9FB, 0xC71C1C1E);
 
   // Brand.
   static Color get tint => _p(0xFF24574A, 0xFF4E9A80, 0xFF0F766E, 0xFF0F766E);
@@ -69,7 +86,7 @@ abstract final class GleanColors {
   static Color get tintDeep =>
       _p(0xFF173B32, 0xFF173B32, 0xFF134E4A, 0xFF134E4A);
   static Color get mintSoft =>
-      _p(0xFFE6EDE1, 0xFF1C2E28, 0xFFECFDF8, 0xFF0E3330);
+      _p(0xFFE6F0EB, 0xFF1C2E28, 0xFFECFDF8, 0xFF0E3330);
   static Color get mintLight =>
       _p(0xFFA8D5C0, 0xFFA8D5C0, 0xFF5EEAD4, 0xFF5EEAD4);
   static Color get gold => _p(0xFFD9A23E, 0xFFE8B95A, 0xFFF5A623, 0xFFF5A623);

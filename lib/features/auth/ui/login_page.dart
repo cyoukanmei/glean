@@ -107,7 +107,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '登录后，阅读进度和生词本会保存在这台设备上，断网也能继续读。',
+                    '登录后，阅读进度和单词本会保存在这台设备上，断网也能继续读。',
                     style: TextStyle(
                       fontSize: 16,
                       height: 1.5,

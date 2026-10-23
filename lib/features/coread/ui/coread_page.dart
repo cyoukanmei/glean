@@ -8,6 +8,7 @@ import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/design/tabs.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
 import '../../articles/ui/labels.dart';
@@ -109,7 +110,7 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      backgroundColor: GleanColors.sheet,
+      backgroundColor: GleanColors.card,
       builder: (_) => const _ComposeSheet(),
     );
     if (shared == null || !mounted) return;
@@ -148,22 +149,11 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
                     const SizedBox(height: 8),
                     const LargeTitle(title: '共读', eyebrow: '书友的读后分享'),
                     const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: SizedBox(
-                          width: 200,
-                          child: IosSegmented<_Sort>(
-                            value: _sort,
-                            items: const {
-                              _Sort.popular: '推荐',
-                              _Sort.latest: '最新',
-                            },
-                            onChanged: (s) => setState(() => _sort = s),
-                          ),
-                        ),
-                      ),
+                    TextTabs(
+                      labels: const ['推荐', '最新'],
+                      selected: _sort.index,
+                      onSelected: (i) =>
+                          setState(() => _sort = _Sort.values[i]),
                     ),
                   ],
                 ),

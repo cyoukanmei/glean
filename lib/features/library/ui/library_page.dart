@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/design/tabs.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/article_card.dart';
@@ -212,7 +213,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的书架'),
+        title: const Text('收藏与历史'),
         backgroundColor: GleanColors.background,
         surfaceTintColor: Colors.transparent,
       ),
@@ -220,12 +221,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         padding: EdgeInsets.only(bottom: bottom + 24),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: IosSegmented<LibrarySection>(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: TextTabs(
               key: const Key('library-tabs'),
-              value: _section,
-              items: {for (final s in LibrarySection.values) s: s.label},
-              onChanged: _switch,
+              labels: [for (final s in LibrarySection.values) s.label],
+              selected: _section.index,
+              onSelected: (i) => _switch(LibrarySection.values[i]),
             ),
           ),
           if (entries == null)

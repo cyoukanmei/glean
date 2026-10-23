@@ -64,7 +64,7 @@ class WordSheet extends ConsumerStatefulWidget {
     // Sized to its content (long definitions scroll) rather than capped at
     // the default 9/16 of the screen.
     isScrollControlled: true,
-    backgroundColor: GleanColors.sheet,
+    backgroundColor: GleanColors.card,
     // Light dim: the picked word stays readable above the sheet.
     barrierColor: const Color(0x1F000000),
     builder: (_) => WordSheet(

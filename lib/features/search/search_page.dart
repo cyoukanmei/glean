@@ -362,21 +362,18 @@ class _HitRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final a = hit.article;
     const r = Radius.circular(14);
-    final onPaper = GleanColors.listsOnPaper;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: onPaper ? 4 : 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ClipRRect(
-        borderRadius: onPaper
-            ? BorderRadius.zero
-            : BorderRadius.vertical(
-                top: first ? r : Radius.zero,
-                bottom: last ? r : Radius.zero,
-              ),
+        borderRadius: BorderRadius.vertical(
+          top: first ? r : Radius.zero,
+          bottom: last ? r : Radius.zero,
+        ),
         child: ColoredBox(
-          color: onPaper ? GleanColors.background : GleanColors.card,
+          color: GleanColors.card,
           child: Column(
             children: [
-              if (!first) Hairline(indent: onPaper ? 14 : 16 + 56 + 12),
+              if (!first) const Hairline(indent: 16 + 56 + 12),
               PressableScale(
                 onTap: onTap,
                 child: Padding(

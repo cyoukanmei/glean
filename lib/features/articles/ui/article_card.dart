@@ -52,7 +52,7 @@ class ArticleCard extends StatelessWidget {
               // On paper the cover lifts off the page a little.
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(CoverHero.listRadius),
-                boxShadow: GleanColors.listsOnPaper
+                boxShadow: GleanColors.cardShadow.isNotEmpty
                     ? const [
                         BoxShadow(
                           color: Color(0x4D3C280A),
@@ -204,20 +204,6 @@ class GroupedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (GleanColors.listsOnPaper) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Column(
-          children: [
-            if (!first)
-              painted
-                  ? const Hairline(indent: 14)
-                  : const SizedBox(height: 0.5),
-            child,
-          ],
-        ),
-      );
-    }
     const r = Radius.circular(14);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

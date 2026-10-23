@@ -6,6 +6,7 @@ import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/design/tabs.dart';
 import '../application/reader_settings.dart';
 
 /// The Aa sheet: font size, line spacing, theme, follow system dark mode.
@@ -16,7 +17,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
   static Future<void> show(BuildContext context) => showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
-    backgroundColor: GleanColors.sheet,
+    backgroundColor: GleanColors.card,
     barrierColor: const Color(0x47000000),
     builder: (_) => const ReaderSettingsSheet(),
   );
@@ -68,7 +69,9 @@ class ReaderSettingsSheet extends ConsumerWidget {
               ],
             ),
             caption('行距'),
-            IosSegmented<LineSpacing>(
+            PillTabs<LineSpacing>(
+              expand: true,
+              padding: EdgeInsets.zero,
               value: s.spacing,
               items: {for (final l in LineSpacing.values) l: l.label},
               onChanged: (l) {

@@ -99,7 +99,7 @@ ThemeData gleanTheme() {
       insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: GleanColors.sheet,
+      backgroundColor: GleanColors.card,
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
       dragHandleColor: GleanColors.label3,

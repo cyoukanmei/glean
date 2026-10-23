@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/design/tabs.dart';
 import '../../auth/application/auth.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/avatar_store.dart';
@@ -102,7 +103,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         final i = await showModalBottomSheet<int>(
           context: context,
           showDragHandle: true,
-          backgroundColor: GleanColors.sheet,
+          backgroundColor: GleanColors.card,
           builder: (_) =>
               _PresetGrid(selected: UserAvatar.presetIndex(_avatar)),
         );
@@ -295,16 +296,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     ],
                   ),
                   const _Caption('每日阅读目标'),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: IosSegmented<int>(
-                      value: _goal,
-                      items: {
-                        for (final g in {...EditProfilePage.goals, _goal})
-                          g: '$g 分钟',
-                      },
-                      onChanged: (g) => setState(() => _goal = g),
-                    ),
+                  PillTabs<int>(
+                    expand: true,
+                    value: _goal,
+                    items: {
+                      for (final g in {...EditProfilePage.goals, _goal})
+                        g: '$g 分钟',
+                    },
+                    onChanged: (g) => setState(() => _goal = g),
                   ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 200),

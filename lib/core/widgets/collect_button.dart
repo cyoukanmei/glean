@@ -117,7 +117,7 @@ class _CollectButtonState extends State<CollectButton>
                   fontWeight: FontWeight.w600,
                   color: ink,
                 ),
-                child: Text(on ? '已收藏' : '收藏到生词本'),
+                child: Text(on ? '已收藏' : '收藏到单词本'),
               ),
             ],
           ),

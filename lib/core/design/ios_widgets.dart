@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'glean_colors.dart';
@@ -158,8 +157,9 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Rounded white inset group, like iOS Settings. [children] are separated by
-/// hairlines inset by [dividerIndent].
+/// Rounded white inset group, like iOS Settings, lifted off the page by
+/// [GleanColors.cardShadow]. [children] are separated by hairlines inset by
+/// [dividerIndent].
 class InsetGroup extends StatelessWidget {
   const InsetGroup({
     super.key,
@@ -176,17 +176,23 @@ class InsetGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: margin,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: ColoredBox(
-          color: GleanColors.card,
-          child: Column(
-            children: [
-              for (final (i, child) in children.indexed) ...[
-                if (i > 0) Hairline(indent: dividerIndent),
-                child,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: GleanColors.cardShadow,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: ColoredBox(
+            color: GleanColors.card,
+            child: Column(
+              children: [
+                for (final (i, child) in children.indexed) ...[
+                  if (i > 0) Hairline(indent: dividerIndent),
+                  child,
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -244,51 +250,7 @@ class LevelBadge extends StatelessWidget {
   }
 }
 
-/// iOS sliding segmented control with the system look.
-class IosSegmented<T extends Object> extends StatelessWidget {
-  const IosSegmented({
-    super.key,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final T value;
-  final Map<T, String> items;
-  final ValueChanged<T> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: CupertinoSlidingSegmentedControl<T>(
-        groupValue: value,
-        backgroundColor: GleanColors.fill,
-        thumbColor: CupertinoColors.white,
-        padding: const EdgeInsets.all(2),
-        onValueChanged: (v) {
-          if (v != null) onChanged(v);
-        },
-        children: {
-          for (final e in items.entries)
-            e.key: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text(
-                e.value,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: GleanColors.label,
-                ),
-              ),
-            ),
-        },
-      ),
-    );
-  }
-}
-
-/// Rounded grey search field.
+/// Rounded search field (a white capsule on paper, grey on classic).
 class SearchField extends StatelessWidget {
   const SearchField({
     super.key,
@@ -312,15 +274,18 @@ class SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 38,
+      height: 40,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: GleanColors.fill,
-        borderRadius: BorderRadius.circular(12),
+        color: GleanColors.field,
+        borderRadius: BorderRadius.circular(20),
+        border: GleanColors.cardShadow.isEmpty
+            ? null
+            : Border.all(color: GleanColors.separator, width: 0.5),
       ),
       child: Row(
         children: [
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Icon(Icons.search_rounded, size: 20, color: GleanColors.label2),
           const SizedBox(width: 4),
           Expanded(

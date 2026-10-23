@@ -23,7 +23,7 @@ Future<bool> showShareQuoteSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: GleanColors.sheet,
+    backgroundColor: GleanColors.card,
     builder: (_) => _ShareQuoteSheet(source: source, surface: surface),
   );
   if ((posted ?? false) && context.mounted) {

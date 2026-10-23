@@ -293,7 +293,7 @@ void main() {
     expect(find.text('v.'), findsOneWidget);
     expect(find.text('读，阅读'), findsOneWidget);
     expect(find.text('原形 read'), findsOneWidget);
-    expect(find.text('收藏到生词本'), findsOneWidget);
+    expect(find.text('收藏到单词本'), findsOneWidget);
     // The word stays marked while its sheet is open.
     expect(
       tester

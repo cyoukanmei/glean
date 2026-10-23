@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,7 @@ import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/design/tabs.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../reader/ui/open_reader.dart';
 import '../data/vocab_repository.dart';
@@ -15,8 +18,9 @@ import '../../../core/navigation/swipe_back_route.dart';
 import 'review_page.dart';
 import 'word_sheet.dart';
 
-/// 生词本: saved words, newest first, with search and a few counts. Swipe
-/// left to delete (with undo); tap to open the source article at the word.
+/// 单词本: a review card on top, a few counts, status filters with counts
+/// and the saved words (newest first) in one white card. Swipe left to
+/// delete (with undo); tap to open the source article at the word.
 class VocabPage extends ConsumerStatefulWidget {
   const VocabPage({super.key});
 
@@ -111,7 +115,6 @@ class _VocabPageState extends ConsumerState<VocabPage> {
     final items = _items;
     final weekAgo = clock.now().subtract(_week).millisecondsSinceEpoch;
     final shown = items?.where(_matches).toList() ?? const <VocabItem>[];
-    final onPaper = GleanColors.listsOnPaper;
 
     final Widget content;
     if (items == null) {
@@ -146,16 +149,14 @@ class _VocabPageState extends ConsumerState<VocabPage> {
         itemCount: shown.length,
         itemBuilder: (context, i) {
           final item = shown[i];
-          const r = Radius.circular(14);
+          const r = Radius.circular(18);
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: onPaper ? 4 : 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ClipRRect(
-              borderRadius: onPaper
-                  ? BorderRadius.zero
-                  : BorderRadius.vertical(
-                      top: i == 0 ? r : Radius.zero,
-                      bottom: i == shown.length - 1 ? r : Radius.zero,
-                    ),
+              borderRadius: BorderRadius.vertical(
+                top: i == 0 ? r : Radius.zero,
+                bottom: i == shown.length - 1 ? r : Radius.zero,
+              ),
               child: Dismissible(
                 key: ValueKey(item.id),
                 direction: DismissDirection.endToStart,
@@ -165,7 +166,7 @@ class _VocabPageState extends ConsumerState<VocabPage> {
                   _delete(item);
                 },
                 child: ColoredBox(
-                  color: onPaper ? GleanColors.background : GleanColors.card,
+                  color: GleanColors.card,
                   child: Column(
                     children: [
                       if (i > 0) const Hairline(indent: 16),
@@ -193,15 +194,20 @@ class _VocabPageState extends ConsumerState<VocabPage> {
               children: [
                 const SizedBox(height: 8),
                 LargeTitle(
-                  title: '生词本',
+                  title: '单词本',
                   eyebrow: items == null ? ' ' : '共 ${all.length} 个词',
                 ),
                 const SizedBox(height: 12),
-                SearchField(
-                  hint: '搜索单词或释义',
-                  onChanged: (q) => setState(() => _query = q.trim()),
-                ),
-                const SizedBox(height: 14),
+                if (all.isNotEmpty) ...[
+                  _ReviewCard(
+                    due: all
+                        .where((i) => i.status < VocabStatus.mastered)
+                        .length,
+                    total: all.length,
+                    onTap: () => _review(all),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -228,28 +234,37 @@ class _VocabPageState extends ConsumerState<VocabPage> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
+                SearchField(
+                  hint: '搜索单词或释义',
+                  onChanged: (q) => setState(() => _query = q.trim()),
+                ),
                 if (all.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _ReviewButton(
-                    due: all
-                        .where((i) => i.status < VocabStatus.mastered)
-                        .length,
-                    onTap: () => _review(all),
+                  const SizedBox(height: 14),
+                  PillTabs<int>(
+                    key: const Key('vocab-filters'),
+                    value: _status ?? -1,
+                    items: {-1: '全部', ...VocabStatus.labels},
+                    counts: {
+                      -1: all.length,
+                      for (final s in VocabStatus.labels.keys)
+                        s: all.where((i) => i.status == s).length,
+                    },
+                    onChanged: (s) =>
+                        setState(() => _status = s < 0 ? null : s),
                   ),
-                  const SizedBox(height: 12),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: IosSegmented<int>(
-                      value: _status ?? -1,
-                      items: {-1: '全部', ...VocabStatus.labels},
-                      onChanged: (s) =>
-                          setState(() => _status = s < 0 ? null : s),
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                    child: Text(
+                      _query.isEmpty && _status == null
+                          ? '最近收藏'
+                          : '${shown.length} 个结果',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: GleanColors.label2,
+                      ),
                     ),
-                  ),
-                  SectionHeader(
-                    title: _query.isEmpty && _status == null
-                        ? '最近收藏'
-                        : '${shown.length} 个结果',
                   ),
                 ],
               ],
@@ -267,36 +282,101 @@ class _VocabPageState extends ConsumerState<VocabPage> {
   }
 }
 
-class _ReviewButton extends StatelessWidget {
-  const _ReviewButton({required this.due, required this.onTap});
+/// Warm gold card: how many words wait for review, in big type, and a
+/// dark button to start.
+class _ReviewCard extends StatelessWidget {
+  const _ReviewCard({
+    required this.due,
+    required this.total,
+    required this.onTap,
+  });
 
   final int due;
+  final int total;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final ink = GleanColors.goldInk;
+    final shown = min(due, 20);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: PressableScale(
         key: const Key('start-review'),
         onTap: onTap,
         child: Container(
-          height: 50,
+          padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
           decoration: BoxDecoration(
-            color: GleanColors.mintSoft,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                GleanColors.goldSoft,
+                Color.lerp(GleanColors.goldSoft, GleanColors.gold, 0.3)!,
+              ],
+            ),
+            boxShadow: GleanColors.cardShadow,
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.style_rounded, color: GleanColors.tint, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                due > 0 ? '开始复习 · $due 个待复习' : '全部掌握了，再复习一遍',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: GleanColors.tint,
+              TweenAnimationBuilder<double>(
+                tween: Tween(end: due.toDouble()),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                builder: (context, v, _) => Text(
+                  '${v.round()}',
+                  style: TextStyle(
+                    fontSize: 38,
+                    height: 1,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1,
+                    color: ink,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      due > 0 ? '个词等你复习' : '全部掌握了',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: ink,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      due > 0
+                          ? '本轮 $shown 张卡 · 约 ${max(1, (shown * 12 / 60).round())} 分钟'
+                          : '共 $total 个词，可以再过一遍',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: ink.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: ink,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  due > 0 ? '开始复习' : '再复习',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: GleanColors.goldSoft,
+                  ),
                 ),
               ),
             ],
@@ -326,6 +406,7 @@ class _StatTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: GleanColors.card,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: GleanColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,10 +442,11 @@ class _VocabTile extends StatelessWidget {
   final VocabItem item;
   final VoidCallback onTap;
 
-  static Map<int, (Color, Color)> get _tags => {
-    VocabStatus.fresh: (GleanColors.goldSoft, GleanColors.goldInk),
-    VocabStatus.known: GleanColors.levelBadge[2]!,
-    VocabStatus.mastered: GleanColors.levelBadge[1]!,
+  /// Status dot colours: amber new, blue known, green mastered.
+  static Map<int, Color> get _dots => {
+    VocabStatus.fresh: GleanColors.gold,
+    VocabStatus.known: const Color(0xFF4F8FD9),
+    VocabStatus.mastered: GleanColors.tintBright,
   };
 
   @override
@@ -404,26 +486,28 @@ class _VocabTile extends StatelessWidget {
                   ),
                 ],
                 const Spacer(),
-                if (_tags[item.status] case (final bg, final ink))
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: bg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      child: Text(
-                        VocabStatus.labels[item.status]!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: ink,
+                if (_dots[item.status] case final dot?)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: dot,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 5),
+                      Text(
+                        VocabStatus.labels[item.status]!,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          color: GleanColors.label2,
+                        ),
+                      ),
+                    ],
                   ),
               ],
             ),

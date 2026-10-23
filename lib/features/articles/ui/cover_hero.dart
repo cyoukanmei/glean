@@ -70,10 +70,18 @@ class CoverHero extends StatelessWidget {
     BuildContext fromContext,
     BuildContext toContext,
   ) {
+    // The list end's corner radius (a shelf book is squarer than a feed
+    // thumbnail); the shuttle comes from the reader's hero on push.
+    final list =
+        (direction == HeroFlightDirection.push ? fromContext : toContext)
+            .widget;
+    final start = list is Hero && list.child is ArticleCover
+        ? (list.child as ArticleCover).borderRadius.topLeft.x
+        : listRadius;
     return AnimatedBuilder(
       animation: animation,
       builder: (context, _) =>
-          _cover(_lerp(listRadius, headerRadius, animation.value)),
+          _cover(_lerp(start, headerRadius, animation.value)),
     );
   }
 
