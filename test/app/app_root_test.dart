@@ -23,7 +23,11 @@ void main() {
     );
 
     expect(find.byType(SplashPage), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 600));
+    // The white page covers the whole screen (in dark mode a shrunken one
+    // left a black window around the icon), and the icon keeps its size.
+    expect(tester.getSize(find.byType(SplashPage)), const Size(800, 600));
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(tester.getSize(find.byType(Image)), const Size(104, 104));
     expect(find.text('拾读'), findsOneWidget);
     expect(find.byType(LoginPage), findsNothing, reason: 'minimum splash');
 
