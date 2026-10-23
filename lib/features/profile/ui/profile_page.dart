@@ -123,137 +123,72 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
           children: [
             const LargeTitle(title: '我的'),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Semantics(
-                    button: true,
-                    label: '编辑资料',
-                    child: PressableScale(
-                      key: const Key('profile-avatar-button'),
-                      onTap: user == null ? null : _editProfile,
-                      child: Hero(
-                        tag: 'me-avatar',
-                        child: UserAvatar(user: user, size: 64),
-                      ),
-                    ),
+            const SizedBox(height: 12),
+            _ProfileCard(
+              name: name,
+              bio: switch (user?.bio) {
+                final bio? when bio.isNotEmpty => bio,
+                _ when user == null => '未登录',
+                _ => '每天读一点',
+              },
+              avatar: Semantics(
+                button: true,
+                label: '编辑资料',
+                child: PressableScale(
+                  key: const Key('profile-avatar-button'),
+                  onTap: user == null ? null : _editProfile,
+                  child: Hero(
+                    tag: 'me-avatar',
+                    child: UserAvatar(user: user, size: 60),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 21,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          switch (user?.bio) {
-                            final bio? when bio.isNotEmpty => bio,
-                            _ when user == null => '未登录',
-                            _ => '每天读一点',
-                          },
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: GleanColors.label2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (user != null)
-                    PressableScale(
-                      key: const Key('profile-edit'),
-                      onTap: _editProfile,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: GleanColors.field,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: GleanColors.separator,
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Text(
-                          '编辑资料',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                            color: GleanColors.label,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 18),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  _Stat(value: '${stats?.finished ?? 0}', label: '读完文章'),
-                  _Stat(value: '${stats?.words ?? 0}', label: '收藏生词'),
-                  _Stat(
-                    value: _hours(stats?.totalMs ?? 0),
-                    unit: (stats?.totalMs ?? 0) < 3600000 ? 'min' : 'h',
-                    label: '累计阅读',
-                  ),
-                  _Stat(value: '${stats?.streak ?? 0}', label: '连续天数'),
-                ],
-              ),
+              onEdit: user == null ? null : _editProfile,
+              stats: [
+                _Stat(value: '${stats?.finished ?? 0}', label: '读完文章'),
+                _Stat(value: '${stats?.words ?? 0}', label: '收藏生词'),
+                _Stat(
+                  value: _hours(stats?.totalMs ?? 0),
+                  unit: (stats?.totalMs ?? 0) < 3600000 ? 'min' : 'h',
+                  label: '累计阅读',
+                ),
+                _Stat(value: '${stats?.streak ?? 0}', label: '连续天数'),
+              ],
             ),
             const SizedBox(height: 16),
             const _QuickEntries(),
             const SizedBox(height: 12),
             _GoalCard(stats: stats, goalMinutes: user?.dailyGoalMinutes ?? 15),
-            Padding(
-              padding: EdgeInsets.fromLTRB(32, 22, 32, 7),
-              child: Text(
-                '设置',
-                style: TextStyle(fontSize: 13, color: GleanColors.label2),
-              ),
-            ),
+            const _GroupLabel('阅读'),
             InsetGroup(
-              dividerIndent: 58,
+              dividerIndent: 56,
               children: [
                 _Cell(
                   icon: Icons.text_fields_rounded,
-                  color: GleanColors.tint,
                   title: '阅读设置',
                   value:
                       '${settings.followSystem ? '跟随系统' : settings.theme.label}'
                       ' · ${settings.fontSize.toStringAsFixed(settings.fontSize % 1 == 0 ? 0 : 1)}',
                   onTap: () => ReaderSettingsSheet.show(context),
                 ),
+                const _ReminderCell(),
                 _Cell(
                   icon: Icons.download_done_rounded,
-                  color: const Color(0xFF34C759),
                   title: '离线内容',
                   value: '${stats?.articles ?? 0} 篇 · 全部可离线阅读',
                 ),
+              ],
+            ),
+            const _GroupLabel('通用'),
+            InsetGroup(
+              dividerIndent: 56,
+              children: [
                 const _ColorThemeCell(),
                 const _AppearanceCell(),
-                const _ReminderCell(),
                 const _SyncCell(),
                 _Cell(
                   key: const Key('open-analytics-debug'),
                   icon: Icons.insights_rounded,
-                  color: const Color(0xFF5856D6),
                   title: '埋点调试面板',
                   value: '队列 · 上报 · 分析',
                   onTap: () => Navigator.of(context).push(
@@ -439,7 +374,162 @@ class _DayDot extends StatelessWidget {
   }
 }
 
-/// A number over a label, straight on the page.
+/// The profile card: avatar, name, bio and 编辑资料 over four stats, on the
+/// same deep-green gradient as the continue-reading card.
+class _ProfileCard extends StatelessWidget {
+  const _ProfileCard({
+    required this.name,
+    required this.bio,
+    required this.avatar,
+    required this.stats,
+    this.onEdit,
+  });
+
+  final String name;
+  final String bio;
+  final Widget avatar;
+  final List<Widget> stats;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [GleanColors.tint, GleanColors.tintDeep],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: GleanColors.tintDeep.withValues(alpha: 0.35),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+            spreadRadius: -14,
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // A soft light in the corner.
+          Positioned(
+            right: -70,
+            top: -90,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [Color(0x26FFFFFF), Color(0x00FFFFFF)],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 16, 16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0x66FFFFFF),
+                          width: 2,
+                        ),
+                      ),
+                      child: avatar,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            bio,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xB3FFFFFF),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (onEdit != null)
+                      PressableScale(
+                        key: const Key('profile-edit'),
+                        onTap: onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0x1FFFFFFF),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0x59FFFFFF),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: const Text(
+                            '编辑资料',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      for (final (i, s) in stats.indexed) ...[
+                        if (i > 0)
+                          const VerticalDivider(
+                            width: 1,
+                            thickness: 0.6,
+                            indent: 6,
+                            endIndent: 6,
+                            color: Color(0x33FFFFFF),
+                          ),
+                        Expanded(child: s),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A number over a label, centred in its column of the profile card.
 class _Stat extends StatelessWidget {
   const _Stat({required this.value, required this.label, this.unit});
 
@@ -449,37 +539,74 @@ class _Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text.rich(
-            TextSpan(
-              text: value,
-              children: [
-                if (unit != null)
-                  TextSpan(
-                    text: ' $unit',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+    return Column(
+      children: [
+        Text.rich(
+          TextSpan(
+            text: value,
+            children: [
+              if (unit != null)
+                TextSpan(
+                  text: ' $unit',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
                   ),
-              ],
-            ),
-            style: const TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
-            ),
+                ),
+            ],
           ),
-          const SizedBox(height: 1),
-          Text(
-            label,
-            style: TextStyle(fontSize: 12, color: GleanColors.label2),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.4,
+            color: Colors.white,
           ),
-        ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11.5, color: Color(0xA6FFFFFF)),
+        ),
+      ],
+    );
+  }
+}
+
+/// Small caption above a settings group.
+class _GroupLabel extends StatelessWidget {
+  const _GroupLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 22, 32, 7),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 13, color: GleanColors.label2),
       ),
+    );
+  }
+}
+
+/// Settings icon: the same quiet ink glyph on a soft tile for every row,
+/// instead of a different bright colour each.
+class _CellIcon extends StatelessWidget {
+  const _CellIcon(this.icon);
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        color: GleanColors.background,
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Icon(icon, size: 18, color: GleanColors.ink2),
     );
   }
 }
@@ -488,14 +615,12 @@ class _Cell extends StatelessWidget {
   const _Cell({
     super.key,
     required this.icon,
-    required this.color,
     required this.title,
     required this.value,
     this.onTap,
   });
 
   final IconData icon;
-  final Color color;
   final String title;
   final String value;
   final VoidCallback? onTap;
@@ -509,18 +634,10 @@ class _Cell extends StatelessWidget {
         height: 46,
         child: Row(
           children: [
-            const SizedBox(width: 16),
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 18, color: Colors.white),
-            ),
+            const SizedBox(width: 14),
+            _CellIcon(icon),
             const SizedBox(width: 12),
-            Text(title, style: const TextStyle(fontSize: 16.5)),
+            Text(title, style: const TextStyle(fontSize: 16)),
             const SizedBox(width: 12),
             // Value sits against the chevron, like iOS Settings.
             Expanded(
@@ -585,7 +702,6 @@ class _SyncCellState extends ConsumerState<_SyncCell> {
     return _Cell(
       key: const Key('open-sync'),
       icon: Icons.sync_rounded,
-      color: const Color(0xFF007AFF),
       title: '同步',
       value: syncSummary(_sync, online: online, pending: _pending),
       onTap: () => Navigator.of(context).push(
@@ -673,22 +789,10 @@ class _ReminderCell extends ConsumerWidget {
       height: 46,
       child: Row(
         children: [
-          const SizedBox(width: 16),
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF9500),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.notifications_rounded,
-              size: 18,
-              color: Colors.white,
-            ),
-          ),
+          const SizedBox(width: 14),
+          const _CellIcon(Icons.notifications_none_rounded),
           const SizedBox(width: 12),
-          const Text('每日阅读提醒', style: TextStyle(fontSize: 16.5)),
+          const Text('每日阅读提醒', style: TextStyle(fontSize: 16)),
           const Spacer(),
           GestureDetector(
             key: const Key('reminder-time'),
@@ -705,7 +809,7 @@ class _ReminderCell extends ConsumerWidget {
           CupertinoSwitch(
             key: const Key('reminder-switch'),
             value: r.enabled,
-            activeTrackColor: GleanColors.green,
+            activeTrackColor: GleanColors.tint,
             onChanged: (on) => on
                 ? _enable(context, ref, r.time)
                 : ref.read(reminderProvider.notifier).disable(),
@@ -726,8 +830,7 @@ class _AppearanceCell extends ConsumerWidget {
     final current = ref.watch(appearanceProvider);
     return _Cell(
       key: const Key('open-appearance'),
-      icon: Icons.dark_mode_rounded,
-      color: const Color(0xFF636366),
+      icon: Icons.contrast_rounded,
       title: '外观',
       value: current.label,
       onTap: () async {
@@ -765,8 +868,7 @@ class _ColorThemeCell extends ConsumerWidget {
     final current = ref.watch(colorThemeProvider);
     return _Cell(
       key: const Key('open-color-theme'),
-      icon: Icons.palette_rounded,
-      color: GleanColors.tint,
+      icon: Icons.palette_outlined,
       title: '主题配色',
       value: current.label,
       onTap: () => showModalBottomSheet<void>(
@@ -899,8 +1001,8 @@ class _ColorThemeSheet extends ConsumerWidget {
   }
 }
 
-/// A row of colourful shortcuts: 收藏, 稍后再读 and 阅读历史 with live
-/// counts, and 我的动态 (社区 → 我的).
+/// A row of shortcuts in one quiet line-icon style: 收藏, 稍后再读 and
+/// 阅读历史 with live counts, and 我的动态 (社区 → 我的).
 class _QuickEntries extends ConsumerStatefulWidget {
   const _QuickEntries();
 
@@ -950,7 +1052,6 @@ class _QuickEntriesState extends ConsumerState<_QuickEntries> {
     Widget entry(
       String key,
       IconData icon,
-      Color color,
       String label,
       int? count,
       VoidCallback onTap,
@@ -960,19 +1061,12 @@ class _QuickEntriesState extends ConsumerState<_QuickEntries> {
         onTap: onTap,
         child: Column(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: GleanColors.dark ? 0.22 : 0.13),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Icon(icon, size: 23, color: color),
-            ),
+            Icon(icon, size: 25, color: GleanColors.label),
             const SizedBox(height: 7),
             Text(label, style: const TextStyle(fontSize: 12.5)),
+            const SizedBox(height: 1),
             Text(
-              count == null ? ' ' : '$count',
+              count == null ? '查看' : '$count',
               style: TextStyle(fontSize: 11, color: GleanColors.label2),
             ),
           ],
@@ -991,16 +1085,14 @@ class _QuickEntriesState extends ConsumerState<_QuickEntries> {
         children: [
           entry(
             'open-favorites',
-            Icons.star_rounded,
-            const Color(0xFFD9A23E),
+            Icons.star_border_rounded,
             '收藏',
             _counts[MarkKind.favorite] ?? 0,
             () => _open(LibrarySection.favorite),
           ),
           entry(
             'open-later',
-            Icons.watch_later_rounded,
-            const Color(0xFF7A6FD8),
+            Icons.schedule_rounded,
             '稍后再读',
             _counts[MarkKind.later] ?? 0,
             () => _open(LibrarySection.later),
@@ -1008,19 +1100,11 @@ class _QuickEntriesState extends ConsumerState<_QuickEntries> {
           entry(
             'open-history',
             Icons.history_rounded,
-            GleanColors.tintBright,
             '阅读历史',
             _history,
             () => _open(LibrarySection.history),
           ),
-          entry(
-            'open-my-posts',
-            Icons.forum_rounded,
-            const Color(0xFFE0603A),
-            '我的动态',
-            null,
-            _openMine,
-          ),
+          entry('open-my-posts', Icons.forum_outlined, '我的动态', null, _openMine),
         ],
       ),
     );
