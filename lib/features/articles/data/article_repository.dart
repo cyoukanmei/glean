@@ -84,6 +84,17 @@ class SearchHit {
   final int snippetOffset;
 }
 
+/// 书城 rankings: most read, most starred, newest.
+enum RankBoard {
+  reading('热读榜'),
+  favorites('收藏榜'),
+  newest('新书榜');
+
+  const RankBoard(this.label);
+
+  final String label;
+}
+
 /// Position after which the next feed page starts.
 ///
 /// Keyset (seek) pagination instead of OFFSET: pages stay stable when new
@@ -258,6 +269,25 @@ class ArticleRepository {
       limit: 1,
     );
     return rows.isEmpty ? null : ArticleSummary.fromRow(rows.single);
+  }
+
+  /// Top [limit] articles of a [board] (书城 rankings).
+  Future<List<ArticleSummary>> ranking(
+    RankBoard board, {
+    int limit = 20,
+  }) async {
+    await _ready;
+    final rows = await _db.query(
+      'articles',
+      columns: _summaryColumns,
+      orderBy: switch (board) {
+        RankBoard.reading => 'readers DESC, id',
+        RankBoard.favorites => 'favorites DESC, id',
+        RankBoard.newest => 'published_at DESC, id DESC',
+      },
+      limit: limit,
+    );
+    return rows.map(ArticleSummary.fromRow).toList();
   }
 
   /// Articles stored on the device (all readable offline).

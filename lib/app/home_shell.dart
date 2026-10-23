@@ -1,15 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/analytics/analytics.dart';
 import '../core/design/glean_colors.dart';
 import '../core/design/ios_widgets.dart';
-import '../features/articles/ui/article_list_page.dart';
 import '../features/coread/ui/coread_page.dart';
 import '../features/profile/ui/profile_page.dart';
+import '../features/shelf/ui/shelf_page.dart';
+import '../features/store/ui/store_page.dart';
 import '../features/vocab/ui/vocab_page.dart';
+import 'home_tab.dart';
 
-/// Bottom navigation: 首页 / 共读 / 生词本 / 我的.
+/// Bottom navigation: 书架 / 书城 / 社区 / 单词本 / 我的 ([HomeTab]).
 ///
 /// An IndexedStack keeps every tab alive, so switching back restores its
 /// scroll position and loaded pages. The bar is a frosted capsule floating
@@ -17,51 +20,46 @@ import '../features/vocab/ui/vocab_page.dart';
 /// the body's bottom padding, which the pages' scroll views respect). The
 /// reader is pushed on the root navigator above this shell, which hides the
 /// bar while reading.
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
 
-  @override
-  State<HomeShell> createState() => _HomeShellState();
-}
-
-class _HomeShellState extends State<HomeShell> {
-  static const _tabs = [
-    (CupertinoIcons.book, CupertinoIcons.book_fill, '首页', 'home'),
-    (
+  static const _icons = {
+    HomeTab.shelf: (Icons.auto_stories_outlined, Icons.auto_stories_rounded),
+    HomeTab.store: (Icons.storefront_outlined, Icons.storefront_rounded),
+    HomeTab.community: (
       CupertinoIcons.chat_bubble_2,
       CupertinoIcons.chat_bubble_2_fill,
-      '共读',
-      'coread',
     ),
-    (CupertinoIcons.bookmark, CupertinoIcons.bookmark_fill, '生词本', 'vocab'),
-    (CupertinoIcons.person, CupertinoIcons.person_fill, '我的', 'me'),
-  ];
-
-  int _index = 0;
-
-  void _select(int i) {
-    if (i == _index) return;
-    setState(() => _index = i);
-    Analytics.track('page_view', {'page': _tabs[i].$4});
-  }
+    HomeTab.vocab: (CupertinoIcons.bookmark, CupertinoIcons.bookmark_fill),
+    HomeTab.me: (CupertinoIcons.person, CupertinoIcons.person_fill),
+  };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(homeTabProvider, (_, tab) {
+      Analytics.track('page_view', {'page': tab.page});
+    });
+    final tab = ref.watch(homeTabProvider);
     return Scaffold(
       extendBody: true,
       body: IndexedStack(
-        index: _index,
+        index: tab.index,
         children: const [
-          ArticleListPage(),
+          ShelfPage(),
+          StorePage(),
           CoreadPage(),
           VocabPage(),
           ProfilePage(),
         ],
       ),
       bottomNavigationBar: _GlassTabBar(
-        index: _index,
-        tabs: [for (final t in _tabs) (t.$1, t.$2, t.$3)],
-        onSelect: _select,
+        index: tab.index,
+        tabs: [
+          for (final t in HomeTab.values)
+            (_icons[t]!.$1, _icons[t]!.$2, t.label),
+        ],
+        onSelect: (i) =>
+            ref.read(homeTabProvider.notifier).go(HomeTab.values[i]),
       ),
     );
   }
@@ -87,7 +85,7 @@ class _GlassTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Padding(
-      padding: EdgeInsets.fromLTRB(22, 8, 22, bottom > 0 ? bottom : 12),
+      padding: EdgeInsets.fromLTRB(16, 8, 16, bottom > 0 ? bottom : 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(height / 2),
@@ -199,6 +197,8 @@ class _TabItem extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               label,
+              maxLines: 1,
+              softWrap: false,
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,

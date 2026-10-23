@@ -12,15 +12,13 @@ import '../../../core/design/glean_colors.dart';
 import '../../../core/widgets/stagger_in.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../reader/data/progress_repository.dart';
-import '../../reader/ui/continue_reading_card.dart';
 import '../../reader/ui/open_reader.dart';
 import '../data/article_repository.dart';
 import '../../library/ui/article_actions.dart';
 import 'article_card.dart';
 
-/// The home feed: one bouncing scroll view with the page's [header] on top,
-/// then (on 推荐) the continue-reading card, a section header and the
-/// keyset-paged article group with skeleton, stagger-in, pull-to-refresh and
+/// The 书城 feed: one bouncing scroll view with the page's [header] on top,
+/// then a section header and the keyset-paged article group with skeleton, stagger-in, pull-to-refresh and
 /// load-more.
 ///
 /// Changing [category], [query] or the level filter fades the list out and
@@ -41,7 +39,7 @@ class ArticleFeed extends ConsumerStatefulWidget {
   /// Box widgets laid out above the feed (large title, search, tabs).
   final List<Widget> header;
 
-  /// Shown between the continue card and the list.
+  /// Shown between the header and the list.
   final Widget? sectionHeader;
 
   String get surface => category ?? 'all';
@@ -263,8 +261,6 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
     ref.listen(progressRevisionProvider, (_, _) => _reloadProgress());
 
     final offline = ref.watch(onlineProvider).value == false;
-    // 推荐 (all categories, no search) opens with the continue-reading card.
-    final showContinue = widget.category == null && widget.query.isEmpty;
 
     final Widget content;
     if (_skeleton) {
@@ -333,8 +329,6 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
           CupertinoSliverRefreshControl(onRefresh: _refresh),
           SliverList.list(children: widget.header),
           SliverToBoxAdapter(child: _OfflineStrip(offline: offline)),
-          if (showContinue)
-            const SliverToBoxAdapter(child: ContinueReadingCard()),
           if (widget.sectionHeader case final header?)
             SliverToBoxAdapter(child: header),
           SliverAnimatedOpacity(

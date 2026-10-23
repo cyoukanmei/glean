@@ -18,6 +18,8 @@ import '../../../app/appearance.dart';
 import '../application/reminder.dart';
 import '../../library/data/marks_repository.dart';
 import '../../library/ui/library_page.dart';
+import '../../../app/home_tab.dart';
+import '../../coread/ui/coread_page.dart';
 import 'analytics_debug_page.dart';
 import 'edit_profile_page.dart';
 import 'user_avatar.dart';
@@ -120,50 +122,105 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             bottom: MediaQuery.paddingOf(context).bottom + 24,
           ),
           children: [
-            LargeTitle(
-              title: '我的',
-              eyebrow: user == null ? '未登录' : '$name · 已登录',
-              trailing: Semantics(
-                button: true,
-                label: '编辑资料',
-                child: PressableScale(
-                  key: const Key('profile-avatar-button'),
-                  onTap: user == null ? null : _editProfile,
-                  child: Hero(
-                    tag: 'me-avatar',
-                    child: UserAvatar(user: user, size: 44),
-                  ),
-                ),
-              ),
-            ),
-            if (user?.bio case final bio? when bio.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-                child: Text(
-                  bio,
-                  style: TextStyle(fontSize: 15, color: GleanColors.label2),
-                ),
-              ),
-            const SizedBox(height: 16),
-            _GoalCard(stats: stats, goalMinutes: user?.dailyGoalMinutes ?? 15),
-            const SizedBox(height: 12),
+            const LargeTitle(title: '我的'),
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  _Tile(value: '${stats?.finished ?? 0}', label: '读完文章'),
-                  const SizedBox(width: 10),
-                  _Tile(value: '${stats?.words ?? 0}', label: '收藏生词'),
-                  const SizedBox(width: 10),
-                  _Tile(
+                  Semantics(
+                    button: true,
+                    label: '编辑资料',
+                    child: PressableScale(
+                      key: const Key('profile-avatar-button'),
+                      onTap: user == null ? null : _editProfile,
+                      child: Hero(
+                        tag: 'me-avatar',
+                        child: UserAvatar(user: user, size: 64),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          switch (user?.bio) {
+                            final bio? when bio.isNotEmpty => bio,
+                            _ when user == null => '未登录',
+                            _ => '每天读一点',
+                          },
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: GleanColors.label2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (user != null)
+                    PressableScale(
+                      key: const Key('profile-edit'),
+                      onTap: _editProfile,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: GleanColors.field,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: GleanColors.separator,
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Text(
+                          '编辑资料',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: GleanColors.label,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _Stat(value: '${stats?.finished ?? 0}', label: '读完文章'),
+                  _Stat(value: '${stats?.words ?? 0}', label: '收藏生词'),
+                  _Stat(
                     value: _hours(stats?.totalMs ?? 0),
                     unit: (stats?.totalMs ?? 0) < 3600000 ? 'min' : 'h',
                     label: '累计阅读',
                   ),
+                  _Stat(value: '${stats?.streak ?? 0}', label: '连续天数'),
                 ],
               ),
             ),
-            const _LibraryGroup(),
+            const SizedBox(height: 16),
+            const _QuickEntries(),
+            const SizedBox(height: 12),
+            _GoalCard(stats: stats, goalMinutes: user?.dailyGoalMinutes ?? 15),
             Padding(
               padding: EdgeInsets.fromLTRB(32, 22, 32, 7),
               child: Text(
@@ -254,7 +311,8 @@ class _GoalCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: GleanColors.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: GleanColors.cardShadow,
       ),
       child: Row(
         children: [
@@ -381,8 +439,9 @@ class _DayDot extends StatelessWidget {
   }
 }
 
-class _Tile extends StatelessWidget {
-  const _Tile({required this.value, required this.label, this.unit});
+/// A number over a label, straight on the page.
+class _Stat extends StatelessWidget {
+  const _Stat({required this.value, required this.label, this.unit});
 
   final String value;
   final String? unit;
@@ -391,41 +450,35 @@ class _Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: GleanColors.card,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text.rich(
-              TextSpan(
-                text: value,
-                children: [
-                  if (unit != null)
-                    TextSpan(
-                      text: ' $unit',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text.rich(
+            TextSpan(
+              text: value,
+              children: [
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
-                ],
-              ),
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
-              ),
+                  ),
+              ],
             ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 12, color: GleanColors.label2),
+            style: const TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: GleanColors.label2),
+          ),
+        ],
       ),
     );
   }
@@ -846,15 +899,16 @@ class _ColorThemeSheet extends ConsumerWidget {
   }
 }
 
-/// 我的书架: 收藏, 稍后再读 and 阅读历史, each with a live count.
-class _LibraryGroup extends ConsumerStatefulWidget {
-  const _LibraryGroup();
+/// A row of colourful shortcuts: 收藏, 稍后再读 and 阅读历史 with live
+/// counts, and 我的动态 (社区 → 我的).
+class _QuickEntries extends ConsumerStatefulWidget {
+  const _QuickEntries();
 
   @override
-  ConsumerState<_LibraryGroup> createState() => _LibraryGroupState();
+  ConsumerState<_QuickEntries> createState() => _QuickEntriesState();
 }
 
-class _LibraryGroupState extends ConsumerState<_LibraryGroup> {
+class _QuickEntriesState extends ConsumerState<_QuickEntries> {
   Map<MarkKind, int> _counts = const {};
   int _history = 0;
 
@@ -884,50 +938,91 @@ class _LibraryGroupState extends ConsumerState<_LibraryGroup> {
     ),
   );
 
+  void _openMine() {
+    ref.read(coreadTabProvider.notifier).select(CoreadTab.mine);
+    ref.read(homeTabProvider.notifier).go(HomeTab.community);
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(marksRevisionProvider, (_, _) => _load());
     ref.listen(progressRevisionProvider, (_, _) => _load());
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(32, 22, 32, 7),
-          child: Text(
-            '我的书架',
-            style: TextStyle(fontSize: 13, color: GleanColors.label2),
-          ),
-        ),
-        InsetGroup(
-          dividerIndent: 58,
+    Widget entry(
+      String key,
+      IconData icon,
+      Color color,
+      String label,
+      int? count,
+      VoidCallback onTap,
+    ) => Expanded(
+      child: PressableScale(
+        key: Key(key),
+        onTap: onTap,
+        child: Column(
           children: [
-            _Cell(
-              key: const Key('open-favorites'),
-              icon: Icons.star_rounded,
-              color: GleanColors.gold,
-              title: '收藏',
-              value: '${_counts[MarkKind.favorite] ?? 0} 篇',
-              onTap: () => _open(LibrarySection.favorite),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: GleanColors.dark ? 0.22 : 0.13),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(icon, size: 23, color: color),
             ),
-            _Cell(
-              key: const Key('open-later'),
-              icon: Icons.watch_later_rounded,
-              color: const Color(0xFF5856D6),
-              title: '稍后再读',
-              value: '${_counts[MarkKind.later] ?? 0} 篇',
-              onTap: () => _open(LibrarySection.later),
-            ),
-            _Cell(
-              key: const Key('open-history'),
-              icon: Icons.history_rounded,
-              color: GleanColors.tint,
-              title: '阅读历史',
-              value: '$_history 篇',
-              onTap: () => _open(LibrarySection.history),
+            const SizedBox(height: 7),
+            Text(label, style: const TextStyle(fontSize: 12.5)),
+            Text(
+              count == null ? ' ' : '$count',
+              style: TextStyle(fontSize: 11, color: GleanColors.label2),
             ),
           ],
         ),
-      ],
+      ),
+    );
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(4, 16, 4, 12),
+      decoration: BoxDecoration(
+        color: GleanColors.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: GleanColors.cardShadow,
+      ),
+      child: Row(
+        children: [
+          entry(
+            'open-favorites',
+            Icons.star_rounded,
+            const Color(0xFFD9A23E),
+            '收藏',
+            _counts[MarkKind.favorite] ?? 0,
+            () => _open(LibrarySection.favorite),
+          ),
+          entry(
+            'open-later',
+            Icons.watch_later_rounded,
+            const Color(0xFF7A6FD8),
+            '稍后再读',
+            _counts[MarkKind.later] ?? 0,
+            () => _open(LibrarySection.later),
+          ),
+          entry(
+            'open-history',
+            Icons.history_rounded,
+            GleanColors.tintBright,
+            '阅读历史',
+            _history,
+            () => _open(LibrarySection.history),
+          ),
+          entry(
+            'open-my-posts',
+            Icons.forum_rounded,
+            const Color(0xFFE0603A),
+            '我的动态',
+            null,
+            _openMine,
+          ),
+        ],
+      ),
     );
   }
 }
