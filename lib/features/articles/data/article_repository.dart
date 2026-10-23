@@ -137,6 +137,13 @@ class ArticleRepository {
     return rows.isEmpty ? null : ArticleSummary.fromRow(rows.single);
   }
 
+  /// Articles stored on the device (all readable offline).
+  Future<int> count() async {
+    await _ready;
+    final rows = await _db.rawQuery('SELECT COUNT(*) AS n FROM articles');
+    return rows.single['n']! as int;
+  }
+
   Future<ArticleSummary?> byId(String id) async {
     await _ready;
     final rows = await _db.query(

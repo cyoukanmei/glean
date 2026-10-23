@@ -51,6 +51,32 @@ class ReadingTimeRepository {
     return rows.first['total']! as int;
   }
 
+  /// Active reading per local day from [fromDay] (inclusive, `yyyy-MM-dd`).
+  Future<Map<String, int>> activeMsByDay(
+    String userId, {
+    required String fromDay,
+  }) async {
+    final rows = await _db.rawQuery(
+      'SELECT local_day, SUM(active_ms) AS ms FROM reading_segments '
+      'WHERE user_id = ? AND local_day >= ? GROUP BY local_day',
+      [userId, fromDay],
+    );
+    return {
+      for (final r in rows)
+        r['local_day']! as String: (r['ms']! as num).toInt(),
+    };
+  }
+
+  /// All active reading time of [userId].
+  Future<int> totalActiveMsAll(String userId) async {
+    final rows = await _db.rawQuery(
+      'SELECT COALESCE(SUM(active_ms), 0) AS total FROM reading_segments '
+      'WHERE user_id = ?',
+      [userId],
+    );
+    return (rows.first['total']! as num).toInt();
+  }
+
   /// Device-local calendar day, e.g. `2026-10-23`; used for daily stats.
   static String localDay(int epochMs) {
     final d = DateTime.fromMillisecondsSinceEpoch(epochMs);
