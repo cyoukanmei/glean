@@ -25,9 +25,8 @@ VocabItem _item(String id, String word) => VocabItem(
 );
 
 void main() {
-  testWidgets('flip, rate, fling to the next card, then a summary', (
-    tester,
-  ) async {
+  testWidgets('known words move on at once; 不认识 flips to the meaning '
+      'first, then 下一个 moves on', (tester) async {
     final vocab = FakeVocabRepository();
     await tester.pumpWidget(
       ProviderScope(
@@ -39,33 +38,26 @@ void main() {
     );
 
     expect(find.text('lantern'), findsOneWidget);
-    expect(
-      find.textContaining('释义 lantern', findRichText: true),
-      findsNothing,
-      reason: 'front side',
-    );
-    // Rating buttons only work once the card shows its back.
-    await tester.tap(find.byKey(const Key('rate-2')), warnIfMissed: false);
-    await tester.pump();
-    expect(vocab.statuses, isEmpty);
-
-    // Tap the word: the middle of the card holds the speaker button.
+    // The buttons are there on the front; tapping the card does nothing.
     await tester.tap(find.text('lantern'));
     await tester.pumpAndSettle();
     expect(
       find.textContaining('释义 lantern', findRichText: true),
-      findsOneWidget,
+      findsNothing,
+      reason: 'still the front',
     );
     await tester.tap(find.byKey(const Key('rate-2')));
     await tester.pumpAndSettle();
     expect(vocab.statuses, {'v1': VocabStatus.mastered});
-    expect(find.text('tea'), findsOneWidget, reason: 'next card');
+    expect(find.text('tea'), findsOneWidget, reason: 'next card, not flipped');
 
-    await tester.tap(find.text('tea'));
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('rate-0')));
     await tester.pumpAndSettle();
     expect(vocab.statuses['v2'], VocabStatus.fresh);
+    expect(find.textContaining('释义 tea', findRichText: true), findsOneWidget);
+    expect(find.byKey(const Key('rate-1')), findsNothing);
+    await tester.tap(find.byKey(const Key('review-next')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('review-done')), findsOneWidget);
   });
 }

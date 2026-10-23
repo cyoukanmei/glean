@@ -13,8 +13,10 @@ import '../../../core/speech/speaker.dart';
 import '../data/vocab_repository.dart';
 import 'word_sheet.dart';
 
-/// Flashcard review: the word on the front, tap to flip (3D) to meaning and
-/// source sentence, then rate it; the card flies off and the next one rises.
+/// Flashcard review: the word on the front and three buttons always under
+/// it. 认识 / 已掌握 rate the word and send the card off to the right;
+/// 不认识 flips it (3D) to the meaning and source sentence, and 下一个 then
+/// sends it off to the left. The next card rises in.
 class ReviewPage extends ConsumerStatefulWidget {
   const ReviewPage({super.key, required this.items});
 
@@ -46,6 +48,12 @@ class _ReviewPageState extends ConsumerState<ReviewPage>
   int _direction = 1;
   final _rated = <int, int>{};
 
+  /// The current card was rated 不认识 and shows its back.
+  bool _revealed = false;
+
+  /// Ignores taps while a card flips or flies off.
+  bool _busy = false;
+
   @override
   void dispose() {
     _flip.dispose();
@@ -56,24 +64,43 @@ class _ReviewPageState extends ConsumerState<ReviewPage>
 
   bool get _done => _index >= widget.items.length;
 
-  void _toggle() {
-    HapticFeedback.selectionClick();
-    _flip.isCompleted || _flip.status == AnimationStatus.forward
-        ? _flip.reverse()
-        : _flip.forward();
-  }
-
   Future<void> _rate(int status) async {
+    if (_busy || _revealed) return;
     final item = widget.items[_index];
-    HapticFeedback.lightImpact();
     _rated[status] = (_rated[status] ?? 0) + 1;
     Analytics.track('word_review', {'lemma': item.lemma, 'status': status});
     final write = ref.read(vocabRepositoryProvider).setStatus(item.id, status);
-    setState(() => _direction = status == VocabStatus.fresh ? -1 : 1);
+    if (status == VocabStatus.fresh) {
+      // Show the meaning first; 下一个 moves on.
+      HapticFeedback.selectionClick();
+      setState(() {
+        _revealed = true;
+        _busy = true;
+      });
+      await _flip.forward();
+      await write;
+      if (mounted) setState(() => _busy = false);
+      return;
+    }
+    HapticFeedback.lightImpact();
+    await _next(direction: 1, write: write);
+  }
+
+  /// Sends the card off ([direction] 1 right, -1 left) and brings the next.
+  Future<void> _next({required int direction, Future<void>? write}) async {
+    if (_busy && write == null) return;
+    setState(() {
+      _direction = direction;
+      _busy = true;
+    });
     await _fling.forward(from: 0);
     await write;
     if (!mounted) return;
-    setState(() => _index++);
+    setState(() {
+      _index++;
+      _revealed = false;
+      _busy = false;
+    });
     _flip.value = 0;
     _fling.value = 0;
     _enter.forward(from: 0);
@@ -147,67 +174,133 @@ class _ReviewPageState extends ConsumerState<ReviewPage>
                             ),
                           );
                         },
-                        child: GestureDetector(
+                        child: AnimatedBuilder(
                           key: const Key('review-card'),
-                          onTap: _toggle,
-                          child: AnimatedBuilder(
-                            animation: _flip,
-                            builder: (context, _) => _FlipCard(
-                              t: Curves.easeInOut.transform(_flip.value),
-                              item: widget.items[_index],
-                            ),
+                          animation: _flip,
+                          builder: (context, _) => _FlipCard(
+                            t: Curves.easeInOut.transform(_flip.value),
+                            item: widget.items[_index],
                           ),
                         ),
                       ),
                     ),
             ),
             if (!_done)
-              AnimatedBuilder(
-                animation: _flip,
-                builder: (context, child) => IgnorePointer(
-                  ignoring: _flip.value < 0.9,
-                  child: Opacity(opacity: _flip.value, child: child),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Row(
-                    children: [
-                      for (final (status, color) in const [
-                        (VocabStatus.fresh, GleanColors.red),
-                        (VocabStatus.known, Color(0xFF0369A1)),
-                        (VocabStatus.mastered, GleanColors.green),
-                      ]) ...[
-                        if (status != VocabStatus.fresh)
-                          const SizedBox(width: 10),
-                        Expanded(
-                          child: PressableScale(
-                            key: Key('rate-$status'),
-                            onTap: () => _rate(status),
-                            child: Container(
-                              height: 52,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                status == VocabStatus.fresh
-                                    ? '不认识'
-                                    : VocabStatus.labels[status]!,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: color,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: SizedBox(
+                  height: 52,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, a) => FadeTransition(
+                      opacity: a,
+                      child: ScaleTransition(
+                        scale: Tween(begin: 0.96, end: 1.0).animate(a),
+                        child: child,
+                      ),
+                    ),
+                    child: _revealed
+                        ? _NextButton(
+                            key: const Key('review-next'),
+                            onTap: () => _next(direction: -1),
+                          )
+                        : Row(
+                            key: ValueKey('rate-row-$_index'),
+                            children: [
+                              for (final (status, color) in const [
+                                (VocabStatus.fresh, GleanColors.red),
+                                (VocabStatus.known, Color(0xFF0369A1)),
+                                (VocabStatus.mastered, GleanColors.green),
+                              ]) ...[
+                                if (status != VocabStatus.fresh)
+                                  const SizedBox(width: 10),
+                                Expanded(
+                                  child: _RateButton(
+                                    key: Key('rate-$status'),
+                                    label: status == VocabStatus.fresh
+                                        ? '不认识'
+                                        : VocabStatus.labels[status]!,
+                                    color: color,
+                                    onTap: () => _rate(status),
+                                  ),
                                 ),
-                              ),
-                            ),
+                              ],
+                            ],
                           ),
-                        ),
-                      ],
-                    ],
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RateButton extends StatelessWidget {
+  const _RateButton({
+    super.key,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableScale(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// After 不认识: one wide button to move on once the meaning sank in.
+class _NextButton extends StatelessWidget {
+  const _NextButton({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableScale(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: GleanColors.tint,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '记住了，下一个',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 4),
+            Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
           ],
         ),
       ),
@@ -287,7 +380,10 @@ class _FlipCard extends ConsumerWidget {
         tooltip: '发音',
       ),
       const SizedBox(height: 28),
-      Text('轻点翻面', style: TextStyle(fontSize: 13, color: GleanColors.label3)),
+      Text(
+        '想不起来就点「不认识」看释义',
+        style: TextStyle(fontSize: 13, color: GleanColors.label3),
+      ),
     ],
   );
 
