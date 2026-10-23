@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -34,10 +35,11 @@ class StoreBannerItem {
   final VoidCallback onTap;
 }
 
-/// Auto-playing banner carousel. Slides advance every [interval] and loop
-/// around; a drag pauses the timer until the finger lifts. The picture
-/// drifts against the swipe for a little depth, and the active dot
-/// stretches into a bar.
+/// Auto-playing banner carousel. Each slide is the article's cover standing
+/// on the right over a blurred, gradient-shaded copy of it. Slides advance
+/// every [interval] and loop around; a drag pauses the timer until the
+/// finger lifts. Cover and background drift at different speeds during a
+/// swipe for depth, and the active dot stretches into a bar.
 class StoreBanner extends StatefulWidget {
   const StoreBanner({super.key, required this.items});
 
@@ -156,6 +158,14 @@ class _Slide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = item.article;
+    final d = drift.clamp(-1.0, 1.0);
+    Widget cover(double radius) => ArticleCover(
+      seed: a.id,
+      title: a.title,
+      band: a.author?.toUpperCase(),
+      image: CoverCatalog.instance[a.id],
+      borderRadius: BorderRadius.circular(radius),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: PressableScale(
@@ -174,17 +184,17 @@ class _Slide extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Wider than the slide so it can drift without showing edges.
-                OverflowBox(
-                  maxWidth: double.infinity,
-                  child: FractionalTranslation(
-                    translation: Offset(drift.clamp(-1.0, 1.0) * 0.12, 0),
-                    child: FractionallySizedBox(
-                      widthFactor: 1.3,
-                      child: ArticleCover(
-                        seed: a.id,
-                        title: a.title,
-                        image: CoverCatalog.instance[a.id],
+                // The picture, softly blurred and wider than the slide so
+                // it can drift against the swipe without showing edges.
+                LayoutBuilder(
+                  builder: (context, box) => OverflowBox(
+                    maxWidth: box.maxWidth * 1.3,
+                    minWidth: box.maxWidth * 1.3,
+                    child: Transform.translate(
+                      offset: Offset(d * box.maxWidth * 0.12, 0),
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                        child: cover(0),
                       ),
                     ),
                   ),
@@ -193,16 +203,40 @@ class _Slide extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        GleanColors.tintDeep.withValues(alpha: 0.94),
-                        GleanColors.tintDeep.withValues(alpha: 0.6),
-                        GleanColors.tintDeep.withValues(alpha: 0),
+                        GleanColors.tintDeep.withValues(alpha: 0.95),
+                        GleanColors.tintDeep.withValues(alpha: 0.72),
+                        GleanColors.tintDeep.withValues(alpha: 0.25),
                       ],
-                      stops: const [0, 0.55, 1],
+                      stops: const [0, 0.5, 1],
+                    ),
+                  ),
+                ),
+                // The book itself, standing on the right; it drifts faster
+                // than the background.
+                Positioned(
+                  right: 20 - d * 36,
+                  top: 18,
+                  bottom: 18,
+                  child: AspectRatio(
+                    aspectRatio: 3 / 4,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x73000000),
+                            blurRadius: 16,
+                            offset: Offset(0, 8),
+                            spreadRadius: -4,
+                          ),
+                        ],
+                      ),
+                      child: cover(6),
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 120, 16),
+                  padding: const EdgeInsets.fromLTRB(18, 18, 132, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -242,7 +276,7 @@ class _Slide extends StatelessWidget {
                       const Spacer(),
                       Text(
                         item.subtitle,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12.5,
