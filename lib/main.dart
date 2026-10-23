@@ -4,6 +4,9 @@ import 'package:sqflite/sqflite.dart';
 
 import 'core/db/app_database.dart';
 import 'core/db/seed_importer.dart';
+import 'core/navigation/swipe_back_route.dart';
+import 'features/articles/data/article_repository.dart';
+import 'features/articles/ui/article_list_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,60 +30,15 @@ class EnglishReaderApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final articles = ArticleRepository(db);
     return MaterialApp(
       title: 'English Reader',
       theme: ThemeData(colorSchemeSeed: Colors.teal),
-      home: _DbCheckPage(db: db),
-    );
-  }
-}
-
-/// Temporary page to verify the database and seed on a real device.
-/// Replaced by the article list in the next step.
-class _DbCheckPage extends StatelessWidget {
-  const _DbCheckPage({required this.db});
-
-  final Database db;
-
-  Future<(Map<String, int>, List<Map<String, Object?>>)> _load() async {
-    final counts = <String, int>{};
-    for (final table in ['articles', 'dict', 'word_forms', 'app_meta']) {
-      final r = await db.rawQuery('SELECT COUNT(*) AS n FROM $table');
-      counts[table] = r.single['n']! as int;
-    }
-    final articles = await db.query(
-      'articles',
-      columns: ['title', 'category', 'level', 'word_count'],
-      orderBy: 'published_at DESC, id DESC',
-    );
-    return (counts, articles);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('DB check')),
-      body: FutureBuilder(
-        future: _load(),
-        builder: (context, snap) {
-          if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final (counts, articles) = snap.data!;
-          return ListView(
-            children: [
-              ListTile(title: Text(counts.toString())),
-              for (final a in articles)
-                ListTile(
-                  dense: true,
-                  title: Text(a['title']! as String),
-                  subtitle: Text(
-                    '${a['category']} · L${a['level']} · ${a['word_count']} words',
-                  ),
-                ),
-            ],
-          );
-        },
+      // Every page uses SwipeBackPageRoute, so the page underneath also gets
+      // the parallax secondary animation while the top page slides.
+      onGenerateRoute: (settings) => SwipeBackPageRoute<void>(
+        settings: settings,
+        builder: (_) => ArticleListPage(repository: articles),
       ),
     );
   }
