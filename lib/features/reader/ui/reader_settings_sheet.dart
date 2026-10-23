@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
@@ -15,10 +16,13 @@ class ReaderSettingsSheet extends ConsumerWidget {
   static Future<void> show(BuildContext context) => showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
-    backgroundColor: GleanColors.card,
+    backgroundColor: GleanColors.sheet,
     barrierColor: const Color(0x47000000),
     builder: (_) => const ReaderSettingsSheet(),
   );
+
+  static void _track(String setting, Object value) =>
+      Analytics.track('reader_settings', {'setting': setting, 'value': value});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +32,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
       padding: const EdgeInsets.only(top: 20, bottom: 8),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, color: GleanColors.label2),
+        style: TextStyle(fontSize: 13, color: GleanColors.label2),
       ),
     );
 
@@ -57,6 +61,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
                     divisions: 20,
                     activeColor: GleanColors.tint,
                     onChanged: notifier.setFontSize,
+                    onChangeEnd: (v) => _track('font_size', v),
                   ),
                 ),
                 const Text('A', style: TextStyle(fontSize: 22)),
@@ -66,7 +71,10 @@ class ReaderSettingsSheet extends ConsumerWidget {
             IosSegmented<LineSpacing>(
               value: s.spacing,
               items: {for (final l in LineSpacing.values) l: l.label},
-              onChanged: notifier.setSpacing,
+              onChanged: (l) {
+                notifier.setSpacing(l);
+                _track('line_spacing', l.name);
+              },
             ),
             caption('主题'),
             Row(
@@ -77,7 +85,10 @@ class ReaderSettingsSheet extends ConsumerWidget {
                     child: _ThemeTile(
                       theme: t,
                       selected: !s.followSystem && s.theme == t,
-                      onTap: () => notifier.setTheme(t),
+                      onTap: () {
+                        notifier.setTheme(t);
+                        _track('theme', t.name);
+                      },
                     ),
                   ),
                 ],
@@ -96,7 +107,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.dark_mode_rounded,
                       size: 20,
                       color: GleanColors.tint,
@@ -108,7 +119,10 @@ class ReaderSettingsSheet extends ConsumerWidget {
                     CupertinoSwitch(
                       value: s.followSystem,
                       activeTrackColor: GleanColors.green,
-                      onChanged: notifier.setFollowSystem,
+                      onChanged: (v) {
+                        notifier.setFollowSystem(v);
+                        _track('follow_system', v);
+                      },
                     ),
                   ],
                 ),

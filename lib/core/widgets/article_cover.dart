@@ -4,10 +4,13 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../design/glean_theme.dart';
+import 'cover_catalog.dart';
 
-/// Book-jacket cover drawn in code: a deep colour picked from the article
-/// id, a darker spine, a small caps band on top and the serif title.
+/// Article cover: the bundled picture when there is one ([image]), otherwise
+/// a book jacket drawn in code (a deep colour picked from the article id, a
+/// darker spine, a small caps band on top and the serif title).
 ///
+/// Landscape pictures simply fill the box at every size.
 /// One layout covers every size, so a Hero flight between a square list
 /// thumbnail and the wide reader header stays continuous: as the box gets
 /// wider than it is tall, the jacket shrinks into a portrait "book" standing
@@ -20,8 +23,13 @@ class ArticleCover extends StatelessWidget {
     required this.title,
     this.band,
     this.footer,
+    this.image,
     this.borderRadius = BorderRadius.zero,
   });
+
+  /// Bundled picture; portrait ones (book illustrations) behave like the
+  /// jacket and stand as a book in wide boxes.
+  final CoverImage? image;
 
   /// Picks the colour; the article id, so a cover never changes.
   final String seed;
@@ -56,9 +64,27 @@ class ArticleCover extends StatelessWidget {
     return jackets[h % jackets.length];
   }
 
+  static Widget _picture(CoverImage image) => Image.asset(
+    image.asset,
+    fit: BoxFit.cover,
+    // Book art keeps its top (title, faces) when cropped to a square.
+    alignment: image.portrait ? const Alignment(0, -0.4) : Alignment.center,
+    width: double.infinity,
+    height: double.infinity,
+    filterQuality: FilterQuality.medium,
+    gaplessPlayback: true,
+  );
+
   @override
   Widget build(BuildContext context) {
-    final color = colorFor(seed);
+    final image = this.image;
+    if (image != null && !image.portrait) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: ColoredBox(color: image.dominant, child: _picture(image)),
+      );
+    }
+    final color = image?.dominant ?? colorFor(seed);
     return ClipRRect(
       borderRadius: borderRadius,
       child: LayoutBuilder(
@@ -69,16 +95,29 @@ class ArticleCover extends StatelessWidget {
           // reader header's ~1.2 aspect up (a book standing on a backdrop).
           final t = ((w / h - 1.02) / 0.16).clamp(0.0, 1.0);
           final bookH = h * lerpDouble(1, 0.6, t)!;
-          final bookW = lerpDouble(w, bookH * 0.7, t)!;
-          final book = _Jacket(
-            color: color,
-            title: title,
-            band: band,
-            footer: footer,
-            width: bookW,
-            height: bookH,
-            corner: lerpDouble(0, 4, t)!,
-          );
+          final bookW = lerpDouble(w, bookH * (image?.aspect ?? 0.7), t)!;
+          final corner = lerpDouble(0, 4, t)!;
+          final book = image == null
+              ? _Jacket(
+                  color: color,
+                  title: title,
+                  band: band,
+                  footer: footer,
+                  width: bookW,
+                  height: bookH,
+                  corner: corner,
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(corner / 2),
+                    right: Radius.circular(corner),
+                  ),
+                  child: SizedBox(
+                    width: bookW,
+                    height: bookH,
+                    child: _picture(image),
+                  ),
+                );
           if (t == 0) return book;
           return DecoratedBox(
             decoration: BoxDecoration(

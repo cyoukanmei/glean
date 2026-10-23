@@ -102,7 +102,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         final i = await showModalBottomSheet<int>(
           context: context,
           showDragHandle: true,
-          backgroundColor: GleanColors.card,
+          backgroundColor: GleanColors.sheet,
           builder: (_) =>
               _PresetGrid(selected: UserAvatar.presetIndex(_avatar)),
         );
@@ -175,7 +175,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     onPressed: _saving ? null : _save,
                     child: _saving
                         ? const CupertinoActivityIndicator()
-                        : const Text(
+                        : Text(
                             '保存',
                             style: TextStyle(
                               fontSize: 17,
@@ -245,7 +245,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Center(
+                  Center(
                     child: Text(
                       '点击更换头像',
                       style: TextStyle(fontSize: 13, color: GleanColors.label2),
@@ -286,7 +286,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         label: '账号',
                         child: Text(
                           _user.username,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             color: GleanColors.label2,
                           ),
@@ -343,7 +343,7 @@ class _Caption extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 7),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, color: GleanColors.label2),
+        style: TextStyle(fontSize: 13, color: GleanColors.label2),
       ),
     );
   }

@@ -85,18 +85,18 @@ class _Card extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
                 GleanColors.tint,
-                Color(0xFF115E59),
+                Color.lerp(GleanColors.tint, GleanColors.tintDeep, 0.5)!,
                 GleanColors.tintDeep,
               ],
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x660F766E),
+                color: GleanColors.tint.withValues(alpha: 0.4),
                 blurRadius: 28,
                 offset: Offset(0, 12),
                 spreadRadius: -12,

@@ -15,6 +15,7 @@ import '../../auth/application/auth.dart';
 import '../../reader/ui/open_reader.dart';
 import '../../vocab/data/vocab_repository.dart';
 import '../data/coread_store.dart';
+import 'share_quote_sheet.dart';
 
 final coreadStoreProvider = Provider(
   (ref) => CoreadStore(
@@ -108,7 +109,7 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      backgroundColor: GleanColors.card,
+      backgroundColor: GleanColors.sheet,
       builder: (_) => const _ComposeSheet(),
     );
     if (shared == null || !mounted) return;
@@ -122,6 +123,14 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(coreadRevisionProvider, (_, _) {
+      setState(() {
+        _posts = _store.posts();
+        _sort = _Sort.latest;
+        _fresh = _posts.first.id;
+      });
+      _loadArticles();
+    });
     final posts = _sorted;
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
@@ -250,7 +259,7 @@ class _PostCard extends StatelessWidget {
   static const _avatarColors = [
     [Color(0xFFFDE68A), Color(0xFFF59E0B)],
     [Color(0xFFC4B5FD), Color(0xFF7C3AED)],
-    [Color(0xFF99F6E4), GleanColors.tint],
+    [Color(0xFF99F6E4), Color(0xFF0F766E)],
     [Color(0xFFFBCFE8), Color(0xFFDB2777)],
     [Color(0xFFBAE6FD), Color(0xFF0284C7)],
   ];
@@ -295,7 +304,7 @@ class _PostCard extends StatelessWidget {
                       ' · ${timeAgo(post.createdAt, clock.now())}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         color: GleanColors.label2,
                       ),
@@ -308,14 +317,14 @@ class _PostCard extends StatelessWidget {
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.only(left: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 left: BorderSide(color: GleanColors.tintBright, width: 3),
               ),
             ),
             child: Text(
               '“${post.quote}”',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: serifFamily,
                 fontFamilyFallback: serifFallback,
                 fontSize: 18,
@@ -328,10 +337,10 @@ class _PostCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               post.thought,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 height: 1.6,
-                color: Color(0xFF3A3A3C),
+                color: GleanColors.ink2,
               ),
             ),
           ],
@@ -371,7 +380,7 @@ class _PostCard extends StatelessWidget {
                           ),
                           Text(
                             articleMeta(a.category, a.level, a.wordCount),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11.5,
                               color: GleanColors.label2,
                             ),
@@ -379,7 +388,7 @@ class _PostCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
                       size: 20,
                       color: GleanColors.label3,
@@ -411,7 +420,7 @@ class _PostCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 22),
-              const Icon(
+              Icon(
                 Icons.chat_bubble_outline_rounded,
                 size: 17,
                 color: GleanColors.label2,
@@ -419,10 +428,7 @@ class _PostCard extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 '${post.comments}',
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  color: GleanColors.label2,
-                ),
+                style: TextStyle(fontSize: 13.5, color: GleanColors.label2),
               ),
             ],
           ),
@@ -549,7 +555,7 @@ class _ComposeSheetState extends ConsumerState<_ComposeSheet> {
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             '从你收藏生词的原句里选一句',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: GleanColors.label2),
@@ -558,7 +564,7 @@ class _ComposeSheetState extends ConsumerState<_ComposeSheet> {
           if (sources == null)
             const SizedBox(height: 80)
           else if (sources.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 28),
               child: Text(
                 '还没有可分享的句子。\n阅读时长按单词收藏，它所在的句子就会出现在这里。',

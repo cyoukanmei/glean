@@ -19,14 +19,27 @@ class ReaderPalette {
     required this.barInk,
   });
 
+  /// The paper page uses the colour theme's cream and green; sepia and
+  /// night keep their own colours (night takes the theme's light accent).
   ReaderPalette.of(ReaderTheme t)
     : this(
-        background: t.background,
+        background:
+            t == ReaderTheme.paper && GleanColors.theme == ColorTheme.paper
+            ? const Color(0xFFFAF1E2)
+            : t.background,
         text: t.text,
         title: t.title,
         secondary: t.secondary,
-        accent: t.accent,
-        chipBg: t.chipBg,
+        accent: switch (t) {
+          ReaderTheme.paper => GleanColors.tint,
+          ReaderTheme.night => GleanColors.mintLight,
+          ReaderTheme.sepia => t.accent,
+        },
+        chipBg: t == ReaderTheme.paper
+            ? (GleanColors.dark
+                  ? const Color(0xFFE6EDE1)
+                  : GleanColors.mintSoft)
+            : t.chipBg,
         bar: t.bar,
         barInk: t.barInk,
       );

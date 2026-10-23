@@ -31,7 +31,11 @@ class FinishOverlay extends StatefulWidget {
     required this.stats,
     required this.onNext,
     required this.onClose,
+    this.backdrop = const Color(0xFFFBF7EE),
   });
+
+  /// The page colour the blurred page is washed with.
+  final Color backdrop;
 
   final FinishStats stats;
   final ValueChanged<ArticleSummary> onNext;
@@ -88,9 +92,9 @@ class _FinishOverlayState extends State<FinishOverlay>
                 sigmaY: 6 * _backdrop.value,
               ),
               child: ColoredBox(
-                color: const Color(
-                  0xFFFBF7EE,
-                ).withValues(alpha: 0.55 * _backdrop.value),
+                color: widget.backdrop.withValues(
+                  alpha: 0.55 * _backdrop.value,
+                ),
               ),
             ),
           ),
@@ -125,7 +129,7 @@ class _FinishOverlayState extends State<FinishOverlay>
                     Container(
                       width: 60,
                       height: 60,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -151,10 +155,7 @@ class _FinishOverlayState extends State<FinishOverlay>
                     const SizedBox(height: 4),
                     Text(
                       '这是你读完的第 ${stats.finishedTotal} 篇，保持住 🔥',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: GleanColors.label2,
-                      ),
+                      style: TextStyle(fontSize: 14, color: GleanColors.label2),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -178,7 +179,7 @@ class _FinishOverlayState extends State<FinishOverlay>
                     ],
                     TextButton(
                       onPressed: widget.onClose,
-                      child: const Text(
+                      child: Text(
                         '留在本文',
                         style: TextStyle(fontSize: 16, color: GleanColors.tint),
                       ),
@@ -207,7 +208,7 @@ class _Stat extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: GleanColors.label,
@@ -217,7 +218,7 @@ class _Stat extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: GleanColors.label2),
+            style: TextStyle(fontSize: 12, color: GleanColors.label2),
           ),
         ],
       ),
@@ -256,10 +257,7 @@ class _NextRow extends StatelessWidget {
                 Text(
                   '下一篇 · ${categoryLabels[article.category]} · '
                   '${levelLabels[article.level]}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: GleanColors.label2,
-                  ),
+                  style: TextStyle(fontSize: 12, color: GleanColors.label2),
                 ),
                 Text(
                   article.title,
@@ -274,7 +272,7 @@ class _NextRow extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: GleanColors.label3),
+          Icon(Icons.chevron_right_rounded, color: GleanColors.label3),
         ],
       ),
     );

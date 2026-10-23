@@ -11,6 +11,8 @@ import '../../../core/design/ios_widgets.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../reader/ui/open_reader.dart';
 import '../data/vocab_repository.dart';
+import '../../../core/navigation/swipe_back_route.dart';
+import 'review_page.dart';
 import 'word_sheet.dart';
 
 /// 生词本: saved words, newest first, with search and a few counts. Swipe
@@ -29,6 +31,9 @@ class _VocabPageState extends ConsumerState<VocabPage> {
 
   List<VocabItem>? _items;
   String _query = '';
+
+  /// Learning-status filter; null shows every word.
+  int? _status;
 
   @override
   void initState() {
@@ -81,10 +86,23 @@ class _VocabPageState extends ConsumerState<VocabPage> {
 
   bool _matches(VocabItem item) {
     final q = _query.toLowerCase();
+    if (_status != null && item.status != _status) return false;
     return q.isEmpty ||
         item.word.toLowerCase().contains(q) ||
         item.lemma.contains(q) ||
         item.definition.contains(q);
+  }
+
+  /// Words not mastered yet, or every word once all are mastered.
+  void _review(List<VocabItem> all) {
+    final due = all.where((i) => i.status < VocabStatus.mastered).toList();
+    final items = (due.isEmpty ? [...all] : due)..shuffle();
+    Navigator.of(context).push(
+      SwipeBackPageRoute<void>(
+        settings: const RouteSettings(name: '/vocab/review'),
+        builder: (_) => ReviewPage(items: items.take(20).toList()),
+      ),
+    );
   }
 
   @override
@@ -93,6 +111,7 @@ class _VocabPageState extends ConsumerState<VocabPage> {
     final items = _items;
     final weekAgo = clock.now().subtract(_week).millisecondsSinceEpoch;
     final shown = items?.where(_matches).toList() ?? const <VocabItem>[];
+    final onPaper = GleanColors.listsOnPaper;
 
     final Widget content;
     if (items == null) {
@@ -111,7 +130,7 @@ class _VocabPageState extends ConsumerState<VocabPage> {
         ),
       );
     } else if (shown.isEmpty) {
-      content = const SliverToBoxAdapter(
+      content = SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(top: 40),
           child: Center(
@@ -129,12 +148,14 @@ class _VocabPageState extends ConsumerState<VocabPage> {
           final item = shown[i];
           const r = Radius.circular(14);
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: onPaper ? 4 : 16),
             child: ClipRRect(
-              borderRadius: BorderRadius.vertical(
-                top: i == 0 ? r : Radius.zero,
-                bottom: i == shown.length - 1 ? r : Radius.zero,
-              ),
+              borderRadius: onPaper
+                  ? BorderRadius.zero
+                  : BorderRadius.vertical(
+                      top: i == 0 ? r : Radius.zero,
+                      bottom: i == shown.length - 1 ? r : Radius.zero,
+                    ),
               child: Dismissible(
                 key: ValueKey(item.id),
                 direction: DismissDirection.endToStart,
@@ -144,15 +165,11 @@ class _VocabPageState extends ConsumerState<VocabPage> {
                   _delete(item);
                 },
                 child: ColoredBox(
-                  color: GleanColors.card,
+                  color: onPaper ? GleanColors.background : GleanColors.card,
                   child: Column(
                     children: [
                       if (i > 0) const Hairline(indent: 16),
-                      _VocabTile(
-                        item: item,
-                        isNew: item.createdAt >= weekAgo,
-                        onTap: () => _open(item),
-                      ),
+                      _VocabTile(item: item, onTap: () => _open(item)),
                     ],
                   ),
                 ),
@@ -194,18 +211,47 @@ class _VocabPageState extends ConsumerState<VocabPage> {
                         label: '本周新增',
                       ),
                       const SizedBox(width: 10),
-                      _StatTile(value: all.length, label: '共收藏'),
+                      _StatTile(
+                        value: all
+                            .where((i) => i.status == VocabStatus.known)
+                            .length,
+                        label: '认识',
+                      ),
                       const SizedBox(width: 10),
                       _StatTile(
-                        value: {for (final i in all) i.source.articleId}.length,
-                        label: '来自文章',
+                        value: all
+                            .where((i) => i.status == VocabStatus.mastered)
+                            .length,
+                        label: '已掌握',
                         accent: true,
                       ),
                     ],
                   ),
                 ),
-                if (all.isNotEmpty)
-                  SectionHeader(title: _query.isEmpty ? '最近收藏' : '搜索结果'),
+                if (all.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _ReviewButton(
+                    due: all
+                        .where((i) => i.status < VocabStatus.mastered)
+                        .length,
+                    onTap: () => _review(all),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: IosSegmented<int>(
+                      value: _status ?? -1,
+                      items: {-1: '全部', ...VocabStatus.labels},
+                      onChanged: (s) =>
+                          setState(() => _status = s < 0 ? null : s),
+                    ),
+                  ),
+                  SectionHeader(
+                    title: _query.isEmpty && _status == null
+                        ? '最近收藏'
+                        : '${shown.length} 个结果',
+                  ),
+                ],
               ],
             ),
             content,
@@ -215,6 +261,46 @@ class _VocabPageState extends ConsumerState<VocabPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewButton extends StatelessWidget {
+  const _ReviewButton({required this.due, required this.onTap});
+
+  final int due;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: PressableScale(
+        key: const Key('start-review'),
+        onTap: onTap,
+        child: Container(
+          height: 50,
+          decoration: BoxDecoration(
+            color: GleanColors.mintSoft,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.style_rounded, color: GleanColors.tint, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                due > 0 ? '开始复习 · $due 个待复习' : '全部掌握了，再复习一遍',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: GleanColors.tint,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -260,7 +346,7 @@ class _StatTile extends StatelessWidget {
             ),
             Text(
               label,
-              style: const TextStyle(fontSize: 12, color: GleanColors.label2),
+              style: TextStyle(fontSize: 12, color: GleanColors.label2),
             ),
           ],
         ),
@@ -270,15 +356,16 @@ class _StatTile extends StatelessWidget {
 }
 
 class _VocabTile extends StatelessWidget {
-  const _VocabTile({
-    required this.item,
-    required this.isNew,
-    required this.onTap,
-  });
+  const _VocabTile({required this.item, required this.onTap});
 
   final VocabItem item;
-  final bool isNew;
   final VoidCallback onTap;
+
+  static Map<int, (Color, Color)> get _tags => {
+    VocabStatus.fresh: (GleanColors.goldSoft, GleanColors.goldInk),
+    VocabStatus.known: GleanColors.levelBadge[2]!,
+    VocabStatus.mastered: GleanColors.levelBadge[1]!,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +388,7 @@ class _VocabTile extends StatelessWidget {
               children: [
                 Text(
                   item.word,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: serifFamily,
                     fontFamilyFallback: serifFallback,
                     fontSize: 19,
@@ -313,27 +400,27 @@ class _VocabTile extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     '原形 ${item.lemma}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: GleanColors.label2,
-                    ),
+                    style: TextStyle(fontSize: 13, color: GleanColors.label2),
                   ),
                 ],
                 const Spacer(),
-                if (isNew)
+                if (_tags[item.status] case (final bg, final ink))
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      color: GleanColors.goldSoft,
+                      color: bg,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       child: Text(
-                        '新词',
+                        VocabStatus.labels[item.status]!,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: GleanColors.goldInk,
+                          color: ink,
                         ),
                       ),
                     ),
@@ -345,7 +432,7 @@ class _VocabTile extends StatelessWidget {
               meaning,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 14.5, color: Color(0xFF3A3A3C)),
+              style: TextStyle(fontSize: 14.5, color: GleanColors.ink2),
             ),
             if (item.source.sentence case final s?) ...[
               const SizedBox(height: 6),
@@ -355,7 +442,7 @@ class _VocabTile extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.auto_stories_rounded,
                     size: 14,
                     color: GleanColors.tint,
@@ -366,14 +453,14 @@ class _VocabTile extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: GleanColors.tint,
                       ),
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
                     size: 16,
                     color: GleanColors.tint,
@@ -406,7 +493,7 @@ class _Sentence extends StatelessWidget {
                 TextSpan(text: sentence.substring(0, i)),
                 TextSpan(
                   text: word,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontStyle: FontStyle.normal,
                     color: GleanColors.label,
@@ -415,7 +502,7 @@ class _Sentence extends StatelessWidget {
                 TextSpan(text: sentence.substring(i + word.length)),
               ],
             ),
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: serifFamily,
         fontFamilyFallback: serifFallback,
         fontSize: 14,

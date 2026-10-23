@@ -11,6 +11,7 @@ import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/widgets/cover_catalog.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
@@ -21,6 +22,8 @@ import '../../vocab/ui/word_sheet.dart';
 import '../application/reader_settings.dart';
 import '../application/reading_session.dart';
 import '../data/progress_repository.dart';
+import '../../library/data/marks_repository.dart';
+import '../../library/ui/article_actions.dart';
 import 'finish_card.dart';
 import 'open_reader.dart';
 import 'reader_chrome.dart';
@@ -171,6 +174,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     );
     _loadCollected();
     _loadNeighbors();
+    _loadMarks();
     _start();
   }
 
@@ -203,6 +207,33 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     } catch (e) {
       debugPrint('[reader] neighbours unavailable: $e');
     }
+  }
+
+  /// 收藏 state of this article (the star button).
+  bool _favorite = false;
+
+  Future<void> _loadMarks() async {
+    final marks = await ref
+        .read(marksRepositoryProvider)
+        .of(_userId, widget.article.id);
+    if (mounted) setState(() => _favorite = marks.contains(MarkKind.favorite));
+  }
+
+  Future<void> _toggleFavorite() async {
+    final on = !_favorite;
+    HapticFeedback.lightImpact();
+    setState(() => _favorite = on);
+    await setMark(
+      ref,
+      widget.article,
+      MarkKind.favorite,
+      on: on,
+      surface: 'reader',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(on ? '已收藏' : '已取消收藏')));
   }
 
   void _openNeighbor(ArticleSummary article, String surface) =>
@@ -387,6 +418,23 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     if (position == null) return;
     _progress.value = position.progress;
     _session?.onPosition(position);
+    _trackDepth(position.progress);
+  }
+
+  /// Scroll depth milestones reached in this visit, each reported once.
+  final _depthsReported = <int>{};
+
+  void _trackDepth(double progress) {
+    // Before the entrance ends the page is not really being read yet.
+    if (_session == null) return;
+    for (final depth in const [25, 50, 75, 100]) {
+      if (progress * 100 >= depth - 0.5 && _depthsReported.add(depth)) {
+        Analytics.track('scroll_depth', {
+          'article_id': widget.article.id,
+          'depth': depth,
+        });
+      }
+    }
   }
 
   /// Paragraph tops and heights in scroll-content coordinates.
@@ -480,6 +528,13 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     HapticFeedback.mediumImpact();
     Analytics.track('article_finish', {'article_id': widget.article.id});
     setState(() => _finished = true);
+    // Read now: no longer "later".
+    final marks = ref.read(marksRepositoryProvider);
+    if ((await marks.of(_userId, widget.article.id)).contains(MarkKind.later)) {
+      await marks.set(_userId, widget.article.id, MarkKind.later, on: false);
+      ref.read(marksRevisionProvider.notifier).bump();
+    }
+    if (!mounted) return;
     final (saved, total) = await (
       ref
           .read(vocabRepositoryProvider)
@@ -527,7 +582,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     ref.listen(readerSettingsProvider, _onSettingsChanged);
     final settings = ref.watch(readerSettingsProvider);
     final theme = settings.effectiveTheme(
-      systemDark: MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+      // "Follow system" follows the app's appearance (itself the system's
+      // unless set to light or dark).
+      systemDark: GleanColors.dark,
     );
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: theme.isDark
@@ -664,7 +721,21 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                           opacity: t,
                           child: Glass(
                             color: palette.background.withValues(alpha: 0.82),
-                            child: const SizedBox.expand(),
+                            // A hairline marks where the bar ends, since
+                            // it has the page's own colour.
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: palette.secondary.withValues(
+                                      alpha: 0.25,
+                                    ),
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                              child: const SizedBox.expand(),
+                            ),
                           ),
                         );
                 },
@@ -693,6 +764,25 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                   onTap: () => Navigator.of(context).maybePop(),
                 ),
                 const Spacer(),
+                // Star pops when it fills.
+                TweenAnimationBuilder<double>(
+                  key: ValueKey(_favorite),
+                  tween: Tween(begin: _favorite ? 0.7 : 1, end: 1),
+                  duration: const Duration(milliseconds: 420),
+                  curve: Curves.elasticOut,
+                  builder: (context, s, child) =>
+                      Transform.scale(scale: s, child: child),
+                  child: GlassCircleButton(
+                    key: const Key('reader-favorite'),
+                    icon: _favorite
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    label: _favorite ? '取消收藏' : '收藏',
+                    palette: palette,
+                    onTap: _toggleFavorite,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 GlassCircleButton(
                   key: const Key('reader-settings'),
                   icon: Icons.text_fields_rounded,
@@ -738,6 +828,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
           if (finishStats != null)
             Positioned.fill(
               child: FinishOverlay(
+                backdrop: palette.background,
                 stats: finishStats,
                 onNext: (a) => _openNeighbor(a, FinishOverlay.nextSurface),
                 onClose: () => setState(() => _finishStats = null),
@@ -786,6 +877,8 @@ class _Body extends StatelessWidget {
     final byline = [
       '${article.wordCount} 词',
       '约 ${readingMinutes(article.wordCount)} 分钟',
+      '${compactCount(article.readers)} 人在读',
+      '${compactCount(article.favorites)} 收藏',
       if (savedHere > 0) '已收藏 $savedHere 词',
     ];
     final bodyStyle = TextStyle(
@@ -836,6 +929,17 @@ class _Body extends StatelessWidget {
             byline.join('  ·  '),
             style: TextStyle(fontSize: 13, color: palette.secondary),
           ),
+          // Attribution for the cover picture (CC BY / BY-SA need it).
+          if (CoverCatalog.instance[article.id] case final cover?)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '封面：${cover.artist} · ${cover.license} · Wikimedia Commons',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11.5, color: palette.secondary),
+              ),
+            ),
           const SizedBox(height: 8),
           for (final (i, p) in paragraphs.indexed)
             Padding(
@@ -923,7 +1027,7 @@ class _RestoreHint extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: onBackToTop,
-                  child: const Text(
+                  child: Text(
                     '回到开头',
                     style: TextStyle(
                       fontSize: 14,

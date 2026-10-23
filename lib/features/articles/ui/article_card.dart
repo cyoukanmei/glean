@@ -23,6 +23,7 @@ class ArticleCard extends StatelessWidget {
     required this.article,
     required this.surface,
     required this.onTap,
+    this.onLongPress,
     this.progress,
   });
 
@@ -31,6 +32,9 @@ class ArticleCard extends StatelessWidget {
   final ArticleSummary article;
   final String surface;
   final VoidCallback onTap;
+
+  /// Long-press menu (收藏 / 稍后再读).
+  final VoidCallback? onLongPress;
   final CardProgress? progress;
 
   @override
@@ -39,16 +43,33 @@ class ArticleCard extends StatelessWidget {
     final started = p != null && !p.finished && p.maxProgress > 0.02;
     return PressableScale(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            SizedBox.square(
-              dimension: coverSize,
-              child: CoverHero(
-                article: article,
-                surface: surface,
-                borderRadius: CoverHero.listRadius,
+            DecoratedBox(
+              // On paper the cover lifts off the page a little.
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(CoverHero.listRadius),
+                boxShadow: GleanColors.listsOnPaper
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x4D3C280A),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                          spreadRadius: -4,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: SizedBox.square(
+                dimension: coverSize,
+                child: CoverHero(
+                  article: article,
+                  surface: surface,
+                  borderRadius: CoverHero.listRadius,
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -60,7 +81,7 @@ class ArticleCard extends StatelessWidget {
                     article.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16.5,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
@@ -83,7 +104,7 @@ class ArticleCard extends StatelessWidget {
                           '${readingMinutes(article.wordCount)} 分钟',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12.5,
                             color: GleanColors.label2,
                           ),
@@ -91,7 +112,7 @@ class ArticleCard extends StatelessWidget {
                       ),
                       if (p?.finished ?? false) ...[
                         const SizedBox(width: 6),
-                        const Text(
+                        Text(
                           '已读完 ✓',
                           style: TextStyle(
                             fontSize: 12.5,
@@ -102,6 +123,8 @@ class ArticleCard extends StatelessWidget {
                       ],
                     ],
                   ),
+                  const SizedBox(height: 5),
+                  _Stats(article: article),
                   if (started) ...[
                     const SizedBox(height: 8),
                     ClipRRect(
@@ -124,8 +147,42 @@ class ArticleCard extends StatelessWidget {
   }
 }
 
-/// Wraps one row of an inset group built from separate sliver items: rounds
-/// the outer corners of the first and last rows and draws the hairline.
+/// "5215 在读 · 370 收藏".
+class _Stats extends StatelessWidget {
+  const _Stats({required this.article});
+
+  final ArticleSummary article;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(fontSize: 11.5, color: GleanColors.label2);
+    Widget stat(IconData icon, String text) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: GleanColors.label3),
+        const SizedBox(width: 3),
+        Text(text, style: style),
+      ],
+    );
+    return Row(
+      key: const Key('article-stats'),
+      children: [
+        stat(Icons.people_alt_outlined, '${compactCount(article.readers)} 在读'),
+        const SizedBox(width: 12),
+        stat(
+          Icons.star_border_rounded,
+          '${compactCount(article.favorites)} 收藏',
+        ),
+      ],
+    );
+  }
+}
+
+/// Wraps one row of an article list built from separate sliver items.
+///
+/// Classic: one inset group (outer corners rounded, hairlines between).
+/// Paper: rows straight on the page with full-width hairlines
+/// (see [GleanColors.listsOnPaper]).
 class GroupedRow extends StatelessWidget {
   const GroupedRow({
     super.key,
@@ -147,6 +204,20 @@ class GroupedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (GleanColors.listsOnPaper) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Column(
+          children: [
+            if (!first)
+              painted
+                  ? const Hairline(indent: 14)
+                  : const SizedBox(height: 0.5),
+            child,
+          ],
+        ),
+      );
+    }
     const r = Radius.circular(14);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

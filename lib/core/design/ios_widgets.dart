@@ -66,13 +66,15 @@ class Glass extends StatelessWidget {
   const Glass({
     super.key,
     required this.child,
-    this.color = const Color(0xC7F9F9FB),
+    this.color,
     this.borderRadius = BorderRadius.zero,
     this.blur = 22,
   });
 
   final Widget child;
-  final Color color;
+
+  /// Defaults to [GleanColors.barGlass].
+  final Color? color;
   final BorderRadius borderRadius;
   final double blur;
 
@@ -82,7 +84,7 @@ class Glass extends StatelessWidget {
       borderRadius: borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: ColoredBox(color: color, child: child),
+        child: ColoredBox(color: color ?? GleanColors.barGlass, child: child),
       ),
     );
   }
@@ -201,7 +203,7 @@ class Hairline extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(left: indent),
-      child: const SizedBox(
+      child: SizedBox(
         height: 0.5,
         width: double.infinity,
         child: ColoredBox(color: GleanColors.separator),
@@ -273,7 +275,7 @@ class IosSegmented<T extends Object> extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Text(
                 e.value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: GleanColors.label,
@@ -293,11 +295,19 @@ class SearchField extends StatelessWidget {
     required this.hint,
     this.controller,
     this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.autofocus = false,
   });
 
   final String hint;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+
+  /// When set the field only acts as a button (e.g. opening search).
+  final VoidCallback? onTap;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -311,20 +321,21 @@ class SearchField extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          const Icon(Icons.search_rounded, size: 20, color: GleanColors.label2),
+          Icon(Icons.search_rounded, size: 20, color: GleanColors.label2),
           const SizedBox(width: 4),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
+              onSubmitted: onSubmitted,
+              autofocus: autofocus,
+              readOnly: onTap != null,
+              onTap: onTap,
               textInputAction: TextInputAction.search,
-              style: const TextStyle(fontSize: 16, color: GleanColors.label),
+              style: TextStyle(fontSize: 16, color: GleanColors.label),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: const TextStyle(
-                  fontSize: 16,
-                  color: GleanColors.label2,
-                ),
+                hintStyle: TextStyle(fontSize: 16, color: GleanColors.label2),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -342,12 +353,14 @@ class InitialAvatar extends StatelessWidget {
     super.key,
     required this.initial,
     this.size = 36,
-    this.colors = const [Color(0xFF99F6E4), GleanColors.tint],
+    this.colors,
   });
 
   final String initial;
   final double size;
-  final List<Color> colors;
+
+  /// Gradient; defaults to the theme's light-to-deep green.
+  final List<Color>? colors;
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +373,7 @@ class InitialAvatar extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: colors,
+          colors: colors ?? [GleanColors.mintLight, GleanColors.tint],
         ),
       ),
       child: Text(

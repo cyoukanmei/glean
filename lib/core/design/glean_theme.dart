@@ -9,13 +9,17 @@ const serifFallback = ['New York', 'Georgia', 'Noto Serif', 'Songti SC'];
 /// App theme in the iOS idiom: system grouped background, no ink ripples
 /// (presses scale instead, see PressableScale), bouncing scroll everywhere
 /// and the iOS type ramp (large title 34, headline 17 semibold, body 17).
+///
+/// Built from the current palette, so it follows [GleanColors.dark].
 ThemeData gleanTheme() {
   final scheme = ColorScheme.fromSeed(
     seedColor: GleanColors.tint,
+    brightness: GleanColors.dark ? Brightness.dark : Brightness.light,
     primary: GleanColors.tint,
     surface: GleanColors.card,
+    onSurface: GleanColors.label,
   );
-  const ink = GleanColors.label;
+  final ink = GleanColors.label;
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
@@ -23,7 +27,7 @@ ThemeData gleanTheme() {
     splashFactory: NoSplash.splashFactory,
     highlightColor: GleanColors.fill2,
     dividerColor: GleanColors.separator,
-    textTheme: const TextTheme(
+    textTheme: TextTheme(
       displaySmall: TextStyle(
         fontSize: 34,
         fontWeight: FontWeight.w700,
@@ -73,7 +77,7 @@ ThemeData gleanTheme() {
         color: GleanColors.label2,
       ),
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: GleanColors.background,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -94,8 +98,8 @@ ThemeData gleanTheme() {
       elevation: 0,
       insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
     ),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: GleanColors.card,
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: GleanColors.sheet,
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
       dragHandleColor: GleanColors.label3,

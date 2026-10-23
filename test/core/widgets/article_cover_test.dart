@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glean/core/widgets/article_cover.dart';
+import 'package:glean/core/widgets/cover_catalog.dart';
 
 Future<void> _pump(WidgetTester tester, Size size) => tester.pumpWidget(
   MaterialApp(
@@ -87,5 +88,51 @@ void main() {
     // real serif, so here the floor is reached.)
     expect(size, lessThan(78 * 0.145));
     expect(size, greaterThanOrEqualTo(7));
+  });
+
+  group('with a picture', () {
+    Future<void> pumpImage(
+      WidgetTester tester,
+      Size size, {
+      required double aspect,
+    }) => tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox.fromSize(
+            size: size,
+            child: ArticleCover(
+              seed: 'x',
+              title: 'T',
+              image: CoverImage(
+                asset: 'assets/covers/tech-2-a.webp',
+                aspect: aspect,
+                dominant: const Color(0xFF334455),
+                artist: 'A',
+                license: 'CC0',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('a landscape picture fills even the wide header', (
+      tester,
+    ) async {
+      await pumpImage(tester, const Size(412, 340), aspect: 4 / 3);
+      expect(tester.getSize(find.byType(Image)), const Size(412, 340));
+      expect(find.text('T'), findsNothing, reason: 'no drawn jacket');
+    });
+
+    testWidgets('a portrait picture stands as a book in the header and '
+        'fills a square thumbnail', (tester) async {
+      await pumpImage(tester, const Size(412, 340), aspect: 0.7);
+      final book = tester.getSize(find.byType(Image));
+      expect(book.height, closeTo(340 * 0.6, 0.5));
+      expect(book.width, closeTo(340 * 0.6 * 0.7, 0.5));
+
+      await pumpImage(tester, const Size(78, 78), aspect: 0.7);
+      expect(tester.getSize(find.byType(Image)), const Size(78, 78));
+    });
   });
 }

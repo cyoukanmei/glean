@@ -5,7 +5,10 @@ import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
+import '../../../core/design/ios_widgets.dart';
+import '../../../core/speech/speaker.dart';
 import '../../../core/widgets/collect_button.dart';
+import '../../coread/ui/share_quote_sheet.dart';
 import '../data/dictionary_repository.dart';
 import '../data/vocab_repository.dart';
 
@@ -61,7 +64,7 @@ class WordSheet extends ConsumerStatefulWidget {
     // Sized to its content (long definitions scroll) rather than capped at
     // the default 9/16 of the screen.
     isScrollControlled: true,
-    backgroundColor: GleanColors.card,
+    backgroundColor: GleanColors.sheet,
     // Light dim: the picked word stays readable above the sheet.
     barrierColor: const Color(0x1F000000),
     builder: (_) => WordSheet(
@@ -151,7 +154,7 @@ class _WordSheetState extends ConsumerState<WordSheet> {
                     children: [
                       Text(
                         widget.word,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: serifFamily,
                           fontFamilyFallback: serifFallback,
                           fontSize: 32,
@@ -160,14 +163,28 @@ class _WordSheetState extends ConsumerState<WordSheet> {
                           color: GleanColors.label,
                         ),
                       ),
-                      if (entry?.phonetic case final p?)
-                        Text(
-                          '/$p/',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: GleanColors.label2,
+                      Row(
+                        children: [
+                          if (entry?.phonetic case final p?) ...[
+                            Text(
+                              '/$p/',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: GleanColors.label2,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          _RoundButton(
+                            key: const Key('word-speak'),
+                            icon: Icons.volume_up_rounded,
+                            tooltip: '发音',
+                            onTap: () => ref
+                                .read(speakerProvider)
+                                .speak(widget.word, surface: 'reader'),
                           ),
-                        ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -180,7 +197,7 @@ class _WordSheetState extends ConsumerState<WordSheet> {
             ),
             const SizedBox(height: 14),
             if (entry == null)
-              const Text(
+              Text(
                 '本地词典里没有这个词',
                 style: TextStyle(fontSize: 16, color: GleanColors.label2),
               )
@@ -216,12 +233,79 @@ class _WordSheetState extends ConsumerState<WordSheet> {
               ),
             ],
             const SizedBox(height: 20),
-            if (entry != null)
-              CollectButton(
-                collected: _collected ?? false,
-                onPressed: _collected == null || _writing ? null : _toggle,
-              ),
+            Row(
+              children: [
+                if (entry != null)
+                  Expanded(
+                    child: CollectButton(
+                      collected: _collected ?? false,
+                      onPressed: _collected == null || _writing
+                          ? null
+                          : _toggle,
+                    ),
+                  ),
+                if (widget.source.sentence != null) ...[
+                  if (entry != null) const SizedBox(width: 10),
+                  Tooltip(
+                    message: '分享这句到共读',
+                    child: PressableScale(
+                      key: const Key('word-share'),
+                      onTap: () => showShareQuoteSheet(
+                        context,
+                        source: widget.source,
+                        surface: 'reader',
+                      ),
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: GleanColors.fill2,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Icons.ios_share_rounded,
+                          color: GleanColors.label,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: PressableScale(
+        onTap: onTap,
+        pressedScale: 0.88,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: GleanColors.mintSoft,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 17, color: GleanColors.tint),
         ),
       ),
     );
@@ -244,7 +328,7 @@ class _Chip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         child: Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
             color: GleanColors.tint,
@@ -280,7 +364,7 @@ class _Quote extends StatelessWidget {
             title == null ? '原句' : '原句 · $title',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, color: GleanColors.label2),
+            style: TextStyle(fontSize: 12, color: GleanColors.label2),
           ),
           const SizedBox(height: 4),
           Text.rich(
@@ -296,12 +380,12 @@ class _Quote extends StatelessWidget {
                       TextSpan(text: sentence.substring(at + word.length)),
                     ],
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: serifFamily,
               fontFamilyFallback: serifFallback,
               fontSize: 15.5,
               height: 1.6,
-              color: Color(0xFF3A3A3C),
+              color: GleanColors.ink2,
             ),
           ),
         ],

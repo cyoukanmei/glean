@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/article_cover.dart';
+import '../../../core/widgets/cover_catalog.dart';
 import '../data/article_repository.dart';
 import 'labels.dart';
 
@@ -56,6 +57,7 @@ class CoverHero extends StatelessWidget {
     footer: article.author != null
         ? '拾读 · 名著'
         : '${levelLabels[article.level] ?? ''} · ${article.wordCount} 词',
+    image: CoverCatalog.instance[article.id],
     borderRadius: BorderRadius.circular(radius),
   );
 

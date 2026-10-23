@@ -13,6 +13,12 @@ import '../../reader/data/reading_time_repository.dart';
 import '../../reader/ui/reader_settings_sheet.dart';
 import '../../../core/navigation/swipe_back_route.dart';
 import '../application/profile_stats.dart';
+import '../../sync/ui/sync_page.dart';
+import '../../../app/appearance.dart';
+import '../application/reminder.dart';
+import '../../library/data/marks_repository.dart';
+import '../../library/ui/library_page.dart';
+import 'analytics_debug_page.dart';
 import 'edit_profile_page.dart';
 import 'user_avatar.dart';
 
@@ -135,10 +141,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                 child: Text(
                   bio,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: GleanColors.label2,
-                  ),
+                  style: TextStyle(fontSize: 15, color: GleanColors.label2),
                 ),
               ),
             const SizedBox(height: 16),
@@ -160,7 +163,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ],
               ),
             ),
-            const Padding(
+            const _LibraryGroup(),
+            Padding(
               padding: EdgeInsets.fromLTRB(32, 22, 32, 7),
               child: Text(
                 '设置',
@@ -184,6 +188,23 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   color: const Color(0xFF34C759),
                   title: '离线内容',
                   value: '${stats?.articles ?? 0} 篇 · 全部可离线阅读',
+                ),
+                const _ColorThemeCell(),
+                const _AppearanceCell(),
+                const _ReminderCell(),
+                const _SyncCell(),
+                _Cell(
+                  key: const Key('open-analytics-debug'),
+                  icon: Icons.insights_rounded,
+                  color: const Color(0xFF5856D6),
+                  title: '埋点调试面板',
+                  value: '队列 · 上报 · 分析',
+                  onTap: () => Navigator.of(context).push(
+                    SwipeBackPageRoute<void>(
+                      settings: const RouteSettings(name: '/me/analytics'),
+                      builder: (_) => const AnalyticsDebugPage(),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -261,10 +282,7 @@ class _GoalCard extends StatelessWidget {
                   ),
                   Text(
                     '/ $goalMinutes 分钟',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: GleanColors.label2,
-                    ),
+                    style: TextStyle(fontSize: 11, color: GleanColors.label2),
                   ),
                 ],
               ),
@@ -282,7 +300,7 @@ class _GoalCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.local_fire_department_rounded,
                       size: 15,
                       color: GleanColors.gold,
@@ -292,10 +310,7 @@ class _GoalCard extends StatelessWidget {
                       (s?.streak ?? 0) > 0
                           ? '连续 ${s!.streak} 天'
                           : '今天读一篇，开始连续打卡',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: GleanColors.label2,
-                      ),
+                      style: TextStyle(fontSize: 13, color: GleanColors.label2),
                     ),
                   ],
                 ),
@@ -358,7 +373,7 @@ class _DayDot extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, color: GleanColors.label2),
+            style: TextStyle(fontSize: 11, color: GleanColors.label2),
           ),
         ],
       ),
@@ -407,7 +422,7 @@ class _Tile extends StatelessWidget {
             ),
             Text(
               label,
-              style: const TextStyle(fontSize: 12, color: GleanColors.label2),
+              style: TextStyle(fontSize: 12, color: GleanColors.label2),
             ),
           ],
         ),
@@ -418,6 +433,7 @@ class _Tile extends StatelessWidget {
 
 class _Cell extends StatelessWidget {
   const _Cell({
+    super.key,
     required this.icon,
     required this.color,
     required this.title,
@@ -452,18 +468,19 @@ class _Cell extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(title, style: const TextStyle(fontSize: 16.5)),
-            const Spacer(),
-            Flexible(
-              flex: 3,
+            const SizedBox(width: 12),
+            // Value sits against the chevron, like iOS Settings.
+            Expanded(
               child: Text(
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, color: GleanColors.label2),
+                textAlign: TextAlign.right,
+                style: TextStyle(fontSize: 15, color: GleanColors.label2),
               ),
             ),
             if (onTap != null)
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
                 size: 20,
                 color: GleanColors.label3,
@@ -472,6 +489,445 @@ class _Cell extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 同步 row: live summary of the sync state, opens the sync page.
+class _SyncCell extends ConsumerStatefulWidget {
+  const _SyncCell();
+
+  @override
+  ConsumerState<_SyncCell> createState() => _SyncCellState();
+}
+
+class _SyncCellState extends ConsumerState<_SyncCell> {
+  late final _sync = ref.read(syncServiceProvider);
+  int _pending = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _sync?.addListener(_refresh);
+    _refresh();
+  }
+
+  @override
+  void dispose() {
+    _sync?.removeListener(_refresh);
+    super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    final p = await _sync?.pending();
+    if (mounted && p != null) setState(() => _pending = p.$1 + p.$2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Local writes change the pending count without a sync event.
+    ref.listen(progressRevisionProvider, (_, _) => _refresh());
+    ref.listen(vocabRevisionProvider, (_, _) => _refresh());
+    final online = ref.watch(onlineProvider).value ?? true;
+    return _Cell(
+      key: const Key('open-sync'),
+      icon: Icons.sync_rounded,
+      color: const Color(0xFF007AFF),
+      title: '同步',
+      value: syncSummary(_sync, online: online, pending: _pending),
+      onTap: () => Navigator.of(context).push(
+        SwipeBackPageRoute<void>(
+          settings: const RouteSettings(name: '/me/sync'),
+          builder: (_) => const SyncPage(),
+        ),
+      ),
+    );
+  }
+}
+
+/// 每日阅读提醒: a switch, plus the time (tap to change).
+class _ReminderCell extends ConsumerWidget {
+  const _ReminderCell();
+
+  Future<void> _pickTime(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(reminderProvider);
+    var picked = current.time;
+    final ok = await showCupertinoModalPopup<bool>(
+      context: context,
+      builder: (context) => Container(
+        height: 300,
+        color: GleanColors.card,
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('取消'),
+                  ),
+                  const Spacer(),
+                  CupertinoButton(
+                    key: const Key('reminder-time-done'),
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('完成'),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.time,
+                  use24hFormat: true,
+                  initialDateTime: DateTime(
+                    2026,
+                    1,
+                    1,
+                    picked.hour,
+                    picked.minute,
+                  ),
+                  onDateTimeChanged: (d) =>
+                      picked = TimeOfDay(hour: d.hour, minute: d.minute),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if ((ok ?? false) && context.mounted) await _enable(context, ref, picked);
+  }
+
+  Future<void> _enable(
+    BuildContext context,
+    WidgetRef ref,
+    TimeOfDay time,
+  ) async {
+    final ok = await ref.read(reminderProvider.notifier).enable(time);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('通知权限没有打开，可以在系统设置里允许拾读发通知')),
+        );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final r = ref.watch(reminderProvider);
+    return SizedBox(
+      height: 46,
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF9500),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.notifications_rounded,
+              size: 18,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text('每日阅读提醒', style: TextStyle(fontSize: 16.5)),
+          const Spacer(),
+          GestureDetector(
+            key: const Key('reminder-time'),
+            onTap: () => _pickTime(context, ref),
+            child: Text(
+              r.label,
+              style: TextStyle(
+                fontSize: 15,
+                color: r.enabled ? GleanColors.tint : GleanColors.label2,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          CupertinoSwitch(
+            key: const Key('reminder-switch'),
+            value: r.enabled,
+            activeTrackColor: GleanColors.green,
+            onChanged: (on) => on
+                ? _enable(context, ref, r.time)
+                : ref.read(reminderProvider.notifier).disable(),
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
+    );
+  }
+}
+
+/// 外观: follow the system, or always light / dark.
+class _AppearanceCell extends ConsumerWidget {
+  const _AppearanceCell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(appearanceProvider);
+    return _Cell(
+      key: const Key('open-appearance'),
+      icon: Icons.dark_mode_rounded,
+      color: const Color(0xFF636366),
+      title: '外观',
+      value: current.label,
+      onTap: () async {
+        final picked = await showCupertinoModalPopup<Appearance>(
+          context: context,
+          builder: (context) => CupertinoActionSheet(
+            title: const Text('外观'),
+            actions: [
+              for (final a in Appearance.values)
+                CupertinoActionSheetAction(
+                  key: Key('appearance-${a.name}'),
+                  isDefaultAction: a == current,
+                  onPressed: () => Navigator.pop(context, a),
+                  child: Text(a.label),
+                ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+          ),
+        );
+        if (picked != null) ref.read(appearanceProvider.notifier).set(picked);
+      },
+    );
+  }
+}
+
+/// 主题配色: paper (cream and deep green) or classic (white and teal).
+class _ColorThemeCell extends ConsumerWidget {
+  const _ColorThemeCell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(colorThemeProvider);
+    return _Cell(
+      key: const Key('open-color-theme'),
+      icon: Icons.palette_rounded,
+      color: GleanColors.tint,
+      title: '主题配色',
+      value: current.label,
+      onTap: () => showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: GleanColors.sheet,
+        builder: (_) => const _ColorThemeSheet(),
+      ),
+    );
+  }
+}
+
+class _ColorThemeSheet extends ConsumerWidget {
+  const _ColorThemeSheet();
+
+  /// Swatches shown on each tile: (page, card, accent) in light mode.
+  static const _swatches = {
+    ColorTheme.paper: (Color(0xFFFAF1E2), Color(0xFFFFFCF6), Color(0xFF24574A)),
+    ColorTheme.classic: (
+      Color(0xFFF2F2F7),
+      Color(0xFFFFFFFF),
+      Color(0xFF0F766E),
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(colorThemeProvider);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '主题配色',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: GleanColors.label,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                for (final (i, t) in ColorTheme.values.indexed) ...[
+                  if (i > 0) const SizedBox(width: 14),
+                  Expanded(
+                    child: PressableScale(
+                      key: Key('color-theme-${t.name}'),
+                      onTap: () => ref.read(colorThemeProvider.notifier).set(t),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _swatches[t]!.$1,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: t == current
+                                ? _swatches[t]!.$3
+                                : GleanColors.separator,
+                            width: t == current ? 2.5 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: _swatches[t]!.$2,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              alignment: Alignment.centerLeft,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: _swatches[t]!.$3,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Container(
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: _swatches[t]!.$3.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              t.label,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _swatches[t]!.$3,
+                              ),
+                            ),
+                            Text(
+                              t.subtitle,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                color: Color(0xA0473D30),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 我的书架: 收藏, 稍后再读 and 阅读历史, each with a live count.
+class _LibraryGroup extends ConsumerStatefulWidget {
+  const _LibraryGroup();
+
+  @override
+  ConsumerState<_LibraryGroup> createState() => _LibraryGroupState();
+}
+
+class _LibraryGroupState extends ConsumerState<_LibraryGroup> {
+  Map<MarkKind, int> _counts = const {};
+  int _history = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final user = ref.read(currentUserIdProvider);
+    final (counts, history) = await (
+      ref.read(marksRepositoryProvider).counts(user),
+      ref.read(progressRepositoryProvider).history(user),
+    ).wait;
+    if (!mounted) return;
+    setState(() {
+      _counts = counts;
+      _history = history.length;
+    });
+  }
+
+  void _open(LibrarySection s) => Navigator.of(context).push(
+    SwipeBackPageRoute<void>(
+      settings: RouteSettings(name: '/me/library/${s.name}'),
+      builder: (_) => LibraryPage(initial: s),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(marksRevisionProvider, (_, _) => _load());
+    ref.listen(progressRevisionProvider, (_, _) => _load());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(32, 22, 32, 7),
+          child: Text(
+            '我的书架',
+            style: TextStyle(fontSize: 13, color: GleanColors.label2),
+          ),
+        ),
+        InsetGroup(
+          dividerIndent: 58,
+          children: [
+            _Cell(
+              key: const Key('open-favorites'),
+              icon: Icons.star_rounded,
+              color: GleanColors.gold,
+              title: '收藏',
+              value: '${_counts[MarkKind.favorite] ?? 0} 篇',
+              onTap: () => _open(LibrarySection.favorite),
+            ),
+            _Cell(
+              key: const Key('open-later'),
+              icon: Icons.watch_later_rounded,
+              color: const Color(0xFF5856D6),
+              title: '稍后再读',
+              value: '${_counts[MarkKind.later] ?? 0} 篇',
+              onTap: () => _open(LibrarySection.later),
+            ),
+            _Cell(
+              key: const Key('open-history'),
+              icon: Icons.history_rounded,
+              color: GleanColors.tint,
+              title: '阅读历史',
+              value: '$_history 篇',
+              onTap: () => _open(LibrarySection.history),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

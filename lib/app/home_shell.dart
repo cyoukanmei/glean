@@ -101,7 +101,7 @@ class _GlassTabBar extends StatelessWidget {
           ],
         ),
         child: Glass(
-          color: const Color(0xC7FFFFFF),
+          color: GleanColors.barGlass,
           borderRadius: BorderRadius.circular(height / 2),
           child: DecoratedBox(
             decoration: BoxDecoration(

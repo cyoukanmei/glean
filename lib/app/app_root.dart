@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/design/glean_colors.dart';
 import '../features/auth/application/auth.dart';
 import '../features/auth/ui/login_page.dart';
 import 'home_shell.dart';
@@ -47,17 +46,22 @@ class _AppRootState extends ConsumerState<AppRoot> {
   }
 }
 
-/// Flutter-side splash, picking up from the system one (same background,
-/// icon in the middle): the icon pops in with a slight overshoot, the name
-/// rises in 350 ms later. It stays until the seed import is done, but at
-/// least long enough for the animation to finish.
+/// Flutter-side splash on the illustration's cream, which the system splash
+/// also shows, so the handoff is invisible: the still life fades in while
+/// settling from slightly larger, then the name rises in below it. It stays
+/// until the seed import is done, but at least long enough for the
+/// animation to finish.
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key, required this.ready, required this.onDone});
 
   final Future<void> ready;
   final VoidCallback onDone;
 
-  static const minDuration = Duration(milliseconds: 1200);
+  static const minDuration = Duration(milliseconds: 1600);
+
+  /// The illustration's paper colour (also the native splash background).
+  static const cream = Color(0xFFFAF1E2);
+  static const green = Color(0xFF24574A);
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -65,20 +69,17 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
-  static const _icon = AssetImage('assets/brand/app-icon.png');
+  static const _art = AssetImage('assets/brand/splash.webp');
 
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: const Duration(milliseconds: 1200),
   );
-  late final Animation<double> _iconScale = _c.drive(
-    CurveTween(curve: const Interval(0, 0.75, curve: Curves.easeOutBack)),
-  );
-  late final Animation<double> _iconOpacity = _c.drive(
-    CurveTween(curve: const Interval(0, 0.3)),
+  late final Animation<double> _artIn = _c.drive(
+    CurveTween(curve: const Interval(0, 0.6, curve: Curves.easeOutCubic)),
   );
   late final Animation<double> _text = _c.drive(
-    CurveTween(curve: const Interval(0.4, 1, curve: Curves.easeOutCubic)),
+    CurveTween(curve: const Interval(0.45, 1, curve: Curves.easeOutCubic)),
   );
   bool _started = false;
 
@@ -87,9 +88,9 @@ class _SplashPageState extends State<SplashPage>
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    // Start once the icon is decoded, so the pop is never half-skipped
+    // Start once the picture is decoded, so its fade is never half-skipped
     // while the first frames wait for the image.
-    precacheImage(_icon, context).whenComplete(() {
+    precacheImage(_art, context).whenComplete(() {
       if (mounted) _c.forward();
     });
     _waitThenLeave();
@@ -112,75 +113,65 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final art = (size.width * 0.86).clamp(0.0, 440.0);
     // Material gives the texts a proper default style outside a Scaffold.
-    // The icon sits exactly in the centre, where the system splash leaves
-    // the eye; the name hangs below it.
     return Material(
-      color: Colors.white,
-      child: Stack(
-        fit: StackFit.expand,
-        alignment: Alignment.center,
+      color: SplashPage.cream,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
-            child: ScaleTransition(
-              scale: Tween(begin: 0.6, end: 1.0).animate(_iconScale),
-              child: FadeTransition(
-                opacity: _iconOpacity,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x8C0F766E),
-                        blurRadius: 36,
-                        offset: Offset(0, 18),
-                        spreadRadius: -12,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: const Image(image: _icon, width: 104, height: 104),
-                  ),
-                ),
+          AnimatedBuilder(
+            animation: _artIn,
+            builder: (context, child) => Opacity(
+              opacity: _artIn.value,
+              child: Transform.scale(
+                scale: 1.06 - 0.06 * _artIn.value,
+                child: child,
               ),
             ),
-          ),
-          Center(
-            child: AnimatedBuilder(
-              animation: _text,
-              builder: (context, child) => Opacity(
-                opacity: _text.value.clamp(0.0, 1.0),
-                child: Transform.translate(
-                  offset: Offset(0, 112 + 12 * (1 - _text.value)),
-                  child: child,
-                ),
-              ),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '拾读',
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                      color: GleanColors.label,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'GLEAN · 拾起每一个词',
-                    style: TextStyle(
-                      fontSize: 15,
-                      letterSpacing: 1.2,
-                      color: GleanColors.label2,
-                    ),
-                  ),
-                ],
-              ),
+            child: Image(
+              key: const Key('splash-art'),
+              image: _art,
+              width: art,
+              height: art,
             ),
           ),
+          AnimatedBuilder(
+            animation: _text,
+            builder: (context, child) => Opacity(
+              opacity: _text.value,
+              child: Transform.translate(
+                offset: Offset(0, 14 * (1 - _text.value)),
+                child: child,
+              ),
+            ),
+            child: const Column(
+              children: [
+                Text(
+                  '拾读',
+                  style: TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 4,
+                    color: SplashPage.green,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'GLEAN · 拾起每一个词',
+                  style: TextStyle(
+                    fontSize: 14,
+                    letterSpacing: 2,
+                    color: Color(0xA0473D30),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Keeps the group optically centred (the art has empty paper on
+          // top, the text sits below).
+          SizedBox(height: size.height * 0.06),
         ],
       ),
     );

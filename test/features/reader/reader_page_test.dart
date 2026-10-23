@@ -9,6 +9,7 @@ import 'package:glean/core/widgets/collect_button.dart';
 import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:glean/features/reader/ui/reader_page.dart';
 import 'package:glean/features/reader/ui/reader_paragraph.dart';
+import 'package:glean/features/library/data/marks_repository.dart';
 import 'package:glean/features/reader/application/reader_settings.dart';
 import 'package:glean/features/reader/ui/finish_card.dart';
 import 'package:glean/features/vocab/data/vocab_repository.dart';
@@ -60,6 +61,7 @@ Future<FakeProgressRepository> _open(
   FakeDictionaryRepository? dictionary,
   WordSource? jumpTo,
   ArticleSummary? next,
+  FakeMarksRepository? marks,
 }) async {
   final repo = progress ?? FakeProgressRepository();
   SharedPreferences.setMockInitialValues({});
@@ -68,6 +70,9 @@ Future<FakeProgressRepository> _open(
     ProviderScope(
       overrides: [
         prefsProvider.overrideWithValue(prefs),
+        marksRepositoryProvider.overrideWithValue(
+          marks ?? FakeMarksRepository(),
+        ),
         articleRepositoryProvider.overrideWithValue(
           _Repo(paragraphs, next: next),
         ),
@@ -423,6 +428,28 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(atTop(), before);
+    await _close(tester);
+  });
+
+  testWidgets('the star toggles 收藏; finishing drops 稍后再读', (tester) async {
+    tester.view
+      ..physicalSize = const Size(800, 1400)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final marks = FakeMarksRepository()..marks.add(('a1', MarkKind.later));
+    await _open(tester, paragraphs: 1, marks: marks);
+    await _run(tester, const Duration(seconds: 2));
+    expect(marks.marks, isNot(contains(('a1', MarkKind.later))));
+    // Close the finish card that covers the page.
+    await tester.tap(find.text('留在本文'));
+    await _run(tester, const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const Key('reader-favorite')));
+    await _run(tester, const Duration(milliseconds: 600));
+    expect(marks.marks, contains(('a1', MarkKind.favorite)));
+    await tester.tap(find.byKey(const Key('reader-favorite')));
+    await _run(tester, const Duration(milliseconds: 600));
+    expect(marks.marks, isEmpty);
     await _close(tester);
   });
 }

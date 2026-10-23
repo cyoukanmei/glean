@@ -2,13 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/design/glean_colors.dart';
 import '../../../core/design/ios_widgets.dart';
 import '../../auth/data/auth_repository.dart';
 
 /// Built-in avatars: an emoji on a gradient.
 const avatarPresets = [
-  ('📚', [Color(0xFF99F6E4), GleanColors.tint]),
+  ('📚', [Color(0xFF99F6E4), Color(0xFF0F766E)]),
   ('🦉', [Color(0xFFFDE68A), Color(0xFFD97706)]),
   ('🌿', [Color(0xFFBBF7D0), Color(0xFF15803D)]),
   ('🍵', [Color(0xFFFED7AA), Color(0xFFC2410C)]),

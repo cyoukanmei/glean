@@ -4,10 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../core/analytics/analytics_service.dart';
 import '../features/articles/data/article_remote.dart';
 import '../features/articles/data/article_repository.dart';
 import '../features/auth/application/auth.dart';
 import '../features/auth/data/auth_repository.dart';
+import '../features/sync/sync_service.dart';
+import '../features/library/data/marks_repository.dart';
 import '../features/reader/data/progress_repository.dart';
 import '../features/reader/data/reading_time_repository.dart';
 import '../features/vocab/data/dictionary_repository.dart';
@@ -23,6 +26,12 @@ final databaseProvider = Provider<Database>(
 final seedReadyProvider = Provider<Future<void>>(
   (ref) => throw UnimplementedError('overridden in main'),
 );
+
+/// The tracking pipeline; null in tests (events only reach the console).
+final analyticsServiceProvider = Provider<AnalyticsService?>((ref) => null);
+
+/// Two-way sync with the mock server; null in tests.
+final syncServiceProvider = Provider<SyncService?>((ref) => null);
 
 final prefsProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError('overridden in main'),
@@ -57,6 +66,10 @@ final vocabRepositoryProvider = Provider(
   (ref) => VocabRepository(ref.watch(databaseProvider)),
 );
 
+final marksRepositoryProvider = Provider(
+  (ref) => MarksRepository(ref.watch(databaseProvider)),
+);
+
 final dictionaryRepositoryProvider = Provider(
   (ref) => DictionaryRepository(ref.watch(databaseProvider)),
 );
@@ -79,6 +92,9 @@ final progressRevisionProvider = NotifierProvider<Revision, int>(Revision.new);
 /// Bumped when a word is collected or removed anywhere, so the word list and
 /// the reader's highlights stay in sync.
 final vocabRevisionProvider = NotifierProvider<Revision, int>(Revision.new);
+
+/// Bumped when 收藏 / 稍后再读 change.
+final marksRevisionProvider = NotifierProvider<Revision, int>(Revision.new);
 
 final articleRemoteProvider = Provider(
   (ref) => MockArticleRemote(

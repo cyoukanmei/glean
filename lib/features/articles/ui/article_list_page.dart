@@ -11,6 +11,7 @@ import '../../../core/design/glean_colors.dart';
 import '../../../core/design/ios_widgets.dart';
 import '../../auth/application/auth.dart';
 import '../../profile/ui/user_avatar.dart';
+import '../../search/search_page.dart';
 import 'article_feed.dart';
 import 'category_chips.dart';
 import 'labels.dart';
@@ -36,33 +37,14 @@ class ArticleListPage extends ConsumerStatefulWidget {
 
 class _ArticleListPageState extends ConsumerState<ArticleListPage> {
   static const _weekdays = ['一', '二', '三', '四', '五', '六', '日'];
-  static const searchDebounce = Duration(milliseconds: 300);
 
-  final _search = TextEditingController();
-  Timer? _debounce;
   int _tab = 0;
-  String _query = '';
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _search.dispose();
-    super.dispose();
-  }
 
   void _selectTab(int i) {
     if (i == _tab) return;
     setState(() => _tab = i);
     Analytics.track('category_switch', {
       'category': ArticleListPage.tabs[i] ?? 'all',
-    });
-  }
-
-  void _onQueryChanged(String text) {
-    _debounce?.cancel();
-    _debounce = Timer(searchDebounce, () {
-      final q = text.trim();
-      if (q != _query) setState(() => _query = q);
     });
   }
 
@@ -74,17 +56,12 @@ class _ArticleListPageState extends ConsumerState<ArticleListPage> {
   @override
   Widget build(BuildContext context) {
     final category = ArticleListPage.tabs[_tab];
-    final title = _query.isNotEmpty
-        ? '搜索结果'
-        : category == null
-        ? '为你推荐'
-        : '最新文章';
+    final title = category == null ? '为你推荐' : '最新文章';
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: ArticleFeed(
           category: category,
-          query: _query,
           header: [
             const SizedBox(height: 8),
             LargeTitle(
@@ -93,10 +70,17 @@ class _ArticleListPageState extends ConsumerState<ArticleListPage> {
               trailing: UserAvatar(user: ref.watch(authProvider)),
             ),
             const SizedBox(height: 12),
-            SearchField(
-              hint: '搜索文章',
-              controller: _search,
-              onChanged: _onQueryChanged,
+            // A button into the search page; the field flies there.
+            Hero(
+              tag: 'search-field',
+              child: Material(
+                type: MaterialType.transparency,
+                child: SearchField(
+                  key: const Key('home-search'),
+                  hint: '搜索文章标题或正文',
+                  onTap: () => openSearch(context),
+                ),
+              ),
             ),
             const SizedBox(height: 14),
             CategoryChips(
@@ -173,17 +157,13 @@ class _LevelMenu extends ConsumerWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
                 color: GleanColors.tint,
               ),
             ),
-            const Icon(
-              Icons.expand_more_rounded,
-              size: 18,
-              color: GleanColors.tint,
-            ),
+            Icon(Icons.expand_more_rounded, size: 18, color: GleanColors.tint),
           ],
         ),
       ),

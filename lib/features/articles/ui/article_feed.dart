@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
+import '../../../core/analytics/impressions.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/widgets/stagger_in.dart';
 import '../../../core/widgets/state_illustration.dart';
@@ -14,6 +15,7 @@ import '../../reader/data/progress_repository.dart';
 import '../../reader/ui/continue_reading_card.dart';
 import '../../reader/ui/open_reader.dart';
 import '../data/article_repository.dart';
+import '../../library/ui/article_actions.dart';
 import 'article_card.dart';
 
 /// The home feed: one bouncing scroll view with the page's [header] on top,
@@ -62,6 +64,9 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
   /// Demo/recording only: `--dart-define=SLOW_LOAD=800` delays every read.
   static const _slowLoadMs = int.fromEnvironment('SLOW_LOAD');
 
+  /// Impressions are counted per list, so a new category gets a new one.
+  late ImpressionTracker _impressions = ImpressionTracker(widget.surface);
+
   late final AnimationController _stagger = AnimationController(
     vsync: this,
     duration: StaggerIn.totalDuration,
@@ -92,6 +97,10 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
   @override
   void didUpdateWidget(ArticleFeed old) {
     super.didUpdateWidget(old);
+    if (old.category != widget.category) {
+      _impressions.dispose();
+      _impressions = ImpressionTracker(widget.surface);
+    }
     if (old.category != widget.category || old.query != widget.query) {
       _reload(fade: true);
     }
@@ -100,6 +109,7 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
   @override
   void dispose() {
     _stagger.dispose();
+    _impressions.dispose();
     super.dispose();
   }
 
@@ -285,14 +295,24 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
         itemCount: _items.length,
         itemBuilder: (context, i) {
           final article = _items[i];
-          final row = GroupedRow(
-            first: i == 0,
-            last: i == _items.length - 1,
-            child: ArticleCard(
-              article: article,
-              surface: widget.surface,
-              progress: _progress[article.id],
-              onTap: () => openReader(context, article, widget.surface),
+          final row = _impressions.wrap(
+            articleId: article.id,
+            position: i,
+            child: GroupedRow(
+              first: i == 0,
+              last: i == _items.length - 1,
+              child: ArticleCard(
+                article: article,
+                surface: widget.surface,
+                progress: _progress[article.id],
+                onTap: () => openReader(context, article, widget.surface),
+                onLongPress: () => showArticleActions(
+                  context,
+                  ref,
+                  article,
+                  surface: widget.surface,
+                ),
+              ),
             ),
           );
           return i < _staggered
@@ -354,7 +374,7 @@ class _OfflineStrip extends StatelessWidget {
                 color: GleanColors.warnBg,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(
                     Icons.wifi_off_rounded,
@@ -394,7 +414,7 @@ class _Footer extends StatelessWidget {
         child: loading
             ? const CupertinoActivityIndicator()
             : end
-            ? const Text(
+            ? Text(
                 '没有更多了',
                 style: TextStyle(fontSize: 13, color: GleanColors.label3),
               )

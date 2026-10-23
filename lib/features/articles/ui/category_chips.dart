@@ -21,72 +21,82 @@ class CategoryChips extends StatelessWidget {
 
   // Six tabs fit a 390 pt wide screen without scrolling.
   static const chipWidth = 56.0;
+  static const minChipWidth = 46.0;
   static const chipHeight = 34.0;
   static const gap = 5.0;
   static const slide = Duration(milliseconds: 420);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: chipHeight,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          SizedBox(
-            width: labels.length * (chipWidth + gap) - gap,
-            child: Stack(
-              children: [
-                AnimatedPositioned(
-                  key: const Key('chip-indicator'),
-                  duration: slide,
-                  curve: Curves.easeOutBack,
-                  left: selected * (chipWidth + gap),
-                  top: 0,
-                  width: chipWidth,
-                  height: chipHeight,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: GleanColors.label,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(chipHeight / 2),
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
+    return LayoutBuilder(
+      builder: (context, box) {
+        // Narrow phones (360 pt) shrink the pills so every tab stays in view;
+        // below the minimum the row scrolls instead.
+        final w =
+            ((box.maxWidth - 32 - gap * (labels.length - 1)) / labels.length)
+                .clamp(minChipWidth, chipWidth);
+        return SizedBox(
+          height: chipHeight,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              SizedBox(
+                width: labels.length * (w + gap) - gap,
+                child: Stack(
                   children: [
-                    for (final (i, label) in labels.indexed) ...[
-                      if (i > 0) const SizedBox(width: gap),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => onSelected(i),
-                        child: SizedBox(
-                          width: chipWidth,
-                          height: chipHeight,
-                          child: Center(
-                            child: AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 220),
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: i == selected
-                                    ? Colors.white
-                                    : GleanColors.label2,
-                              ),
-                              child: Text(label),
-                            ),
+                    AnimatedPositioned(
+                      key: const Key('chip-indicator'),
+                      duration: slide,
+                      curve: Curves.easeOutBack,
+                      left: selected * (w + gap),
+                      top: 0,
+                      width: w,
+                      height: chipHeight,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: GleanColors.label,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(chipHeight / 2),
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                    Row(
+                      children: [
+                        for (final (i, label) in labels.indexed) ...[
+                          if (i > 0) const SizedBox(width: gap),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => onSelected(i),
+                            child: SizedBox(
+                              width: w,
+                              height: chipHeight,
+                              child: Center(
+                                child: AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 220),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: i == selected
+                                        ? Colors.white
+                                        : GleanColors.label2,
+                                  ),
+                                  child: Text(label),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

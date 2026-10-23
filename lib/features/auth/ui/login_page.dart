@@ -106,7 +106,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     '登录后，阅读进度和生词本会保存在这台设备上，断网也能继续读。',
                     style: TextStyle(
                       fontSize: 16,
@@ -212,7 +212,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                     color: GleanColors.mintSoft,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Row(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
@@ -291,7 +291,7 @@ class _Field extends StatelessWidget {
               style: const TextStyle(fontSize: 17),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: const TextStyle(color: GleanColors.label3),
+                hintStyle: TextStyle(color: GleanColors.label3),
                 border: InputBorder.none,
                 isDense: true,
               ),
