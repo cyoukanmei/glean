@@ -9,14 +9,26 @@ import 'package:glean/core/widgets/collect_button.dart';
 import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:glean/features/reader/ui/reader_page.dart';
 import 'package:glean/features/reader/ui/reader_paragraph.dart';
+import 'package:glean/features/reader/application/reader_settings.dart';
+import 'package:glean/features/reader/ui/finish_card.dart';
 import 'package:glean/features/vocab/data/vocab_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fakes.dart';
 
 class _Repo implements ArticleRepository {
-  _Repo(this.paragraphCount);
+  _Repo(this.paragraphCount, {this.next});
 
   final int paragraphCount;
+
+  /// Returned as the older neighbour (the "next" article).
+  final ArticleSummary? next;
+
+  @override
+  Future<ArticleSummary?> neighbor(
+    ArticleSummary article, {
+    required bool newer,
+  }) async => newer || article.id == next?.id ? null : next;
 
   @override
   Future<List<String>> paragraphs(String id) async => [
@@ -28,9 +40,9 @@ class _Repo implements ArticleRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ArticleSummary _article({int words = 2}) => ArticleSummary(
-  id: 'a1',
-  title: 'A Title',
+ArticleSummary _article({int words = 2, String id = 'a1'}) => ArticleSummary(
+  id: id,
+  title: 'Title of $id',
   summary: 'S',
   cover: 'g0',
   category: 'tech',
@@ -47,12 +59,18 @@ Future<FakeProgressRepository> _open(
   FakeVocabRepository? vocab,
   FakeDictionaryRepository? dictionary,
   WordSource? jumpTo,
+  ArticleSummary? next,
 }) async {
   final repo = progress ?? FakeProgressRepository();
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        articleRepositoryProvider.overrideWithValue(_Repo(paragraphs)),
+        prefsProvider.overrideWithValue(prefs),
+        articleRepositoryProvider.overrideWithValue(
+          _Repo(paragraphs, next: next),
+        ),
         progressRepositoryProvider.overrideWithValue(repo),
         readingTimeRepositoryProvider.overrideWithValue(
           FakeReadingTimeRepository(),
@@ -219,7 +237,11 @@ void main() {
   });
 
   testWidgets('a fully read article celebrates once', (tester) async {
-    // One paragraph fits on the 800x600 test screen; 2 words need 0.3 s.
+    // A tall screen so cover + one paragraph fit; 2 words need 0.3 s.
+    tester.view
+      ..physicalSize = const Size(800, 1400)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final repo = await _open(tester, paragraphs: 1);
     await _run(tester, const Duration(seconds: 2));
 
@@ -263,7 +285,8 @@ void main() {
 
     await tester.longPressAt(_wordCenter(tester, 0, 'reading'));
     await _run(tester, const Duration(milliseconds: 600));
-    expect(find.text('v. 读，阅读'), findsOneWidget);
+    expect(find.text('v.'), findsOneWidget);
+    expect(find.text('读，阅读'), findsOneWidget);
     expect(find.text('原形 read'), findsOneWidget);
     expect(find.text('收藏到生词本'), findsOneWidget);
     // The word stays marked while its sheet is open.
@@ -340,6 +363,66 @@ void main() {
       isNull,
     );
     expect(_hintVisible(tester), isFalse);
+    await _close(tester);
+  });
+
+  testWidgets('the finish card shows the numbers and opens the next article', (
+    tester,
+  ) async {
+    await _open(tester, paragraphs: 1, next: _article(id: 'a2'));
+    await _run(tester, const Duration(seconds: 2));
+
+    expect(find.byKey(const Key('finish-card')), findsOneWidget);
+    expect(find.text('累计读完'), findsOneWidget);
+    await tester.tap(find.text('继续阅读下一篇'));
+    await _run(tester, const Duration(seconds: 1));
+
+    expect(find.byType(ReaderPage), findsOneWidget, reason: 'replaced');
+    expect(
+      tester.widget<ReaderPage>(find.byType(ReaderPage)).surface,
+      FinishOverlay.nextSurface,
+    );
+    expect(find.text('Title of a2'), findsWidgets);
+    await _close(tester);
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('the bottom bar steps to the next article', (tester) async {
+    await _open(tester, paragraphs: 3, next: _article(id: 'a2'));
+    await _run(tester, const Duration(seconds: 1));
+
+    await tester.tap(find.byKey(const Key('reader-next')));
+    await _run(tester, const Duration(seconds: 1));
+    expect(find.text('Title of a2'), findsOneWidget);
+    expect(find.byType(ReaderPage), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('a bigger font keeps the paragraph at the top in view', (
+    tester,
+  ) async {
+    await _open(tester, paragraphs: 20, words: 2000);
+    await _run(tester, const Duration(seconds: 1));
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, -2500));
+    await tester.pumpAndSettle();
+
+    final paragraphs = find.byType(ReaderParagraph);
+    int atTop() {
+      for (var i = 0; i < 20; i++) {
+        final rect = tester.getRect(paragraphs.at(i));
+        if (rect.top <= 0 && rect.bottom > 0) return i;
+      }
+      return -1;
+    }
+
+    final before = atTop();
+    expect(before, greaterThan(2));
+    ProviderScope.containerOf(
+      tester.element(find.byType(ReaderPage)),
+    ).read(readerSettingsProvider.notifier).setFontSize(24);
+    await tester.pump();
+    await tester.pump();
+    expect(atTop(), before);
     await _close(tester);
   });
 }

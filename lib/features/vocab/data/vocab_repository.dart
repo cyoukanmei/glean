@@ -179,4 +179,14 @@ class VocabRepository {
       ],
     };
   }
+
+  /// Words currently in the list that were saved from [articleId].
+  Future<int> countFromArticle(String userId, String articleId) async {
+    final rows = await _db.rawQuery(
+      'SELECT COUNT(*) AS n FROM vocab '
+      'WHERE user_id = ? AND article_id = ? AND deleted_at IS NULL',
+      [userId, articleId],
+    );
+    return rows.single['n']! as int;
+  }
 }

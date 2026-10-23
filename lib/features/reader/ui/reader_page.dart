@@ -8,7 +8,9 @@ import 'package:uuid/uuid.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
-import '../../../core/widgets/celebration.dart';
+import '../../../core/design/glean_colors.dart';
+import '../../../core/design/glean_theme.dart';
+import '../../../core/design/ios_widgets.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
@@ -16,9 +18,14 @@ import '../../articles/ui/labels.dart';
 import '../../vocab/application/word_picking.dart';
 import '../../vocab/data/vocab_repository.dart';
 import '../../vocab/ui/word_sheet.dart';
+import '../application/reader_settings.dart';
 import '../application/reading_session.dart';
 import '../data/progress_repository.dart';
+import 'finish_card.dart';
+import 'open_reader.dart';
+import 'reader_chrome.dart';
 import 'reader_paragraph.dart';
+import 'reader_settings_sheet.dart';
 import 'reading_progress_bar.dart';
 
 class ReaderPage extends ConsumerStatefulWidget {
@@ -73,11 +80,11 @@ class _Loaded {
 
 class _ReaderPageState extends ConsumerState<ReaderPage>
     with TickerProviderStateMixin {
-  static const _headerHeight = 220.0;
+  static const _coverHeight = 300.0;
 
-  /// Reading settings arrive later; positions already store the scale so a
-  /// changed font size restores by paragraph anchor instead of pixels.
-  static const _fontScale = 1.0;
+  /// Positions store the text layout scale, so one saved at another font
+  /// size or line spacing restores by paragraph anchor instead of pixels.
+  double get _layoutScale => ref.read(readerSettingsProvider).layoutScale;
 
   late final String _userId = ref.read(currentUserIdProvider);
   late final Future<_Loaded> _loaded = _load();
@@ -108,8 +115,17 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
 
   bool _restoreHint = false;
   Timer? _restoreHintTimer;
-  bool _celebrating = false;
   bool _finished = false;
+
+  /// Set while the finish card is showing.
+  FinishStats? _finishStats;
+
+  /// Neighbouring articles in feed order, for the bottom bar.
+  ArticleSummary? _previous;
+  ArticleSummary? _next;
+
+  /// Words saved from this article, for the byline.
+  int _savedHere = 0;
 
   /// Lower-cased forms of every saved word, underlined in the text.
   Set<String> _collected = const {};
@@ -151,14 +167,73 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
       onInactive: () => _setForeground(false),
     );
     _loadCollected();
+    _loadNeighbors();
     _start();
   }
 
   Future<void> _loadCollected() async {
-    final forms = await ref
-        .read(vocabRepositoryProvider)
-        .collectedForms(_userId);
-    if (mounted) setState(() => _collected = forms);
+    final vocab = ref.read(vocabRepositoryProvider);
+    final (forms, here) = await (
+      vocab.collectedForms(_userId),
+      vocab.countFromArticle(_userId, widget.article.id),
+    ).wait;
+    if (mounted) {
+      setState(() {
+        _collected = forms;
+        _savedHere = here;
+      });
+    }
+  }
+
+  Future<void> _loadNeighbors() async {
+    final repo = ref.read(articleRepositoryProvider);
+    try {
+      final (previous, next) = await (
+        repo.neighbor(widget.article, newer: true),
+        repo.neighbor(widget.article, newer: false),
+      ).wait;
+      if (!mounted) return;
+      setState(() {
+        _previous = previous;
+        _next = next;
+      });
+    } catch (e) {
+      debugPrint('[reader] neighbours unavailable: $e');
+    }
+  }
+
+  void _openNeighbor(ArticleSummary article, String surface) =>
+      openReader(context, article, surface, replace: true);
+
+  /// Font size or spacing changed: keep the paragraph at the top of the
+  /// screen where it was, instead of letting the reflow move the text.
+  void _onSettingsChanged(ReaderSettings? before, ReaderSettings after) {
+    if (before == null || before.layoutScale == after.layoutScale) return;
+    final anchor = _currentPosition();
+    if (anchor == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final boxes = _paragraphBoxes();
+      if (!mounted || !_scroll.hasClients) return;
+      if (anchor.anchorPara >= boxes.length) return;
+      final (top, height) = boxes[anchor.anchorPara];
+      _scroll.jumpTo(
+        (top + anchor.anchorDelta * height).clamp(
+          0.0,
+          _scroll.position.maxScrollExtent,
+        ),
+      );
+      _onScroll();
+    });
+  }
+
+  void _share() {
+    Clipboard.setData(
+      ClipboardData(text: '《${widget.article.title}》· 来自拾读 Glean'),
+    );
+    Analytics.track('article_share', {'article_id': widget.article.id});
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('已复制标题，可粘贴分享给朋友')));
   }
 
   /// Long-press: mark the word, look it up, show the sheet, unmark.
@@ -178,6 +253,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
       context,
       word: word,
       entry: entry,
+      articleTitle: widget.article.title,
       source: WordSource(
         articleId: widget.article.id,
         paraIndex: paragraph,
@@ -352,7 +428,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
       scrollOffset: offset,
       anchorPara: para,
       anchorDelta: delta,
-      fontScale: _fontScale,
+      fontScale: _layoutScale,
       progress: progress.toDouble(),
     );
   }
@@ -361,7 +437,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     if (!_scroll.hasClients) return;
     final pos = saved.position;
     var target = pos.scrollOffset;
-    if ((pos.fontScale - _fontScale).abs() > 0.001) {
+    if ((pos.fontScale - _layoutScale).abs() > 0.001) {
       final boxes = _paragraphBoxes();
       if (pos.anchorPara < boxes.length) {
         final (top, height) = boxes[pos.anchorPara];
@@ -396,13 +472,25 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     );
   }
 
-  void _celebrate() {
+  Future<void> _celebrate() async {
     if (!mounted) return;
     HapticFeedback.mediumImpact();
     Analytics.track('article_finish', {'article_id': widget.article.id});
+    setState(() => _finished = true);
+    final (saved, total) = await (
+      ref
+          .read(vocabRepositoryProvider)
+          .countFromArticle(_userId, widget.article.id),
+      ref.read(progressRepositoryProvider).finishedCount(_userId),
+    ).wait;
+    if (!mounted) return;
     setState(() {
-      _celebrating = true;
-      _finished = true;
+      _finishStats = FinishStats(
+        activeMs: _session?.activeMs ?? 0,
+        savedWords: saved,
+        finishedTotal: total,
+        next: _next,
+      );
     });
   }
 
@@ -433,9 +521,36 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   @override
   Widget build(BuildContext context) {
     ref.listen(vocabRevisionProvider, (_, _) => _loadCollected());
+    ref.listen(readerSettingsProvider, _onSettingsChanged);
+    final settings = ref.watch(readerSettingsProvider);
+    final theme = settings.effectiveTheme(
+      systemDark: MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: theme.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+      child: TweenAnimationBuilder<ReaderPalette>(
+        tween: ReaderPaletteTween(end: ReaderPalette.of(theme)),
+        duration: const Duration(milliseconds: 200),
+        builder: (context, palette, _) => _page(context, settings, palette),
+      ),
+    );
+  }
+
+  Widget _page(
+    BuildContext context,
+    ReaderSettings settings,
+    ReaderPalette palette,
+  ) {
     final article = widget.article;
-    final topInset = MediaQuery.paddingOf(context).top;
+    final padding = MediaQuery.paddingOf(context);
+    final headerHeight = _coverHeight + padding.top;
+    final previous = _previous;
+    final next = _next;
+    final finishStats = _finishStats;
     return Scaffold(
+      backgroundColor: palette.background,
       body: Stack(
         children: [
           Listener(
@@ -447,11 +562,30 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(
-                    height: _headerHeight + topInset,
-                    child: CoverHero(
-                      article: article,
-                      surface: widget.surface,
-                      borderRadius: CoverHero.headerRadius,
+                    height: headerHeight,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CoverHero(
+                          article: article,
+                          surface: widget.surface,
+                          borderRadius: CoverHero.headerRadius,
+                        ),
+                        // The illustration dissolves into the page colour.
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.55, 1],
+                              colors: [
+                                palette.background.withValues(alpha: 0),
+                                palette.background,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   FadeTransition(
@@ -479,6 +613,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                           final pulseAt = _pulseAt;
                           return _Body(
                             article: article,
+                            palette: palette,
+                            settings: settings,
+                            savedHere: _savedHere,
                             paragraphs: paragraphs,
                             paragraphKeys: _paragraphKeys,
                             finished:
@@ -492,6 +629,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                                 : (pulseAt.$1, pulseAt.$2, _pulseOpacity),
                             onWord: (i, range) =>
                                 _lookup(paragraphs[i], i, range),
+                            bottomInset: padding.bottom,
                           );
                         },
                       ),
@@ -501,66 +639,102 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
               ),
             ),
           ),
-          // Status-bar scrim: clear over the cover, fades in once text would
+          // Status-bar glass: clear over the cover, frosts in once text would
           // scroll under the system icons.
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: topInset,
+            height: padding.top,
             child: IgnorePointer(
               child: AnimatedBuilder(
                 animation: _scroll,
                 builder: (context, _) {
                   final offset = _scroll.hasClients ? _scroll.offset : 0.0;
-                  final t = ((offset - _headerHeight + 40) / 40).clamp(
-                    0.0,
-                    1.0,
-                  );
-                  return ColoredBox(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surface.withValues(alpha: t),
-                  );
+                  final t = ((offset - _coverHeight + 40) / 40).clamp(0.0, 1.0);
+                  return t == 0
+                      ? const SizedBox.shrink()
+                      : Opacity(
+                          opacity: t,
+                          child: Glass(
+                            color: palette.background.withValues(alpha: 0.82),
+                            child: const SizedBox.expand(),
+                          ),
+                        );
                 },
               ),
             ),
           ),
           Positioned(
-            top: topInset,
+            top: padding.top,
             left: 0,
             right: 0,
-            child: ReadingProgressBar(progress: _progress),
+            child: ReadingProgressBar(
+              progress: _progress,
+              color: palette.accent,
+            ),
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: IconButton.filledTonal(
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const BackButtonIcon(),
-                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-              ),
+          Positioned(
+            top: padding.top + 10,
+            left: 16,
+            right: 16,
+            child: Row(
+              children: [
+                GlassCircleButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  label: '返回',
+                  palette: palette,
+                  onTap: () => Navigator.of(context).maybePop(),
+                ),
+                const Spacer(),
+                GlassCircleButton(
+                  key: const Key('reader-settings'),
+                  icon: Icons.text_fields_rounded,
+                  label: '阅读设置',
+                  palette: palette,
+                  onTap: () => ReaderSettingsSheet.show(context),
+                ),
+                const SizedBox(width: 10),
+                GlassCircleButton(
+                  icon: Icons.ios_share_rounded,
+                  label: '分享',
+                  palette: palette,
+                  onTap: _share,
+                ),
+              ],
             ),
           ),
           Positioned(
             left: 0,
             right: 0,
-            bottom: 24,
-            child: SafeArea(
-              child: Center(
-                child: _RestoreHint(
-                  visible: _restoreHint,
-                  progress: _progress,
-                  onBackToTop: _backToTop,
-                ),
+            bottom: padding.bottom + 12 + ReaderBottomBar.height + 12,
+            child: Center(
+              child: _RestoreHint(
+                visible: _restoreHint,
+                progress: _progress,
+                onBackToTop: _backToTop,
               ),
             ),
           ),
-          if (_celebrating)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: padding.bottom + 12,
+            child: ReaderBottomBar(
+              progress: _progress,
+              palette: palette,
+              onPrevious: previous == null
+                  ? null
+                  : () => _openNeighbor(previous, 'previous'),
+              onNext: next == null ? null : () => _openNeighbor(next, 'next'),
+            ),
+          ),
+          if (finishStats != null)
             Positioned.fill(
-              child: CelebrationBurst(
-                label: '读完啦',
-                onDone: () => setState(() => _celebrating = false),
+              child: FinishOverlay(
+                stats: finishStats,
+                onNext: (a) => _openNeighbor(a, FinishOverlay.nextSurface),
+                onClose: () => setState(() => _finishStats = null),
               ),
             ),
         ],
@@ -572,6 +746,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
 class _Body extends StatelessWidget {
   const _Body({
     required this.article,
+    required this.palette,
+    required this.settings,
+    required this.savedHere,
     required this.paragraphs,
     required this.paragraphKeys,
     required this.finished,
@@ -579,9 +756,13 @@ class _Body extends StatelessWidget {
     required this.selection,
     required this.pulse,
     required this.onWord,
+    required this.bottomInset,
   });
 
   final ArticleSummary article;
+  final ReaderPalette palette;
+  final ReaderSettings settings;
+  final int savedHere;
   final List<String> paragraphs;
   final List<GlobalKey> paragraphKeys;
 
@@ -592,65 +773,101 @@ class _Body extends StatelessWidget {
   final (int, TextRange)? selection;
   final (int, TextRange, Animation<double>)? pulse;
   final void Function(int paragraph, TextRange range) onWord;
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-          child: Text(article.title, style: theme.textTheme.headlineSmall),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            articleMeta(article.category, article.level, article.wordCount),
-            style: theme.textTheme.labelMedium,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final (i, p) in paragraphs.indexed)
-                Padding(
-                  key: paragraphKeys[i],
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: ReaderParagraph(
-                    text: p,
-                    style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
-                    collected: collected,
-                    selected: selection?.$1 == i ? selection!.$2 : null,
-                    pulse: pulse?.$1 == i ? (pulse!.$2, pulse!.$3) : null,
-                    onWord: (range) => onWord(i, range),
-                  ),
+    final byline = [
+      '${article.wordCount} 词',
+      '约 ${readingMinutes(article.wordCount)} 分钟',
+      if (savedHere > 0) '已收藏 $savedHere 词',
+    ];
+    final bodyStyle = TextStyle(
+      fontFamily: serifFamily,
+      fontFamilyFallback: serifFallback,
+      fontSize: settings.fontSize,
+      height: settings.spacing.height,
+      color: palette.text,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: palette.chipBg,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              child: Text(
+                '${categoryLabels[article.category] ?? article.category} · '
+                '${levelLabels[article.level] ?? 'L${article.level}'}',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: palette.accent,
                 ),
-            ],
+              ),
+            ),
           ),
-        ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          child: finished
-              ? const Padding(
-                  key: Key('reader-finished'),
-                  padding: EdgeInsets.only(top: 24),
-                  child: StateIllustration(
-                    asset: StateIllustration.readingComplete,
-                    title: '已读完这篇',
-                    message: '会计入你的阅读统计',
-                    width: 160,
-                  ),
-                )
-              : const SizedBox(width: double.infinity),
-        ),
-        // Room so the last lines can scroll clear of the restore hint.
-        const SizedBox(height: 96),
-      ],
+          const SizedBox(height: 12),
+          Text(
+            article.title,
+            style: TextStyle(
+              fontFamily: serifFamily,
+              fontFamilyFallback: serifFallback,
+              fontSize: 30,
+              height: 1.18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+              color: palette.title,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            byline.join('  ·  '),
+            style: TextStyle(fontSize: 13, color: palette.secondary),
+          ),
+          const SizedBox(height: 8),
+          for (final (i, p) in paragraphs.indexed)
+            Padding(
+              key: paragraphKeys[i],
+              padding: const EdgeInsets.only(top: 16),
+              child: ReaderParagraph(
+                text: p,
+                style: bodyStyle,
+                accent: palette.accent,
+                collected: collected,
+                selected: selection?.$1 == i ? selection!.$2 : null,
+                pulse: pulse?.$1 == i ? (pulse!.$2, pulse!.$3) : null,
+                onWord: (range) => onWord(i, range),
+              ),
+            ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: finished
+                ? const Padding(
+                    key: Key('reader-finished'),
+                    padding: EdgeInsets.only(top: 32),
+                    child: Center(
+                      child: StateIllustration(
+                        asset: StateIllustration.readingComplete,
+                        title: '已读完这篇',
+                        message: '会计入你的阅读统计',
+                        width: 160,
+                      ),
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+          // Room so the last lines can scroll clear of the bottom bar.
+          SizedBox(height: 120 + bottomInset),
+        ],
+      ),
     );
   }
 }
@@ -669,7 +886,6 @@ class _RestoreHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return IgnorePointer(
       ignoring: !visible,
       child: AnimatedSlide(
@@ -680,31 +896,37 @@ class _RestoreHint extends StatelessWidget {
           key: const Key('restore-hint'),
           opacity: visible ? 1 : 0,
           duration: const Duration(milliseconds: 200),
-          child: Material(
-            color: scheme.inverseSurface,
-            shape: const StadiumBorder(),
-            elevation: 3,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ValueListenableBuilder(
-                    valueListenable: progress,
-                    builder: (context, v, _) => Text(
-                      '已回到上次位置 · ${(v * 100).round()}%',
-                      style: TextStyle(color: scheme.onInverseSurface),
+          child: Container(
+            padding: const EdgeInsets.only(left: 16, right: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xE61C1C1E),
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: const [
+                BoxShadow(color: Color(0x33000000), blurRadius: 16),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: progress,
+                  builder: (context, v, _) => Text(
+                    '已回到上次位置 · ${(v * 100).round()}%',
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                  ),
+                ),
+                TextButton(
+                  onPressed: onBackToTop,
+                  child: const Text(
+                    '回到开头',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: GleanColors.mintLight,
                     ),
                   ),
-                  TextButton(
-                    onPressed: onBackToTop,
-                    child: Text(
-                      '回到开头',
-                      style: TextStyle(color: scheme.inversePrimary),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

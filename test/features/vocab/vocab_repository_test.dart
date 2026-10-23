@@ -90,4 +90,29 @@ void main() {
     expect(await repo.list(_user), hasLength(1));
     expect(await repo.list('u2'), hasLength(1));
   });
+
+  test('counts live words saved from one article', () async {
+    final db = await openTestDb();
+    final repo = VocabRepository(db, clock: FakeClock().call);
+    await _collect(repo, article: 'tech-1-a');
+    await repo.collect(
+      userId: _user,
+      word: 'phone',
+      lemma: 'phone',
+      definition: 'n. 电话',
+      source: _from('tech-1-a'),
+    );
+    await repo.collect(
+      userId: _user,
+      word: 'new',
+      lemma: 'new',
+      definition: 'adj. 新的',
+      source: _from('daily-2-b'),
+    );
+    expect(await repo.countFromArticle(_user, 'tech-1-a'), 2);
+
+    await repo.delete((await repo.find(_user, 'buy'))!.id);
+    expect(await repo.countFromArticle(_user, 'tech-1-a'), 1);
+    expect(await repo.countFromArticle('someone-else', 'tech-1-a'), 0);
+  });
 }

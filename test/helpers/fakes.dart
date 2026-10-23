@@ -84,6 +84,10 @@ class FakeVocabRepository implements VocabRepository {
   };
 
   @override
+  Future<int> countFromArticle(String userId, String articleId) async =>
+      _active.where((i) => i.source.articleId == articleId).length;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

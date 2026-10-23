@@ -3,18 +3,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
+import '../../../core/design/glean_colors.dart';
+import '../../../core/design/glean_theme.dart';
 import '../../../core/widgets/collect_button.dart';
 import '../data/dictionary_repository.dart';
 import '../data/vocab_repository.dart';
 
-/// Bottom sheet for a long-pressed word: headword, phonetic, definition,
-/// the sentence it came from, and the save toggle.
+/// Splits an ECDICT definition into (part of speech, meaning) lines.
+///
+/// "vt. 放弃, 抛弃\nn. 放任" -> [("vt.", "放弃, 抛弃"), ("n.", "放任")].
+/// Domain notes such as "[计] ..." are dropped when there is anything else.
+List<(String? pos, String text)> definitionLines(
+  String definition, {
+  int max = 3,
+}) {
+  final pos = RegExp(r'^([a-z]+\.)\s*(.+)$');
+  final lines = [
+    for (final raw in definition.split('\n'))
+      if (raw.replaceAll(r'\r', '').trim() case final line when line.isNotEmpty)
+        switch (pos.firstMatch(line)) {
+          final m? => (m.group(1), m.group(2)!),
+          null => (null, line),
+        },
+  ];
+  final plain = lines.where((l) => !l.$2.startsWith('[')).toList();
+  return (plain.isEmpty ? lines : plain).take(max).toList();
+}
+
+/// Bottom sheet for a long-pressed word: serif headword, phonetic, meanings
+/// by part of speech, the sentence it came from, and the save toggle.
 class WordSheet extends ConsumerStatefulWidget {
   const WordSheet({
     super.key,
     required this.word,
     required this.entry,
     required this.source,
+    this.articleTitle,
   });
 
   /// As it appears in the text.
@@ -23,16 +47,29 @@ class WordSheet extends ConsumerStatefulWidget {
   /// Null when the dictionary has no entry; the word cannot be saved then.
   final DictEntry? entry;
   final WordSource source;
+  final String? articleTitle;
 
   static Future<void> show(
     BuildContext context, {
     required String word,
     required DictEntry? entry,
     required WordSource source,
+    String? articleTitle,
   }) => showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
-    builder: (_) => WordSheet(word: word, entry: entry, source: source),
+    // Sized to its content (long definitions scroll) rather than capped at
+    // the default 9/16 of the screen.
+    isScrollControlled: true,
+    backgroundColor: GleanColors.card,
+    // Light dim: the picked word stays readable above the sheet.
+    barrierColor: const Color(0x1F000000),
+    builder: (_) => WordSheet(
+      word: word,
+      entry: entry,
+      source: source,
+      articleTitle: articleTitle,
+    ),
   );
 
   @override
@@ -97,53 +134,177 @@ class _WordSheetState extends ConsumerState<WordSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final entry = widget.entry;
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 10,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.word, style: theme.textTheme.headlineSmall),
-                if (entry?.phonetic case final p?)
-                  Text('/$p/', style: theme.textTheme.bodyMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.word,
+                        style: const TextStyle(
+                          fontFamily: serifFamily,
+                          fontFamilyFallback: serifFallback,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.6,
+                          color: GleanColors.label,
+                        ),
+                      ),
+                      if (entry?.phonetic case final p?)
+                        Text(
+                          '/$p/',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: GleanColors.label2,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 if (entry != null && entry.lemma != widget.word.toLowerCase())
-                  Text('原形 ${entry.lemma}', style: theme.textTheme.labelLarge),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: _Chip('原形 ${entry.lemma}'),
+                  ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              entry?.definition ?? '本地词典里没有这个词',
-              style: theme.textTheme.bodyLarge,
-            ),
-            if (widget.source.sentence case final sentence?) ...[
-              const SizedBox(height: 16),
-              Text('原句', style: theme.textTheme.labelMedium),
-              const SizedBox(height: 4),
-              Text(
-                sentence,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontStyle: FontStyle.italic,
+            const SizedBox(height: 14),
+            if (entry == null)
+              const Text(
+                '本地词典里没有这个词',
+                style: TextStyle(fontSize: 16, color: GleanColors.label2),
+              )
+            else
+              for (final (pos, text) in definitionLines(entry.definition))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (pos != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: _Chip(pos),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Expanded(
+                        child: Text(
+                          text,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+            if (widget.source.sentence case final sentence?) ...[
+              const SizedBox(height: 10),
+              _Quote(
+                sentence: sentence,
+                word: widget.word,
+                title: widget.articleTitle,
               ),
             ],
             const SizedBox(height: 20),
             if (entry != null)
-              Align(
-                alignment: Alignment.centerRight,
-                child: CollectButton(
-                  collected: _collected ?? false,
-                  onPressed: _collected == null || _writing ? null : _toggle,
-                ),
+              CollectButton(
+                collected: _collected ?? false,
+                onPressed: _collected == null || _writing ? null : _toggle,
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: GleanColors.mintSoft,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: GleanColors.tint,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Grey card with the source sentence, the picked word in bold.
+class _Quote extends StatelessWidget {
+  const _Quote({required this.sentence, required this.word, this.title});
+
+  final String sentence;
+  final String word;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final at = sentence.indexOf(word);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: GleanColors.background,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title == null ? '原句' : '原句 · $title',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, color: GleanColors.label2),
+          ),
+          const SizedBox(height: 4),
+          Text.rich(
+            TextSpan(
+              children: at < 0
+                  ? [TextSpan(text: sentence)]
+                  : [
+                      TextSpan(text: sentence.substring(0, at)),
+                      TextSpan(
+                        text: word,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      TextSpan(text: sentence.substring(at + word.length)),
+                    ],
+            ),
+            style: const TextStyle(
+              fontFamily: serifFamily,
+              fontFamilyFallback: serifFallback,
+              fontSize: 15.5,
+              height: 1.6,
+              color: Color(0xFF3A3A3C),
+            ),
+          ),
+        ],
       ),
     );
   }

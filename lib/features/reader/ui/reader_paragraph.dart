@@ -15,12 +15,16 @@ class ReaderParagraph extends StatefulWidget {
     required this.style,
     required this.collected,
     required this.onWord,
+    required this.accent,
     this.selected,
     this.pulse,
   });
 
   final String text;
   final TextStyle? style;
+
+  /// Theme accent: saved-word underline and the picked word's highlight.
+  final Color accent;
 
   /// Lower-cased forms whose occurrences get the "already saved" underline.
   final Set<String> collected;
@@ -73,13 +77,16 @@ class _ReaderParagraphState extends State<ReaderParagraph> {
   }
 
   TextSpan _spans(BuildContext context, double pulseOpacity) {
-    final scheme = Theme.of(context).colorScheme;
+    final accent = widget.accent;
     final t = widget.text;
     final children = <TextSpan>[];
     var at = 0;
     for (final r in wordRanges(t)) {
       final isSelected = r == widget.selected;
-      final isPulse = widget.pulse?.$1 == r && pulseOpacity > 0;
+      // The flash covers a word or a whole quoted sentence.
+      final p = widget.pulse?.$1;
+      final isPulse =
+          p != null && r.start >= p.start && r.end <= p.end && pulseOpacity > 0;
       final isCollected = widget.collected.contains(
         t.substring(r.start, r.end).toLowerCase(),
       );
@@ -90,13 +97,13 @@ class _ReaderParagraphState extends State<ReaderParagraph> {
           text: t.substring(r.start, r.end),
           style: TextStyle(
             backgroundColor: isSelected
-                ? scheme.primaryContainer
+                ? accent.withValues(alpha: 0.22)
                 : isPulse
                 ? const Color(0xFFFBBF24).withValues(alpha: 0.55 * pulseOpacity)
                 : null,
             decoration: isCollected ? TextDecoration.underline : null,
             decorationStyle: TextDecorationStyle.dotted,
-            decorationColor: scheme.primary,
+            decorationColor: accent,
             decorationThickness: 2,
           ),
         ),

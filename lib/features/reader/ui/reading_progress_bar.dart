@@ -11,17 +11,21 @@ class ReadingProgressBar extends StatelessWidget {
   const ReadingProgressBar({
     super.key,
     required this.progress,
+    this.color,
     this.height = 3,
   });
 
   final ValueListenable<double> progress;
   final double height;
 
+  /// Defaults to the theme's primary colour.
+  final Color? color;
+
   static const ease = Duration(milliseconds: 250);
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final color = this.color ?? Theme.of(context).colorScheme.primary;
     return RepaintBoundary(
       child: SizedBox(
         height: height,
@@ -39,7 +43,9 @@ class ReadingProgressBar extends StatelessWidget {
                 heightFactor: 1,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: color,
+                    gradient: LinearGradient(
+                      colors: [color.withValues(alpha: 0.7), color],
+                    ),
                     borderRadius: const BorderRadius.horizontal(
                       right: Radius.circular(2),
                     ),

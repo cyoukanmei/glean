@@ -2,19 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-/// One-shot "finished!" celebration: a confetti burst plus a badge that pops
-/// in, holds, then fades. Self-drawn (no Lottie asset to license or load).
+/// One-shot "finished!" celebration: a confetti burst, plus (with a [label])
+/// a badge that pops in, holds, then fades. Self-drawn (no Lottie asset to
+/// license or load).
 ///
 /// Never intercepts touches, so the page below stays usable while it plays.
 class CelebrationBurst extends StatefulWidget {
-  const CelebrationBurst({
-    super.key,
-    required this.label,
-    this.onDone,
-    this.seed = 7,
-  });
+  const CelebrationBurst({super.key, this.label, this.onDone, this.seed = 7});
 
-  final String label;
+  final String? label;
   final VoidCallback? onDone;
 
   /// Fixed per burst so tests and screenshots are reproducible.
@@ -70,44 +66,45 @@ class _CelebrationBurstState extends State<CelebrationBurst>
           fit: StackFit.expand,
           children: [
             CustomPaint(painter: _ConfettiPainter(_c, _particles)),
-            Center(
-              child: FadeTransition(
-                opacity: _badgeOpacity,
-                child: ScaleTransition(
-                  scale: _badgeScale,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: scheme.primary,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: const [
-                        BoxShadow(blurRadius: 18, color: Colors.black26),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 22,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.check_circle_rounded,
-                            color: scheme.onPrimary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            widget.label,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(color: scheme.onPrimary),
-                          ),
+            if (widget.label case final label?)
+              Center(
+                child: FadeTransition(
+                  opacity: _badgeOpacity,
+                  child: ScaleTransition(
+                    scale: _badgeScale,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: scheme.primary,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: const [
+                          BoxShadow(blurRadius: 18, color: Colors.black26),
                         ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 22,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle_rounded,
+                              color: scheme.onPrimary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              label,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(color: scheme.onPrimary),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
