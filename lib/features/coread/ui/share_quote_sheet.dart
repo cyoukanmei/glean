@@ -9,10 +9,10 @@ import '../../auth/application/auth.dart';
 import '../../vocab/data/vocab_repository.dart';
 import 'coread_page.dart';
 
-/// Bumped when a post is shared from outside the 共读 tab, so it reloads.
+/// Bumped when a post is shared from outside the 社区 tab, so it reloads.
 final coreadRevisionProvider = NotifierProvider<Revision, int>(Revision.new);
 
-/// Shares the sentence a word came from to 共读, with an optional thought.
+/// Shares the sentence a word came from to 社区, with an optional thought.
 /// Returns true when posted.
 Future<bool> showShareQuoteSheet(
   BuildContext context, {
@@ -29,7 +29,7 @@ Future<bool> showShareQuoteSheet(
   if ((posted ?? false) && context.mounted) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('已分享到共读')));
+      ..showSnackBar(const SnackBar(content: Text('已分享到社区')));
   }
   return posted ?? false;
 }
@@ -88,7 +88,7 @@ class _ShareQuoteSheetState extends ConsumerState<_ShareQuoteSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            '分享到共读',
+            '分享到社区',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
           ),

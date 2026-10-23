@@ -49,6 +49,10 @@ const eventSpecs = <String, EventSpec>{
     required: {'article_id', 'position'},
   ),
   'offline_hit': EventSpec('离线时下拉刷新，展示本地内容', required: {'surface'}),
+  'shelf_filter': EventSpec('书架切换筛选（全部/在读/收藏/稍后/读完）', required: {'filter'}),
+  'banner_click': EventSpec('点击书城 banner', required: {'banner'}),
+  'store_entry': EventSpec('点击书城快捷入口', required: {'entry'}),
+  'rank_switch': EventSpec('切换榜单', required: {'board'}),
 
   // Reading
   'article_open': EventSpec(
@@ -87,9 +91,15 @@ const eventSpecs = <String, EventSpec>{
   'word_review': EventSpec('复习卡片打分', required: {'lemma', 'status'}),
 
   // Community
-  'coread_like': EventSpec('共读点赞', required: {'post', 'like'}),
+  'coread_like': EventSpec('社区帖子点赞', required: {'post', 'like'}),
+  'coread_comment': EventSpec(
+    '发表评论（reply 为回复某条评论）',
+    required: {'post'},
+    optional: {'reply'},
+  ),
+  'coread_comment_like': EventSpec('评论点赞', required: {'comment', 'like'}),
   'coread_share': EventSpec(
-    '分享金句到共读',
+    '分享金句到社区',
     required: {'article_id'},
     optional: {'surface'},
   ),

@@ -9,13 +9,14 @@ import '../../../core/design/glean_colors.dart';
 import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
 import '../../../core/design/tabs.dart';
+import '../../../core/navigation/swipe_back_route.dart';
 import '../../articles/data/article_repository.dart';
-import '../../articles/ui/cover_hero.dart';
-import '../../articles/ui/labels.dart';
 import '../../auth/application/auth.dart';
 import '../../reader/ui/open_reader.dart';
 import '../../vocab/data/vocab_repository.dart';
 import '../data/coread_store.dart';
+import 'post_card.dart';
+import 'post_detail_page.dart';
 import 'share_quote_sheet.dart';
 
 final coreadStoreProvider = Provider(
@@ -25,10 +26,67 @@ final coreadStoreProvider = Provider(
   ),
 );
 
-enum _Sort { popular, latest }
+/// Bumped when a like or comment changes on the detail page, so the feed
+/// refreshes its counts.
+final coreadActivityProvider = NotifierProvider<Revision, int>(Revision.new);
 
-/// 共读: readers' shares, each an English sentence with a Chinese thought
-/// and the article it came from. Tapping the article opens it at the quote.
+/// Feed tabs of 社区.
+enum CoreadTab {
+  popular('推荐'),
+  latest('最新'),
+  mine('我的');
+
+  const CoreadTab(this.label);
+
+  final String label;
+}
+
+/// Selected 社区 tab; 我的 → 我的动态 switches it to [CoreadTab.mine].
+class CoreadTabNotifier extends Notifier<CoreadTab> {
+  @override
+  CoreadTab build() => CoreadTab.popular;
+
+  void select(CoreadTab tab) => state = tab;
+}
+
+final coreadTabProvider = NotifierProvider<CoreadTabNotifier, CoreadTab>(
+  CoreadTabNotifier.new,
+);
+
+/// Opens the post's article at the quoted sentence.
+Future<void> openPostQuote(
+  BuildContext context,
+  WidgetRef ref,
+  CoreadPost post,
+  ArticleSummary article,
+) async {
+  final paragraphs = await ref
+      .read(articleRepositoryProvider)
+      .paragraphs(article.id);
+  if (!context.mounted) return;
+  final para = post.paraIndex < paragraphs.length
+      ? paragraphs[post.paraIndex]
+      : '';
+  final at = para.indexOf(post.quote);
+  openReader(
+    context,
+    article,
+    CoreadPage.surface,
+    jumpTo: at < 0
+        ? null
+        : WordSource(
+            articleId: article.id,
+            paraIndex: post.paraIndex,
+            charStart: at,
+            charEnd: at + post.quote.length,
+            sentence: post.quote,
+          ),
+  );
+}
+
+/// 社区: readers' shares, each an English sentence with a Chinese thought,
+/// the article it came from and the top comments. Tapping a post opens its
+/// comments; tapping the article opens it at the quote.
 class CoreadPage extends ConsumerStatefulWidget {
   const CoreadPage({super.key});
 
@@ -41,9 +99,9 @@ class CoreadPage extends ConsumerStatefulWidget {
 class _CoreadPageState extends ConsumerState<CoreadPage> {
   late final CoreadStore _store = ref.read(coreadStoreProvider);
   late List<CoreadPost> _posts = _store.posts();
-  late final Set<String> _liked = _store.liked();
+  late Set<String> _liked = _store.liked();
+  late Map<String, int> _counts = _store.commentCounts();
   Map<String, ArticleSummary> _articles = const {};
-  _Sort _sort = _Sort.popular;
 
   /// The post just shared; it grows into the list instead of popping in.
   String? _fresh;
@@ -62,13 +120,20 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
     setState(() => _articles = {for (final a in found.nonNulls) a.id: a});
   }
 
-  List<CoreadPost> get _sorted => switch (_sort) {
-    _Sort.latest => _posts,
-    _Sort.popular => [..._posts]..sort((a, b) => _score(b) - _score(a)),
+  List<CoreadPost> _shown(CoreadTab tab) => switch (tab) {
+    CoreadTab.latest => _posts,
+    CoreadTab.popular => [..._posts]..sort((a, b) => _score(b) - _score(a)),
+    CoreadTab.mine => () {
+      final commented = _store.commentedPosts();
+      return [
+        for (final p in _posts)
+          if (p.own || commented.contains(p.id)) p,
+      ];
+    }(),
   };
 
   int _score(CoreadPost p) =>
-      p.likes + (_liked.contains(p.id) ? 1 : 0) + p.comments * 3;
+      p.likes + (_liked.contains(p.id) ? 1 : 0) + (_counts[p.id] ?? 0) * 3;
 
   void _toggleLike(CoreadPost post) {
     final like = !_liked.contains(post.id);
@@ -78,30 +143,16 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
     Analytics.track('coread_like', {'post': post.id, 'like': like});
   }
 
-  Future<void> _openQuote(CoreadPost post) async {
-    final article = _articles[post.articleId];
-    if (article == null) return;
-    final paragraphs = await ref
-        .read(articleRepositoryProvider)
-        .paragraphs(article.id);
-    if (!mounted) return;
-    final para = post.paraIndex < paragraphs.length
-        ? paragraphs[post.paraIndex]
-        : '';
-    final at = para.indexOf(post.quote);
-    openReader(
-      context,
-      article,
-      CoreadPage.surface,
-      jumpTo: at < 0
-          ? null
-          : WordSource(
-              articleId: article.id,
-              paraIndex: post.paraIndex,
-              charStart: at,
-              charEnd: at + post.quote.length,
-              sentence: post.quote,
-            ),
+  void _openPost(CoreadPost post, {bool compose = false}) {
+    Navigator.of(context).push(
+      SwipeBackPageRoute<void>(
+        settings: RouteSettings(name: '/community/${post.id}'),
+        builder: (_) => PostDetailPage(
+          post: post,
+          article: _articles[post.articleId],
+          compose: compose,
+        ),
+      ),
     );
   }
 
@@ -116,9 +167,9 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
     if (shared == null || !mounted) return;
     setState(() {
       _posts = _store.posts();
-      _sort = _Sort.latest;
       _fresh = shared.id;
     });
+    ref.read(coreadTabProvider.notifier).select(CoreadTab.latest);
     _loadArticles();
   }
 
@@ -127,12 +178,19 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
     ref.listen(coreadRevisionProvider, (_, _) {
       setState(() {
         _posts = _store.posts();
-        _sort = _Sort.latest;
         _fresh = _posts.first.id;
       });
+      ref.read(coreadTabProvider.notifier).select(CoreadTab.latest);
       _loadArticles();
     });
-    final posts = _sorted;
+    ref.listen(coreadActivityProvider, (_, _) {
+      setState(() {
+        _liked = _store.liked();
+        _counts = _store.commentCounts();
+      });
+    });
+    final tab = ref.watch(coreadTabProvider);
+    final posts = _shown(tab);
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
       body: Stack(
@@ -147,31 +205,63 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
                 SliverList.list(
                   children: [
                     const SizedBox(height: 8),
-                    const LargeTitle(title: '共读', eyebrow: '书友的读后分享'),
-                    const SizedBox(height: 12),
+                    const LargeTitle(title: '社区', eyebrow: '书友的读后分享'),
+                    const SizedBox(height: 8),
                     TextTabs(
-                      labels: const ['推荐', '最新'],
-                      selected: _sort.index,
-                      onSelected: (i) =>
-                          setState(() => _sort = _Sort.values[i]),
+                      key: const Key('coread-tabs'),
+                      labels: [for (final t in CoreadTab.values) t.label],
+                      selected: tab.index,
+                      onSelected: (i) => ref
+                          .read(coreadTabProvider.notifier)
+                          .select(CoreadTab.values[i]),
                     ),
+                    const SizedBox(height: 4),
                   ],
                 ),
-                SliverList.builder(
-                  itemCount: posts.length,
-                  itemBuilder: (context, i) {
-                    final post = posts[i];
-                    final card = _PostCard(
-                      key: ValueKey(post.id),
-                      post: post,
-                      article: _articles[post.articleId],
-                      liked: _liked.contains(post.id),
-                      onLike: () => _toggleLike(post),
-                      onOpen: () => _openQuote(post),
-                    );
-                    return post.id == _fresh ? _GrowIn(child: card) : card;
-                  },
-                ),
+                if (posts.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(40, 60, 40, 0),
+                      child: Text(
+                        '还没有你的动态。\n分享一句金句，或者去评论别人的分享吧。',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          height: 1.6,
+                          color: GleanColors.label2,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverList.builder(
+                    itemCount: posts.length,
+                    itemBuilder: (context, i) {
+                      final post = posts[i];
+                      final article = _articles[post.articleId];
+                      final card = Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: PostCard(
+                          key: ValueKey(post.id),
+                          post: post,
+                          article: article,
+                          surface: CoreadPage.surface,
+                          liked: _liked.contains(post.id),
+                          commentCount: _counts[post.id] ?? 0,
+                          preview: _store.comments(post.id).take(2).toList(),
+                          onLike: () => _toggleLike(post),
+                          onOpenArticle: () {
+                            if (article != null) {
+                              openPostQuote(context, ref, post, article);
+                            }
+                          },
+                          onComments: () => _openPost(post),
+                          onSay: () => _openPost(post, compose: true),
+                        ),
+                      );
+                      return post.id == _fresh ? GrowIn(child: card) : card;
+                    },
+                  ),
                 SliverPadding(padding: EdgeInsets.only(bottom: bottom + 88)),
               ],
             ),
@@ -183,16 +273,16 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
               onTap: _compose,
               child: Container(
                 key: const Key('coread-share'),
-                height: 52,
+                height: 50,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
-                  color: GleanColors.label,
-                  borderRadius: BorderRadius.circular(26),
-                  boxShadow: const [
+                  color: GleanColors.tint,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
                     BoxShadow(
-                      color: Color(0x66000000),
+                      color: GleanColors.tintDeep.withValues(alpha: 0.5),
                       blurRadius: 24,
-                      offset: Offset(0, 12),
+                      offset: const Offset(0, 12),
                       spreadRadius: -8,
                     ),
                   ],
@@ -200,7 +290,7 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_rounded, color: Colors.white),
+                    Icon(Icons.edit_rounded, size: 19, color: Colors.white),
                     SizedBox(width: 6),
                     Text(
                       '分享金句',
@@ -217,260 +307,6 @@ class _CoreadPageState extends ConsumerState<CoreadPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-String timeAgo(int epochMs, DateTime now) {
-  final d = now.difference(DateTime.fromMillisecondsSinceEpoch(epochMs));
-  if (d.inMinutes < 1) return '刚刚';
-  if (d.inHours < 1) return '${d.inMinutes} 分钟前';
-  if (d.inHours < 24) return '${d.inHours} 小时前';
-  if (d.inDays < 2) return '昨天';
-  return '${d.inDays} 天前';
-}
-
-class _PostCard extends StatelessWidget {
-  const _PostCard({
-    super.key,
-    required this.post,
-    required this.article,
-    required this.liked,
-    required this.onLike,
-    required this.onOpen,
-  });
-
-  final CoreadPost post;
-  final ArticleSummary? article;
-  final bool liked;
-  final VoidCallback onLike;
-  final VoidCallback onOpen;
-
-  static const _avatarColors = [
-    [Color(0xFFFDE68A), Color(0xFFF59E0B)],
-    [Color(0xFFC4B5FD), Color(0xFF7C3AED)],
-    [Color(0xFF99F6E4), Color(0xFF0F766E)],
-    [Color(0xFFFBCFE8), Color(0xFFDB2777)],
-    [Color(0xFFBAE6FD), Color(0xFF0284C7)],
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final a = article;
-    final colors =
-        _avatarColors[post.author.codeUnits.fold(0, (s, c) => s + c) %
-            _avatarColors.length];
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: GleanColors.card,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              InitialAvatar(
-                initial: post.author.characters.first.toUpperCase(),
-                size: 34,
-                colors: colors,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.author,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      '${a == null ? '分享了一句' : '读完《${a.title}》'}'
-                      ' · ${timeAgo(post.createdAt, clock.now())}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: GleanColors.label2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.only(left: 12),
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(color: GleanColors.tintBright, width: 3),
-              ),
-            ),
-            child: Text(
-              '“${post.quote}”',
-              style: TextStyle(
-                fontFamily: serifFamily,
-                fontFamilyFallback: serifFallback,
-                fontSize: 18,
-                height: 1.5,
-                color: GleanColors.label,
-              ),
-            ),
-          ),
-          if (post.thought.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              post.thought,
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.6,
-                color: GleanColors.ink2,
-              ),
-            ),
-          ],
-          if (a != null) ...[
-            const SizedBox(height: 12),
-            PressableScale(
-              onTap: onOpen,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: GleanColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox.square(
-                      dimension: 40,
-                      child: CoverHero(
-                        article: a,
-                        surface: '${CoreadPage.surface}-${post.id}',
-                        borderRadius: 9,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            a.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            articleMeta(a.category, a.level, a.wordCount),
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: GleanColors.label2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 20,
-                      color: GleanColors.label3,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              GestureDetector(
-                key: Key('like-${post.id}'),
-                behavior: HitTestBehavior.opaque,
-                onTap: onLike,
-                child: Row(
-                  children: [
-                    _Heart(liked: liked),
-                    const SizedBox(width: 5),
-                    Text(
-                      '${post.likes + (liked ? 1 : 0)}',
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        color: liked ? GleanColors.red : GleanColors.label2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 22),
-              Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 17,
-                color: GleanColors.label2,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                '${post.comments}',
-                style: TextStyle(fontSize: 13.5, color: GleanColors.label2),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Heart that squashes and pops (like the collect bookmark) when liked.
-class _Heart extends StatelessWidget {
-  const _Heart({required this.liked});
-
-  final bool liked;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      key: ValueKey(liked),
-      tween: Tween(begin: liked ? 0.6 : 1, end: 1),
-      duration: const Duration(milliseconds: 420),
-      curve: Curves.elasticOut,
-      builder: (context, s, child) => Transform.scale(scale: s, child: child),
-      child: Icon(
-        liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-        size: 18,
-        color: liked ? GleanColors.red : GleanColors.label2,
-      ),
-    );
-  }
-}
-
-/// A newly shared post opens up its space and fades in.
-class _GrowIn extends StatelessWidget {
-  const _GrowIn({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeOutCubic,
-      builder: (context, t, child) => ClipRect(
-        child: Align(
-          alignment: Alignment.topCenter,
-          heightFactor: t,
-          child: Opacity(opacity: t, child: child),
-        ),
-      ),
-      child: child,
     );
   }
 }

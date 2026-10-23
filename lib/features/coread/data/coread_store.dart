@@ -14,7 +14,6 @@ class CoreadPost {
     required this.thought,
     required this.createdAt,
     this.likes = 0,
-    this.comments = 0,
   });
 
   factory CoreadPost.fromJson(Map<String, dynamic> j) => CoreadPost(
@@ -26,7 +25,6 @@ class CoreadPost {
     thought: j['thought'] as String,
     createdAt: j['createdAt'] as int,
     likes: j['likes'] as int? ?? 0,
-    comments: j['comments'] as int? ?? 0,
   );
 
   final String id;
@@ -39,7 +37,9 @@ class CoreadPost {
   final String thought;
   final int createdAt;
   final int likes;
-  final int comments;
+
+  /// Shared by the user on this device.
+  bool get own => id.startsWith('u');
 
   Map<String, Object> toJson() => {
     'id': id,
@@ -50,12 +50,56 @@ class CoreadPost {
     'thought': thought,
     'createdAt': createdAt,
     'likes': likes,
-    'comments': comments,
   };
 }
 
-/// Local stand-in for a community backend: a few built-in posts plus the
-/// user's own shares and likes, kept in shared preferences.
+/// A comment under a post; [replyTo] names the commenter it answers.
+class CoreadComment {
+  const CoreadComment({
+    required this.id,
+    required this.postId,
+    required this.author,
+    required this.text,
+    required this.createdAt,
+    this.likes = 0,
+    this.replyTo,
+  });
+
+  factory CoreadComment.fromJson(Map<String, dynamic> j) => CoreadComment(
+    id: j['id'] as String,
+    postId: j['postId'] as String,
+    author: j['author'] as String,
+    text: j['text'] as String,
+    createdAt: j['createdAt'] as int,
+    likes: j['likes'] as int? ?? 0,
+    replyTo: j['replyTo'] as String?,
+  );
+
+  final String id;
+  final String postId;
+  final String author;
+  final String text;
+  final int createdAt;
+  final int likes;
+  final String? replyTo;
+
+  /// Written by the user on this device.
+  bool get own => id.startsWith('uc');
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'postId': postId,
+    'author': author,
+    'text': text,
+    'createdAt': createdAt,
+    'likes': likes,
+    'replyTo': replyTo,
+  };
+}
+
+/// Local stand-in for a community backend: a few built-in posts and
+/// comments plus the user's own shares, comments and likes, kept in shared
+/// preferences.
 class CoreadStore {
   CoreadStore(this._prefs, {required this._now});
 
@@ -64,6 +108,9 @@ class CoreadStore {
 
   static const _postsKey = 'coread.posts';
   static const _likedKey = 'coread.liked';
+  static const _commentsKey = 'coread.comments';
+  static const _commentLikedKey = 'coread.comment_liked';
+  static const _minute = 60 * 1000;
   static const _hour = 3600 * 1000;
 
   /// Built-in posts; quotes are verbatim sentences from the seed articles.
@@ -78,7 +125,6 @@ class CoreadStore {
       String thought,
       int hoursAgo,
       int likes,
-      int comments,
     ) => CoreadPost(
       id: id,
       author: author,
@@ -88,7 +134,6 @@ class CoreadStore {
       thought: thought,
       createdAt: now - hoursAgo * _hour,
       likes: likes,
-      comments: comments,
     );
     return [
       post(
@@ -101,7 +146,6 @@ class CoreadStore {
         '原来拖延不是懒，是在躲情绪。今天先做五分钟，就当给自己一个台阶。',
         2,
         128,
-        16,
       ),
       post(
         'm2',
@@ -112,7 +156,6 @@ class CoreadStore {
         '下次逛博物馆，想想策展人在讲什么故事，还有那些没摆出来的东西。',
         20,
         86,
-        9,
       ),
       post(
         'm3',
@@ -124,7 +167,6 @@ class CoreadStore {
         '推荐算法看的是你做了什么，而不是你说了什么。有点扎心。',
         54,
         203,
-        31,
       ),
       post(
         'm4',
@@ -135,7 +177,6 @@ class CoreadStore {
         '难怪夏天放车里的手机老得快，边充电边打游戏也要收敛点。',
         30,
         64,
-        5,
       ),
       post(
         'm5',
@@ -146,9 +187,122 @@ class CoreadStore {
         '初级文章也很有味道，想去摩洛哥喝一次薄荷茶。',
         96,
         41,
-        3,
       ),
     ];
+  }
+
+  /// Built-in comments: (post, author, text, minutes ago, likes, reply to).
+  static const _seedComments = [
+    ('m1', 'Kai', '五分钟法则真的有用，先开个头就停不下来了', 95, 32, null),
+    ('m1', 'Mo', '“躲情绪”这个说法好准', 80, 21, null),
+    ('m1', 'Lin', '对，开头最难，后面就顺了', 70, 6, 'Kai'),
+    ('m1', 'Ana', 'feelings, not time —— 抄在便利贴上了', 40, 9, null),
+    ('m1', 'Yuki', '今天的任务清单先拆成五分钟的小块', 15, 2, null),
+    ('m2', 'Lin', '博物馆里的留白也是一种表达', 900, 14, null),
+    ('m2', 'Ana', '下次去看展先读导览词，看策展人想说什么', 700, 5, null),
+    ('m2', 'Kai', '“quietly” 用得真好', 600, 3, 'Lin'),
+    ('m3', 'Yuki', '难怪我说不喜欢的视频还是一直被推荐 😂', 3000, 48, null),
+    (
+      'm3',
+      'Kai',
+      'what you do, not what you say —— 推荐系统比我更了解我',
+      2800,
+      26,
+      null,
+    ),
+    ('m3', 'Mo', '确实，行动比口头偏好诚实多了', 2700, 11, 'Yuki'),
+    ('m3', 'Lin', '这句可以拿来造句练习', 2000, 4, null),
+    ('m4', 'Mo', '车里放手机真的伤电池，学到了', 1700, 7, null),
+    ('m4', 'Ana', '充电到 80% 就拔是不是也有用？', 1500, 5, null),
+    ('m4', 'Yuki', '文章里说热比充电次数更伤，夏天要注意', 1400, 3, 'Ana'),
+    ('m5', 'Kai', '摩洛哥薄荷茶 +1，加很多糖那种', 5500, 6, null),
+    ('m5', 'Lin', '初级文章读起来很放松', 5000, 2, null),
+  ];
+
+  List<CoreadComment> _builtInComments() {
+    final now = _now();
+    return [
+      for (final (i, (post, author, text, minutes, likes, reply))
+          in _seedComments.indexed)
+        CoreadComment(
+          id: 'c$i',
+          postId: post,
+          author: author,
+          text: text,
+          createdAt: now - minutes * _minute,
+          likes: likes,
+          replyTo: reply,
+        ),
+    ];
+  }
+
+  List<CoreadComment> _ownComments() {
+    final raw = _prefs.getString(_commentsKey);
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final j in jsonDecode(raw) as List)
+          CoreadComment.fromJson(j as Map<String, dynamic>),
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Comments on [postId]: the user's own first (newest first), then the
+  /// rest by likes.
+  List<CoreadComment> comments(String postId) {
+    final own = [
+      for (final c in _ownComments())
+        if (c.postId == postId) c,
+    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final others = [
+      for (final c in _builtInComments())
+        if (c.postId == postId) c,
+    ]..sort((a, b) => b.likes.compareTo(a.likes));
+    return [...own, ...others];
+  }
+
+  /// Post id -> number of comments.
+  Map<String, int> commentCounts() {
+    final counts = <String, int>{};
+    for (final c in [..._builtInComments(), ..._ownComments()]) {
+      counts[c.postId] = (counts[c.postId] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  /// Posts the user commented on.
+  Set<String> commentedPosts() => {for (final c in _ownComments()) c.postId};
+
+  Future<CoreadComment> comment({
+    required String postId,
+    required String author,
+    required String text,
+    String? replyTo,
+  }) async {
+    final now = _now();
+    final c = CoreadComment(
+      id: 'uc$now',
+      postId: postId,
+      author: author,
+      text: text,
+      createdAt: now,
+      replyTo: replyTo,
+    );
+    await _prefs.setString(
+      _commentsKey,
+      jsonEncode([c.toJson(), for (final o in _ownComments()) o.toJson()]),
+    );
+    return c;
+  }
+
+  Set<String> likedComments() => {...?_prefs.getStringList(_commentLikedKey)};
+
+  Future<void> setCommentLiked(String commentId, bool like) {
+    final ids = likedComments();
+    like ? ids.add(commentId) : ids.remove(commentId);
+    return _prefs.setStringList(_commentLikedKey, ids.toList());
   }
 
   List<CoreadPost> _own() {

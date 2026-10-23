@@ -247,7 +247,7 @@ class _WordSheetState extends ConsumerState<WordSheet> {
                 if (widget.source.sentence != null) ...[
                   if (entry != null) const SizedBox(width: 10),
                   Tooltip(
-                    message: '分享这句到共读',
+                    message: '分享这句到社区',
                     child: PressableScale(
                       key: const Key('word-share'),
                       onTap: () => showShareQuoteSheet(

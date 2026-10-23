@@ -41,4 +41,42 @@ void main() {
     await store.setLiked('m1', false);
     expect(store.liked(), {'m2'});
   });
+
+  test(
+    'own comments come first, newest first, and survive a restart',
+    () async {
+      var now = 1000000000000;
+      SharedPreferences.setMockInitialValues({});
+      final store = CoreadStore(
+        await SharedPreferences.getInstance(),
+        now: () => now++,
+      );
+      final before = store.commentCounts()['m1']!;
+      final builtIn = store.comments('m1');
+      for (var i = 1; i < builtIn.length; i++) {
+        expect(builtIn[i - 1].likes, greaterThanOrEqualTo(builtIn[i].likes));
+      }
+
+      await store.comment(postId: 'm1', author: 'demo', text: '第一条');
+      final reply = await store.comment(
+        postId: 'm1',
+        author: 'demo',
+        text: '同意',
+        replyTo: 'Kai',
+      );
+      final again = CoreadStore(
+        await SharedPreferences.getInstance(),
+        now: () => now,
+      );
+      final comments = again.comments('m1');
+      expect(comments.take(2).map((c) => c.text), ['同意', '第一条']);
+      expect(comments.first.replyTo, 'Kai');
+      expect(comments.first.own, isTrue);
+      expect(again.commentCounts()['m1'], before + 2);
+      expect(again.commentedPosts(), {'m1'});
+
+      await again.setCommentLiked(reply.id, true);
+      expect(again.likedComments(), {reply.id});
+    },
+  );
 }
