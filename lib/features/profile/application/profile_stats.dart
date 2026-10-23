@@ -13,8 +13,6 @@ class ProfileStats {
     required this.articles,
   });
 
-  static const dailyGoal = Duration(minutes: 15);
-
   final int todayMs;
 
   /// Monday..Sunday of this week: whether any reading happened that day.
@@ -33,8 +31,9 @@ class ProfileStats {
   /// Articles stored on the device.
   final int articles;
 
-  double get goalProgress =>
-      (todayMs / dailyGoal.inMilliseconds).clamp(0.0, 1.0);
+  /// Share of today's goal read so far, capped at 1.
+  double goalProgress(int goalMinutes) =>
+      (todayMs / (goalMinutes * 60000)).clamp(0.0, 1.0);
 
   static ProfileStats from({
     required Map<String, int> msByDay,

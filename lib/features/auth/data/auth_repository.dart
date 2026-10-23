@@ -7,12 +7,39 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/clock.dart';
 
-/// A signed-in user.
+/// A signed-in user and their editable profile.
 class AuthUser {
-  const AuthUser({required this.id, required this.username});
+  const AuthUser({
+    required this.id,
+    required this.username,
+    this.displayName,
+    this.avatar,
+    this.bio,
+    this.dailyGoalMinutes = 15,
+  });
+
+  factory AuthUser.fromRow(Map<String, Object?> row) => AuthUser(
+    id: row['id']! as String,
+    username: row['username']! as String,
+    displayName: row['display_name'] as String?,
+    avatar: row['avatar'] as String?,
+    bio: row['bio'] as String?,
+    dailyGoalMinutes: row['daily_goal_min'] as int? ?? 15,
+  );
 
   final String id;
   final String username;
+
+  /// Shown instead of [username] when set.
+  final String? displayName;
+
+  /// `preset:<n>` or `file:<path>`; null shows the initial.
+  final String? avatar;
+  final String? bio;
+  final int dailyGoalMinutes;
+
+  String get name =>
+      (displayName?.trim().isNotEmpty ?? false) ? displayName! : username;
 }
 
 /// Why a login or sign-up was refused; shown under the form.
@@ -100,6 +127,43 @@ class AuthRepository {
     return AuthUser(id: id, username: name);
   }
 
+  static const maxNameLength = 16;
+  static const maxBioLength = 40;
+
+  /// Saves the editable profile fields and returns the updated user.
+  Future<AuthUser> updateProfile(
+    String userId, {
+    required String displayName,
+    required String? avatar,
+    required String bio,
+    required int dailyGoalMinutes,
+  }) async {
+    final name = displayName.trim();
+    if (name.isEmpty) throw const AuthException('昵称不能为空');
+    if (name.runes.length > maxNameLength) {
+      throw const AuthException('昵称最多 $maxNameLength 个字');
+    }
+    if (bio.trim().runes.length > maxBioLength) {
+      throw const AuthException('签名最多 $maxBioLength 个字');
+    }
+    if (dailyGoalMinutes < 5 || dailyGoalMinutes > 120) {
+      throw const AuthException('每日目标需在 5–120 分钟之间');
+    }
+    await _db.update(
+      'users',
+      {
+        'display_name': name,
+        'avatar': avatar,
+        'bio': bio.trim(),
+        'daily_goal_min': dailyGoalMinutes,
+      },
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+    final rows = await _db.query('users', where: 'id = ?', whereArgs: [userId]);
+    return AuthUser.fromRow(rows.single);
+  }
+
   /// Checks the password and opens a session. Returns the new token.
   Future<(AuthUser, String token)> login(
     String username,
@@ -115,10 +179,7 @@ class AuthRepository {
     if (_hash(row['salt']! as String, password) != row['password_hash']) {
       throw const AuthException('账号或密码不正确');
     }
-    final user = AuthUser(
-      id: row['id']! as String,
-      username: row['username']! as String,
-    );
+    final user = AuthUser.fromRow(row);
     final now = _clock();
     final token = _uuid.v4();
     await _db.insert('sessions', {
@@ -136,7 +197,7 @@ class AuthRepository {
   Future<AuthUser?> userForToken(String token) async {
     final rows = await _db.rawQuery(
       '''
-      SELECT u.id, u.username, s.expires_at
+      SELECT u.*, s.expires_at
       FROM sessions s JOIN users u ON u.id = s.user_id
       WHERE s.token = ?''',
       [token],
@@ -147,10 +208,7 @@ class AuthRepository {
       await logout(token);
       return null;
     }
-    return AuthUser(
-      id: row['id']! as String,
-      username: row['username']! as String,
-    );
+    return AuthUser.fromRow(row);
   }
 
   Future<void> logout(String token) =>

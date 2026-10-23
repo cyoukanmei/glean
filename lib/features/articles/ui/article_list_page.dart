@@ -9,6 +9,8 @@ import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../../auth/application/auth.dart';
+import '../../profile/ui/user_avatar.dart';
 import 'article_feed.dart';
 import 'category_chips.dart';
 import 'labels.dart';
@@ -88,7 +90,7 @@ class _ArticleListPageState extends ConsumerState<ArticleListPage> {
             LargeTitle(
               title: '拾读',
               eyebrow: _eyebrow,
-              trailing: const InitialAvatar(initial: 'G'),
+              trailing: UserAvatar(user: ref.watch(authProvider)),
             ),
             const SizedBox(height: 12),
             SearchField(

@@ -11,7 +11,10 @@ import '../../auth/application/auth.dart';
 import '../../reader/application/reader_settings.dart';
 import '../../reader/data/reading_time_repository.dart';
 import '../../reader/ui/reader_settings_sheet.dart';
+import '../../../core/navigation/swipe_back_route.dart';
 import '../application/profile_stats.dart';
+import 'edit_profile_page.dart';
+import 'user_avatar.dart';
 
 /// 我的: today's reading goal, this week's check-ins, totals, settings.
 class ProfilePage extends ConsumerStatefulWidget {
@@ -78,6 +81,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (ok ?? false) await ref.read(authProvider.notifier).logout();
   }
 
+  void _editProfile() => Navigator.of(context).push(
+    SwipeBackPageRoute<void>(
+      settings: const RouteSettings(name: '/me/edit'),
+      builder: (_) => const EditProfilePage(),
+    ),
+  );
+
   static String _hours(int ms) {
     final minutes = ms ~/ 60000;
     if (minutes < 60) return '$minutes';
@@ -91,7 +101,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final user = ref.watch(authProvider);
     final settings = ref.watch(readerSettingsProvider);
     final stats = _stats;
-    final name = user?.username ?? '游客';
+    final name = user?.name ?? '游客';
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -107,12 +117,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             LargeTitle(
               title: '我的',
               eyebrow: user == null ? '未登录' : '$name · 已登录',
-              trailing: InitialAvatar(
-                initial: name.characters.first.toUpperCase(),
+              trailing: Semantics(
+                button: true,
+                label: '编辑资料',
+                child: PressableScale(
+                  key: const Key('profile-avatar-button'),
+                  onTap: user == null ? null : _editProfile,
+                  child: Hero(
+                    tag: 'me-avatar',
+                    child: UserAvatar(user: user, size: 44),
+                  ),
+                ),
               ),
             ),
+            if (user?.bio case final bio? when bio.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                child: Text(
+                  bio,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: GleanColors.label2,
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
-            _GoalCard(stats: stats),
+            _GoalCard(stats: stats, goalMinutes: user?.dailyGoalMinutes ?? 15),
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -187,9 +217,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 }
 
 class _GoalCard extends StatelessWidget {
-  const _GoalCard({required this.stats});
+  const _GoalCard({required this.stats, required this.goalMinutes});
 
   final ProfileStats? stats;
+  final int goalMinutes;
 
   static const _days = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -208,7 +239,7 @@ class _GoalCard extends StatelessWidget {
         children: [
           TweenAnimationBuilder<double>(
             key: const Key('goal-ring'),
-            tween: Tween(begin: 0, end: s?.goalProgress ?? 0),
+            tween: Tween(begin: 0, end: s?.goalProgress(goalMinutes) ?? 0),
             duration: const Duration(milliseconds: 900),
             curve: Curves.easeOutCubic,
             builder: (context, v, _) => ProgressRing(
@@ -229,7 +260,7 @@ class _GoalCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '/ ${ProfileStats.dailyGoal.inMinutes} 分钟',
+                    '/ $goalMinutes 分钟',
                     style: const TextStyle(
                       fontSize: 11,
                       color: GleanColors.label2,

@@ -101,4 +101,47 @@ void main() {
       isFalse,
     );
   });
+
+  test('profile edits are saved and validated', () async {
+    final db = await openTestDb();
+    final repo = AuthRepository(db, clock: FakeClock().call);
+    await repo.register('mei', 'secret1');
+    final (user, token) = await repo.login('mei', 'secret1');
+    expect(user.name, 'mei', reason: 'falls back to the username');
+    expect(user.dailyGoalMinutes, 15);
+
+    final updated = await repo.updateProfile(
+      user.id,
+      displayName: '  小梅 ',
+      avatar: 'preset:2',
+      bio: '每天读一点',
+      dailyGoalMinutes: 20,
+    );
+    expect(updated.name, '小梅');
+    expect(updated.avatar, 'preset:2');
+    final restored = await repo.userForToken(token);
+    expect(restored?.bio, '每天读一点');
+    expect(restored?.dailyGoalMinutes, 20);
+
+    expect(
+      () => repo.updateProfile(
+        user.id,
+        displayName: ' ',
+        avatar: null,
+        bio: '',
+        dailyGoalMinutes: 15,
+      ),
+      throwsA(isA<AuthException>()),
+    );
+    expect(
+      () => repo.updateProfile(
+        user.id,
+        displayName: '名' * 17,
+        avatar: null,
+        bio: '',
+        dailyGoalMinutes: 15,
+      ),
+      throwsA(isA<AuthException>()),
+    );
+  });
 }

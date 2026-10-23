@@ -519,7 +519,7 @@ class _ComposeSheetState extends ConsumerState<_ComposeSheet> {
 
   Future<void> _share() async {
     final picked = _picked!;
-    final author = ref.read(authProvider)?.username ?? '我';
+    final author = ref.read(authProvider)?.name ?? '我';
     final post = await ref
         .read(coreadStoreProvider)
         .share(

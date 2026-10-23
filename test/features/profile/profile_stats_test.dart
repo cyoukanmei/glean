@@ -22,7 +22,8 @@ void main() {
     expect(s.week, [true, false, true, false, true, false, false]);
     expect(s.todayIndex, 4);
     expect(s.todayMs, 6 * minute);
-    expect(s.goalProgress, closeTo(0.4, 1e-9));
+    expect(s.goalProgress(15), closeTo(0.4, 1e-9));
+    expect(s.goalProgress(30), closeTo(0.2, 1e-9));
   });
 
   test('the streak counts back from today, or from yesterday if today '
@@ -39,7 +40,7 @@ void main() {
   });
 
   test('the goal ring stops at full', () {
-    expect(_stats({'2026-10-23': 40 * minute}).goalProgress, 1);
+    expect(_stats({'2026-10-23': 40 * minute}).goalProgress(15), 1);
   });
 
   test('streaks cross month boundaries', () {

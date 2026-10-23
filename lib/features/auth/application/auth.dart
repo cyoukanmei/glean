@@ -31,6 +31,24 @@ class AuthNotifier extends Notifier<AuthUser?> {
     await login(username, password);
   }
 
+  Future<void> updateProfile({
+    required String displayName,
+    required String? avatar,
+    required String bio,
+    required int dailyGoalMinutes,
+  }) async {
+    final user = state;
+    if (user == null) return;
+    state = await _repo.updateProfile(
+      user.id,
+      displayName: displayName,
+      avatar: avatar,
+      bio: bio,
+      dailyGoalMinutes: dailyGoalMinutes,
+    );
+    Analytics.track('profile_update', {'goal': dailyGoalMinutes});
+  }
+
   Future<void> logout() async {
     final prefs = ref.read(prefsProvider);
     if (prefs.getString(tokenKey) case final token?) await _repo.logout(token);
