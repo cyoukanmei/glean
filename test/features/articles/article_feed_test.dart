@@ -8,6 +8,7 @@ import 'package:glean/features/articles/ui/article_card.dart';
 import 'package:glean/features/articles/ui/article_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -80,6 +81,14 @@ void main() {
     expect(find.byType(Shimmer), findsNothing);
     expect(find.byType(ArticleCard), findsNWidgets(3));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('an empty result shows the illustration', (tester) async {
+    final repo = await _pumpFeed(tester);
+    repo.pending.single.complete(const []);
+    await tester.pumpAndSettle();
+    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.text('没有符合条件的文章'), findsOneWidget);
   });
 
   testWidgets('a slow load shows the skeleton for at least 400 ms', (

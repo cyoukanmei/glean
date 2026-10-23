@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/analytics/analytics.dart';
+import '../core/widgets/state_illustration.dart';
 import '../features/articles/ui/article_list_page.dart';
 
 /// Bottom navigation: 首页 / 共读 / 生词本 / 我的.
@@ -38,9 +39,25 @@ class _HomeShellState extends State<HomeShell> {
         index: _index,
         children: const [
           ArticleListPage(),
-          _ComingSoon(title: '共读', hint: '书友的中英读后分享，即将上线'),
-          _ComingSoon(title: '生词本', hint: '阅读时长按单词即可收藏，即将上线'),
-          _ComingSoon(title: '我的', hint: '阅读统计与设置，即将上线'),
+          _ComingSoon(
+            title: '共读',
+            illustration: StateIllustration.reading,
+            headline: '和书友一起读',
+            hint: '中英读后分享，即将上线',
+            width: 300,
+          ),
+          _ComingSoon(
+            title: '生词本',
+            illustration: StateIllustration.emptyVocabulary,
+            headline: '还没有收藏生词',
+            hint: '阅读时长按单词即可收藏',
+          ),
+          _ComingSoon(
+            title: '我的',
+            illustration: StateIllustration.readingComplete,
+            headline: '阅读统计与设置',
+            hint: '即将上线',
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -61,17 +78,31 @@ class _HomeShellState extends State<HomeShell> {
 
 /// Temporary stand-in until the tab's feature lands.
 class _ComingSoon extends StatelessWidget {
-  const _ComingSoon({required this.title, required this.hint});
+  const _ComingSoon({
+    required this.title,
+    required this.illustration,
+    required this.headline,
+    required this.hint,
+    this.width = 200,
+  });
 
   final String title;
+  final String illustration;
+  final String headline;
   final String hint;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
-        child: Text(hint, style: Theme.of(context).textTheme.bodyMedium),
+        child: StateIllustration(
+          asset: illustration,
+          title: headline,
+          message: hint,
+          width: width,
+        ),
       ),
     );
   }

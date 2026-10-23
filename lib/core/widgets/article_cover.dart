@@ -2,11 +2,16 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-/// Article cover drawn from a palette key (`g0`..`g7`) plus a category icon.
+/// Article cover: the designer's category illustration, shown whole on its
+/// own cream background (square thumbnails show it edge to edge; the wide
+/// reader header letterboxes it instead of cropping the motif).
 ///
-/// Covers ship as data, not images, so they render offline and decode free.
-/// The icon scales with the cover's shorter side, so the cover morphs
-/// smoothly when it flies between a list thumbnail and the reader header.
+/// Only four images exist and each is 720 px, so they are decoded once at
+/// full size and shared by every card; no per-size decoding means nothing
+/// re-decodes while the cover morphs during a Hero flight.
+///
+/// Unknown categories fall back to a gradient from the palette key
+/// (`g0`..`g7`) plus a category icon.
 class ArticleCover extends StatelessWidget {
   const ArticleCover({
     super.key,
@@ -19,6 +24,14 @@ class ArticleCover extends StatelessWidget {
   final String category;
   final BorderRadius borderRadius;
 
+  /// Asset and its sampled background colour, used to fill letterboxing.
+  static const _illustrations = {
+    'tech': ('assets/covers/tech.webp', Color(0xFFFCF7EB)),
+    'business': ('assets/covers/business.webp', Color(0xFFFAF5EB)),
+    'culture': ('assets/covers/culture.webp', Color(0xFFFBF3E5)),
+    'daily': ('assets/covers/daily.webp', Color(0xFFFAF2E3)),
+  };
+
   static const _gradients = [
     [Color(0xFF0F766E), Color(0xFF5EEAD4)],
     [Color(0xFF1D4ED8), Color(0xFF93C5FD)],
@@ -30,34 +43,43 @@ class ArticleCover extends StatelessWidget {
     [Color(0xFFC2410C), Color(0xFFFDBA74)],
   ];
 
-  static const _icons = {
-    'tech': Icons.memory_rounded,
-    'business': Icons.storefront_rounded,
-    'culture': Icons.theater_comedy_rounded,
-    'daily': Icons.wb_sunny_rounded,
-  };
-
   @override
   Widget build(BuildContext context) {
-    final index = int.tryParse(palette.substring(1)) ?? 0;
-    final colors = _gradients[index % _gradients.length];
+    final illustration = _illustrations[category];
     return ClipRRect(
       borderRadius: borderRadius,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colors,
-          ),
-        ),
-        child: LayoutBuilder(
-          builder: (context, box) => Center(
-            child: Icon(
-              _icons[category] ?? Icons.article_rounded,
-              size: min(box.maxWidth, box.maxHeight) * 0.4,
-              color: Colors.white.withValues(alpha: 0.85),
+      child: illustration == null
+          ? _fallback()
+          : ColoredBox(
+              color: illustration.$2,
+              child: Image.asset(
+                illustration.$1,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+                gaplessPlayback: true,
+                width: double.infinity,
+                height: double.infinity,
+              ),
             ),
+    );
+  }
+
+  Widget _fallback() {
+    final index = int.tryParse(palette.substring(1)) ?? 0;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: _gradients[index % _gradients.length],
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, box) => Center(
+          child: Icon(
+            Icons.article_rounded,
+            size: min(box.maxWidth, box.maxHeight) * 0.4,
+            color: Colors.white.withValues(alpha: 0.85),
           ),
         ),
       ),

@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/widgets/celebration.dart';
+import '../../../core/widgets/state_illustration.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/cover_hero.dart';
 import '../../articles/ui/labels.dart';
@@ -92,6 +93,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   bool _restoreHint = false;
   Timer? _restoreHintTimer;
   bool _celebrating = false;
+  bool _finished = false;
 
   @override
   void initState() {
@@ -214,16 +216,19 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     final p = _scroll.position;
     final offset = p.pixels;
     final viewport = p.viewportDimension;
-    final content = p.maxScrollExtent + viewport;
-    // Share of the article that has been on screen; short articles that fit
-    // entirely count as fully seen.
-    final progress = content <= 0
+    final boxes = _paragraphBoxes();
+    // Share of the article seen: measured to the end of the last paragraph,
+    // so trailing space and the "done" footer appearing do not move it.
+    // Short articles that fit on screen count as fully seen.
+    final end = boxes.isEmpty
+        ? p.maxScrollExtent + viewport
+        : boxes.last.$1 + boxes.last.$2;
+    final progress = end <= 0
         ? 0.0
-        : ((offset + viewport) / content).clamp(0.0, 1.0);
+        : ((offset + viewport) / end).clamp(0.0, 1.0);
 
     var para = 0;
     var delta = 0.0;
-    final boxes = _paragraphBoxes();
     for (var i = 0; i < boxes.length; i++) {
       final (top, height) = boxes[i];
       if (top > offset) break;
@@ -282,7 +287,10 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     if (!mounted) return;
     HapticFeedback.mediumImpact();
     Analytics.track('article_finish', {'article_id': widget.article.id});
-    setState(() => _celebrating = true);
+    setState(() {
+      _celebrating = true;
+      _finished = true;
+    });
   }
 
   @override
@@ -357,6 +365,10 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                             article: article,
                             paragraphs: paragraphs,
                             paragraphKeys: _paragraphKeys,
+                            finished:
+                                _finished ||
+                                snap.data?.saved?.status ==
+                                    ReadingStatus.finished,
                           );
                         },
                       ),
@@ -439,11 +451,15 @@ class _Body extends StatelessWidget {
     required this.article,
     required this.paragraphs,
     required this.paragraphKeys,
+    required this.finished,
   });
 
   final ArticleSummary article;
   final List<String> paragraphs;
   final List<GlobalKey> paragraphKeys;
+
+  /// Shows the "done" illustration after the last paragraph.
+  final bool finished;
 
   @override
   Widget build(BuildContext context) {
@@ -463,7 +479,7 @@ class _Body extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -479,6 +495,25 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: finished
+              ? const Padding(
+                  key: Key('reader-finished'),
+                  padding: EdgeInsets.only(top: 24),
+                  child: StateIllustration(
+                    asset: StateIllustration.readingComplete,
+                    title: '已读完这篇',
+                    message: '会计入你的阅读统计',
+                    width: 160,
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+        // Room so the last lines can scroll clear of the restore hint.
+        const SizedBox(height: 96),
       ],
     );
   }

@@ -185,6 +185,11 @@ void main() {
 
     expect(find.byType(CelebrationBurst), findsOneWidget);
     expect(repo.finishedCalls, 1);
+    await _run(tester, const Duration(milliseconds: 500));
+    expect(find.byKey(const Key('reader-finished')), findsOneWidget);
+    // Progress is measured to the last paragraph: the footer does not pull
+    // the bar back.
+    expect(_barFill(tester), greaterThan(0.99));
 
     await _run(tester, CelebrationBurst.duration);
     await tester.pump();
@@ -205,6 +210,7 @@ void main() {
     await _run(tester, const Duration(seconds: 2));
     expect(find.byType(CelebrationBurst), findsNothing);
     expect(repo.finishedCalls, 0);
+    expect(find.byKey(const Key('reader-finished')), findsOneWidget);
     await _close(tester);
   });
 }

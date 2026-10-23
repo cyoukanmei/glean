@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics.dart';
 import '../../../core/widgets/stagger_in.dart';
+import '../../../core/widgets/state_illustration.dart';
 import '../../reader/ui/continue_reading_card.dart';
 import '../../reader/ui/open_reader.dart';
 import '../data/article_repository.dart';
@@ -203,7 +204,16 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
     } else if (!_loaded) {
       body = const SizedBox.expand();
     } else if (_items.isEmpty) {
-      body = _Message(_failed ? '加载失败，下拉重试' : '这个分类下没有所选难度的文章');
+      final offline = ref.watch(onlineProvider).value == false;
+      body = _Message(
+        StateIllustration(
+          asset: offline
+              ? StateIllustration.offline
+              : StateIllustration.emptyArticles,
+          title: _failed ? '加载失败' : '没有符合条件的文章',
+          message: _failed ? '下拉重试' : '换个难度试试，或下拉看看有没有新文章',
+        ),
+      );
     } else {
       body = NotificationListener<ScrollNotification>(
         onNotification: _onScroll,
@@ -270,17 +280,17 @@ class _Footer extends StatelessWidget {
 
 /// Scrollable so pull-to-refresh still works on an empty list.
 class _Message extends StatelessWidget {
-  const _Message(this.text);
+  const _Message(this.child);
 
-  final String text;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        const SizedBox(height: 120),
-        Center(child: Text(text)),
+        const SizedBox(height: 64),
+        Center(child: child),
       ],
     );
   }
