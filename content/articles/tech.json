@@ -1,0 +1,99 @@
+[
+  {
+    "id": "tech-1-a",
+    "title": "Maps That Work Without the Internet",
+    "summary": "Offline maps let you find your way even when your phone has no signal. Learn how they work and when to use them.",
+    "category": "tech",
+    "level": 1,
+    "published_at": "2026-08-04",
+    "paragraphs": [
+      "Have you ever lost your phone signal on a trip? Many people have. You open a map app, but the screen stays white. This is a big problem when you are in a new place.",
+      "An offline map can help. Before you leave home, you download a map of the city to your phone. The map is saved inside the phone. Later, you can use it without the internet.",
+      "How does it work? Your phone has a small GPS chip. It listens to signals from satellites in space. The signals tell the phone where you are. Then the map app shows your position on the saved map.",
+      "Offline maps are very useful in the mountains, on trains, and in other countries. They also save mobile data, so you do not pay for extra internet.",
+      "But there are some limits. An offline map is not always new. A road may close, and the map will not know. Some apps also cannot show bus times or traffic jams without the internet.",
+      "So here is a good tip. Download your map at home with Wi-Fi. Check it once before you travel. Then you can walk around a new city with more confidence."
+    ]
+  },
+  {
+    "id": "tech-1-b",
+    "title": "How Headphones Make Noise Disappear",
+    "summary": "Noise-cancelling headphones use a microphone and a small computer to make loud places feel quiet.",
+    "category": "tech",
+    "level": 1,
+    "published_at": "2026-08-19",
+    "paragraphs": [
+      "Noise-cancelling headphones are popular on planes, on trains and in busy offices. They make loud places feel quiet. But how do they do this?",
+      "There are two simple ideas. First, the headphones cover your ears, so some sound cannot get in. This is like putting your hands over your ears. Second, the headphones have tiny microphones. The microphones listen to the noise around you.",
+      "Then a small computer inside makes a new sound. This new sound is the opposite of the noise. When the two sounds meet, they cancel each other. You hear much less noise.",
+      "This works best for steady sounds, like the hum of a plane engine or a fan. It works less well for sudden sounds, like a person talking or a dog barking.",
+      "There is one more thing. Noise cancelling needs power from a battery. If the battery is empty, the headphones can still play music, but the quiet effect stops.",
+      "Some people say the feeling is strange at first, as if there is pressure in the ears. Most people get used to it soon. Also, remember that blocking sound can be unsafe near roads, so be careful when you walk outside."
+    ]
+  },
+  {
+    "id": "tech-2-a",
+    "title": "Why Phone Batteries Get Tired",
+    "summary": "Rechargeable batteries slowly lose capacity as they age. Heat and charging habits matter, and a few simple changes can help.",
+    "category": "tech",
+    "level": 2,
+    "published_at": "2026-09-03",
+    "paragraphs": [
+      "Almost everyone has noticed it. A new phone lasts all day, but after two or three years you need to charge it at lunchtime. The battery has not broken. It has simply aged, and this is a normal part of how rechargeable batteries work.",
+      "Most phones use lithium-ion batteries. When you charge one, tiny charged particles called ions move from one side of the battery to the other. When you use the phone, they move back. Every round trip is called a charge cycle. Over hundreds of cycles, small chemical changes build up inside the battery, and it can store a little less energy each time.",
+      "Heat is one of the biggest enemies. A phone left in a hot car, or used for a long time while charging, gets warm, and warmth speeds up the unwanted chemical changes. Very cold weather also causes trouble, although the effect is usually temporary. A battery that warms up again often recovers its normal power.",
+      "Many people believe that a battery should always be drained to zero before charging. This is an old idea from older battery types. For modern phones, deep discharges and charging to one hundred percent every time put extra stress on the battery. Many experts suggest keeping the charge between about twenty and eighty percent when it is easy to do so.",
+      "Phone makers also help. Many phones now have a setting that charges slowly overnight and reaches full power just before you wake up. Others let you stop charging at eighty percent. These small features can make a battery last longer.",
+      "You do not need to worry about every percentage point. Use your phone normally, avoid heat, and do not leave it charging under a pillow. When the battery finally gets weak, a replacement is often cheaper than buying a new phone."
+    ]
+  },
+  {
+    "id": "tech-2-b",
+    "title": "How Passwords Leak and What to Do",
+    "summary": "Most password leaks come from hacked websites, reused passwords and fake emails. A few simple habits make you a much harder target.",
+    "category": "tech",
+    "level": 2,
+    "published_at": "2026-09-22",
+    "paragraphs": [
+      "Every few months there is news about a company that lost its customers' data. Often the stolen data includes email addresses and passwords. This sounds scary, but it helps to understand how passwords leak, because then you can protect yourself.",
+      "Most leaks do not happen because someone guesses your password one letter at a time. They happen when a website is hacked. Criminals copy the website's database and sell or share it online. Good websites do not store your real password. They store a scrambled version called a hash. But if the scrambling is weak, or if your password is simple, criminals can often work out the original.",
+      "Another common problem is reuse. Imagine you use the same password for a shopping site, your email and a small game forum. The forum may have poor security. If it is hacked, criminals will try the same email and password on many other sites. This is called credential stuffing, and computers can do it very quickly.",
+      "People also give passwords away by mistake. A fake email may say that your bank account has a problem and ask you to log in through a link. The page looks real, but it is controlled by a criminal. This is called phishing.",
+      "So what can you do? First, use a different password for each important account. A password manager can remember them for you, so you only need one strong main password. Second, choose long passwords, such as four or five random words together. Length matters more than strange symbols. Third, turn on two-step login wherever you can. Even if a criminal has your password, they still need the second code from your phone.",
+      "Finally, you can check whether your email address appears in known leaks by using a trusted breach-checking website. If it does, change the password right away. No system is perfect, but a few habits make you a much harder target."
+    ]
+  },
+  {
+    "id": "tech-3-a",
+    "title": "Why Your Feed Seems to Know You",
+    "summary": "Recommendation feeds learn from your behavior and aim to hold your attention. Understanding the system helps you stay in control of it.",
+    "category": "tech",
+    "level": 3,
+    "published_at": "2026-10-08",
+    "paragraphs": [
+      "Open a video app, and within seconds it offers a row of clips that seem chosen just for you. It can feel like mind reading. In reality, the process is less magical and more mathematical, and understanding it changes the way you use these apps.",
+      "A recommendation system starts from a simple observation: the clearest clues about your taste are what you do, not what you say. It records which videos you finish, which you abandon after three seconds, what you replay and what you share. It also notes the time of day and the device you are holding. None of these signals means very much on its own, but together they build a rough picture of your habits.",
+      "The second ingredient is comparison. The system looks for people whose behavior resembles yours and checks what they enjoyed that you have not yet seen. If viewers who love cooking videos also tend to watch gardening clips, you may be shown gardening soon, even if you have never searched for it. Systems also compare the content itself, such as its topic, length and style.",
+      "Crucially, the system is trained to pursue a goal, and that goal is usually engagement: how long you stay, or how often you come back. This is where the trouble begins. What holds attention is not always what is good for you. Dramatic, emotional or outrageous material often keeps people watching, so a feed can drift toward it without anyone ever deciding that it should. Critics argue that this nudges users into narrow bubbles, while defenders point out that people also seek out such videos themselves.",
+      "The truth probably lies somewhere in between. A feed is a slightly bent mirror: it reflects your behavior, but it also amplifies certain parts of it. If you linger on angry posts, you will be shown more of them, and soon the feed seems angrier than the world really is.",
+      "The good news is that you are not powerless. The \"not interested\" button is a strong signal, and it is worth using. You can search deliberately for topics you want to explore instead of waiting to be served them. Some apps now offer a chronological feed or let you reset your recommendations. And it can help simply to ask, before you scroll on, whether you chose that video or whether it was chosen for you.",
+      "Recommendation tools are not villains. They help us find music, tutorials and small creators we would never discover alone. The challenge is to stay in the driver's seat, treating the feed as a helpful guide rather than a master."
+    ]
+  },
+  {
+    "id": "tech-3-b",
+    "title": "Smart Homes and the Habits They Quietly Change",
+    "summary": "Smart home devices promise convenience, but they also change our habits and raise questions about privacy and dependence.",
+    "category": "tech",
+    "level": 3,
+    "published_at": "2026-10-17",
+    "paragraphs": [
+      "A few years ago, a smart home sounded like something from a science-fiction film. Today, many people own a voice speaker, a few connected light bulbs or a thermostat that learns their schedule. The gadgets are cheap enough, and the promise is appealing: less effort, lower bills and a house that looks after itself. Yet the most interesting effect of these devices is not technical. It is the way they quietly change our habits.",
+      "Take lighting as an example. When lights switch on as you walk in, you stop thinking about them. At first this feels like a small luxury. Over time, though, you may find yourself leaving rooms without turning anything off, because you trust the system to do it. If a sensor fails or the Wi-Fi drops, you are left fumbling in the dark, surprised at how much you relied on it.",
+      "Heating is a more convincing success story. A thermostat that lowers the temperature when nobody is home can trim energy use, and many households do save money. However, the savings depend on setting it up properly. A schedule that never matches your real routine can end up wasting more than it saves, which is why it pays to check the settings once in a while instead of assuming that smart means efficient.",
+      "Privacy deserves a clear-eyed look too. A speaker that waits for a wake word has to listen, and cameras and door sensors produce records of when you come and go. Reputable makers explain what is stored and offer ways to delete it, but the information is only as safe as the company and your own account password. It is wise to read the privacy options, switch off features you do not use, and keep the device software up to date.",
+      "There is also the matter of dependence. Devices stop receiving updates, companies change their apps, and sometimes a service shuts down for good, leaving perfectly working hardware half useless. Before buying, it helps to ask whether a gadget still works when the internet is down, and whether it follows open standards that let it work with other brands.",
+      "None of this means you should avoid smart devices. It simply means treating them as tools rather than magic. Start small, with one or two devices that solve a real annoyance, and see how they fit into daily life before adding more. Keep a manual switch for the essentials. If a device saves you time or money without making you anxious, it has earned its place; if not, there is no shame in going back to a simple light switch."
+    ]
+  }
+]

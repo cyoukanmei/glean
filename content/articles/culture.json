@@ -1,0 +1,97 @@
+[
+  {
+    "id": "culture-1-a",
+    "title": "Tea Time Around the World",
+    "summary": "People in many countries love tea, but each place has its own special way to make it and share it.",
+    "category": "culture",
+    "level": 1,
+    "published_at": "2026-08-04",
+    "paragraphs": [
+      "Tea is one of the most popular drinks in the world. People drink it at home, at work and with friends. But every country has its own way to enjoy it.",
+      "In China, people often drink tea without milk or sugar. They use small cups and pour the tea many times. Friends sit together and talk slowly while they drink.",
+      "In England, many people like tea with milk. Some families have tea in the afternoon with small sandwiches and cakes. This is a happy break in the day.",
+      "In Morocco, people make tea with fresh mint and a lot of sugar. The host pours the tea from high above into small glasses. This makes bubbles on top of the drink.",
+      "In India, many people drink chai. They cook the tea leaves with milk, sugar and spices like ginger. On a street corner, a seller can make a hot cup in a few minutes.",
+      "Tea is not only a drink. It is a way to say hello, to welcome a guest and to take a rest. When you share tea, you share a little time with another person."
+    ]
+  },
+  {
+    "id": "culture-1-b",
+    "title": "Lanterns in the Night",
+    "summary": "Festivals of light in India, China and Thailand show how people use lamps and lanterns to bring hope and joy.",
+    "category": "culture",
+    "level": 1,
+    "published_at": "2026-08-19",
+    "paragraphs": [
+      "Many cultures have a festival of light. People light lamps, candles or lanterns when the nights are dark. The light makes the streets warm and beautiful.",
+      "In India, families celebrate Diwali in autumn. They put small oil lamps outside their doors and clean their homes. They also eat sweets and give gifts to friends and neighbors.",
+      "In China, the Lantern Festival comes at the end of the New Year holiday. Children carry bright paper lanterns in the park. Some lanterns look like rabbits, fish or flowers. Many people also try to solve riddles written on the lanterns.",
+      "In Thailand, people take part in a festival called Loy Krathong. They make small boats from leaves and flowers. They put a candle on each boat and set it on the river. Some people make a wish as it floats away.",
+      "These festivals are different, but they share one idea. Light brings hope, and it brings people together. After a long, dark time, a small flame can make everyone smile."
+    ]
+  },
+  {
+    "id": "culture-2-a",
+    "title": "Street Food Tells Us Who We Are",
+    "summary": "Cheap, quick street food is more than a snack: it carries a city's history, its migrants and its sense of community.",
+    "category": "culture",
+    "level": 2,
+    "published_at": "2026-09-03",
+    "paragraphs": [
+      "Walk through almost any big city in the evening, and you will smell it before you see it: onions on a hot grill, sweet dough in oil, soup boiling in a large pot. Street food is cheap, fast and delicious, but it is also much more than a quick meal. It is a way for a city to show who it is.",
+      "Many street dishes began as food for workers. People who had little time and little money needed something filling that they could eat standing up. Cooks used local ingredients and simple methods, so each place developed its own flavors. A noodle soup in one city can be quite different from the same soup only a few hundred kilometers away.",
+      "Street food also carries the story of people who move from place to place. When families travel to a new country, they often bring their recipes with them. Opening a small food stall is one of the easiest ways to start a business, so a new dish can quickly become part of the city's daily life. Over time, the food changes a little, mixing old habits with new ingredients.",
+      "For the people who sell it, a food stall can also be a source of pride. Some vendors cook the same recipe their grandparents used. Regular customers know them by name and often stop to chat, so the stall becomes a small community space.",
+      "Of course, street food has some problems. Cities worry about noise, crowded sidewalks and food safety, and some places now limit where vendors can work. Many residents feel this would be a loss, because a street without its food sellers can feel empty.",
+      "Next time you buy a snack from a cart, take a moment to ask where the dish comes from. The answer may tell you more about the city than a guidebook can."
+    ]
+  },
+  {
+    "id": "culture-2-b",
+    "title": "Why We Love Ghost Stories",
+    "summary": "People have told ghost stories for thousands of years, and they still help us face fear, remember the past and bond together.",
+    "category": "culture",
+    "level": 2,
+    "published_at": "2026-09-16",
+    "paragraphs": [
+      "On a dark night, few things are more fun than a good ghost story. Around the world, people have told tales about spirits for thousands of years. If these stories scare us, why do we keep telling them?",
+      "One reason is that ghost stories help us deal with fear in a safe way. When we listen to a scary tale with friends, our hearts beat faster, but we know that nothing can really hurt us. Afterwards we often laugh, and we feel a little braver than before.",
+      "Ghost stories also say something about the past. Many of them are linked to a real place, such as an old house, a bridge or a school. The story gives the place a memory. People may not remember the names of those who lived there long ago, but they remember the ghost.",
+      "Different cultures imagine ghosts in different ways. In some countries, spirits visit their families during special holidays, and people prepare food to welcome them. These ghosts are not always frightening. They can be kind relatives who come home for a short time. In other places, ghosts are warnings, and their stories teach children not to go out alone at night or to be careless.",
+      "Finally, telling ghost stories is a social activity. It brings people close together. Someone lowers their voice, everyone leans forward, and for a few minutes the whole group shares the same feeling. That shared feeling may be the real reason the tradition survives.",
+      "Today we can watch horror films or listen to scary podcasts, but the simple campfire story is still popular. All it needs is a quiet place, a good voice and a little imagination."
+    ]
+  },
+  {
+    "id": "culture-3-a",
+    "title": "Behind the Glass: How Museums Choose What to Show",
+    "summary": "Museums display only a fraction of what they own, and every choice about what to show shapes the story visitors take home.",
+    "category": "culture",
+    "level": 3,
+    "published_at": "2026-09-27",
+    "paragraphs": [
+      "Walk into any major museum and you may feel you are seeing the whole story of human history laid out in front of you. In reality, you are seeing a small fraction of it. Most museums display only a modest share of their collections at any one time, while the rest sits in storage rooms, carefully catalogued and rarely seen. Deciding what makes it into the gallery is one of the most consequential, and least visible, tasks a museum performs.",
+      "Practical constraints come first. Some objects are too fragile to be exposed to light for long, so paintings on paper or old textiles may be rotated in and out of view to keep them from fading. Space is limited, budgets are tight, and a display case that suits one object may be quite wrong for another. Curators must also think about whether an item can be properly explained to a visitor in a few short sentences.",
+      "Beyond logistics lies a question of storytelling. Every exhibition makes an argument, even if it does so quietly. Placing a ceremonial mask beside a modern sculpture suggests a connection between them; leaving it out suggests there is none. Curators therefore have to decide not only which objects are beautiful or rare, but which ones help a coherent story hang together. A museum that shows only masterpieces may give a distorted picture of daily life, which was mostly made up of ordinary things such as cups, tools and letters.",
+      "In recent decades, this power has come under closer scrutiny. Critics have pointed out that many collections were formed during periods when some communities had little say over what was taken from them, and that traditional displays often reflected the tastes of a narrow group. In response, many institutions have begun to consult the communities whose heritage they hold, to rewrite labels in plainer and more honest language, and, in some cases, to return objects to the places they came from. Not everyone agrees on how far this should go, and the debates can be heated.",
+      "Visitors play a part too. Surveys, comment cards and online feedback help museums find out what people actually want to see, but popularity is a double-edged sword. If a museum chases crowds alone, it risks filling its halls with only the most familiar attractions and neglecting the quiet, challenging work that makes a collection valuable in the long run.",
+      "The next time you stand in front of a glass case, it is worth asking not only what is inside it, but also what was left out, and who decided. A good museum does not hide these choices. It invites you to question them, and that conversation is part of the experience."
+    ]
+  },
+  {
+    "id": "culture-3-b",
+    "title": "Listening Is the New Reading? The Rise of Audiobooks",
+    "summary": "Audiobooks have shed their second-class image, raising fresh questions about what it means to read and how stories reach us.",
+    "category": "culture",
+    "level": 3,
+    "published_at": "2026-10-12",
+    "paragraphs": [
+      "For a long time, audiobooks had an image problem. Many readers regarded them as a lesser form of reading, something for people who could not be bothered to pick up the real thing. That attitude has faded quickly. Today audiobooks are one of the most talked-about growth areas in publishing, and millions of people listen to them while commuting, cooking or going for a run.",
+      "Technology explains much of the change. When audiobooks were sold on bulky cassettes and discs, listening was inconvenient and expensive. Smartphones and wireless headphones removed those obstacles almost overnight. A whole library now fits in a pocket, and a story can pick up exactly where you left off, whether you are on a train or in the kitchen.",
+      "There is also a deeper cultural reason. Human beings were telling stories aloud long before anyone invented writing, and the voice remains a powerful way to carry emotion. A skilled narrator can bring a character to life with a pause or a change of tone, adding layers of meaning that silent reading might not offer. For some listeners, especially those with visual impairments or reading difficulties such as dyslexia, audio is not a convenience but a door into books that might otherwise stay closed.",
+      "Yet the format raises genuine questions. Does listening count as reading? Some studies suggest that people understand and remember stories about equally well whether they hear them or read them, although the experience clearly differs. Listeners cannot easily flip back to check a detail, and their attention may drift when they are doing something else at the same time. Readers, by contrast, set their own pace and can linger over a beautiful sentence.",
+      "Some worry that audiobooks will push traditional reading aside, but the evidence so far points the other way. Many people who listen to books also buy printed ones, and a good audio experience can lead them to explore an author they would never have tried otherwise. The two formats seem to feed each other rather than compete.",
+      "Perhaps the best way to look at it is this: a book is a story, and a story can travel by eye or by ear. What matters is that people keep coming back to it. If a long walk with a good narrator gets someone hooked on stories, that is surely something to welcome rather than to argue about."
+    ]
+  }
+]
