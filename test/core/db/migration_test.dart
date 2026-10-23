@@ -34,6 +34,54 @@ void main() {
   });
 
   test(
+    'v2 -> v3 rebuilds articles for classics and keeps reading progress',
+    () async {
+      final path = await newTestDbPath();
+      final v2 = await openTestDb(version: 2, path: path);
+      await insertArticle(v2, 'tech-1-a');
+      await v2.insert('reading_progress', {
+        'user_id': 'u1',
+        'article_id': 'tech-1-a',
+        'max_progress': 0.5,
+        'last_read_at': 1,
+        'updated_at': 1,
+      });
+      await v2.close();
+
+      final v3 = await openTestDb(path: path);
+      expect((await v3.query('articles')).single['id'], 'tech-1-a');
+      expect((await v3.query('reading_progress')).single['max_progress'], 0.5);
+      expect(await v3.rawQuery('PRAGMA foreign_key_check'), isEmpty);
+
+      await v3.insert('articles', {
+        'id': 'classic-x-1',
+        'title': 'X',
+        'category': 'classic',
+        'level': 3,
+        'body': '["A."]',
+        'word_count': 1,
+        'published_at': 0,
+        'author': 'Someone',
+      });
+      // The rebuilt table is still the parent of reading_progress.
+      await expectLater(
+        v3.insert('reading_progress', {
+          'user_id': 'u1',
+          'article_id': 'missing',
+          'last_read_at': 1,
+          'updated_at': 1,
+        }),
+        throwsA(isA<DatabaseException>()),
+      );
+      final users = await v3.rawQuery('PRAGMA table_info(users)');
+      expect(
+        users.map((c) => c['name']),
+        containsAll(['display_name', 'avatar', 'bio', 'daily_goal_min']),
+      );
+    },
+  );
+
+  test(
     'fresh install and upgraded database end up with the same schema',
     () async {
       final upgradedPath = await newTestDbPath();

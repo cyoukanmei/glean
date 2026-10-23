@@ -14,6 +14,7 @@ class ArticleSummary {
     required this.level,
     required this.wordCount,
     required this.publishedAt,
+    this.author,
   });
 
   factory ArticleSummary.fromRow(Map<String, Object?> row) => ArticleSummary(
@@ -25,6 +26,7 @@ class ArticleSummary {
     level: row['level']! as int,
     wordCount: row['word_count']! as int,
     publishedAt: row['published_at']! as int,
+    author: row['author'] as String?,
   );
 
   final String id;
@@ -35,6 +37,9 @@ class ArticleSummary {
   final int level;
   final int wordCount;
   final int publishedAt;
+
+  /// Set for classic novels.
+  final String? author;
 
   /// Keyset position of this article in the feed order.
   FeedCursor get cursor => FeedCursor(publishedAt, id);
@@ -70,6 +75,7 @@ class ArticleRepository {
     'level',
     'word_count',
     'published_at',
+    'author',
   ];
 
   /// One feed page, newest first (ties broken by id).

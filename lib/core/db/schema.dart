@@ -4,7 +4,7 @@
 /// new database and an upgraded one always go through the same statements.
 library;
 
-const int kSchemaVersion = 2;
+const int kSchemaVersion = 3;
 
 const List<String> schemaV1 = [
   '''
@@ -153,4 +153,40 @@ const List<String> schemaV1 = [
 const Map<int, List<String>> migrations = {
   // v2: vocabulary learning status (0 new .. 3 known).
   2: ['ALTER TABLE vocab ADD COLUMN status INTEGER NOT NULL DEFAULT 0'],
+  // v3: classic novels (new category + author) and editable profiles.
+  //
+  // SQLite cannot change a CHECK constraint in place, so articles is rebuilt
+  // the documented way: copy into a new table, drop the old one, rename.
+  // Foreign keys are only switched on after migrations (AppDatabase.onOpen),
+  // so reading_progress's REFERENCES articles(id) simply resolves to the new
+  // table.
+  3: [
+    '''
+  CREATE TABLE articles_new (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    summary TEXT,
+    cover TEXT,
+    category TEXT NOT NULL
+      CHECK (category IN ('tech', 'business', 'culture', 'daily', 'classic')),
+    level INTEGER NOT NULL CHECK (level BETWEEN 1 AND 3),
+    body TEXT NOT NULL, -- JSON array of paragraphs
+    word_count INTEGER NOT NULL,
+    published_at INTEGER NOT NULL,
+    content_version INTEGER NOT NULL DEFAULT 1,
+    author TEXT
+  )''',
+    'INSERT INTO articles_new (id, title, summary, cover, category, level, '
+        'body, word_count, published_at, content_version) '
+        'SELECT id, title, summary, cover, category, level, body, word_count, '
+        'published_at, content_version FROM articles',
+    'DROP TABLE articles',
+    'ALTER TABLE articles_new RENAME TO articles',
+    'CREATE INDEX idx_articles_feed '
+        'ON articles(category, level, published_at DESC, id DESC)',
+    'ALTER TABLE users ADD COLUMN display_name TEXT',
+    'ALTER TABLE users ADD COLUMN avatar TEXT',
+    'ALTER TABLE users ADD COLUMN bio TEXT',
+    'ALTER TABLE users ADD COLUMN daily_goal_min INTEGER NOT NULL DEFAULT 15',
+  ],
 };

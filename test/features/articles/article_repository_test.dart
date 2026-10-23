@@ -47,8 +47,8 @@ void main() {
     final repo = await _seededRepo();
     final all = await _readAll(repo, limit: 7);
 
-    expect(all, hasLength(24));
-    expect(all.map((a) => a.id).toSet(), hasLength(24));
+    expect(all, hasLength(34));
+    expect(all.map((a) => a.id).toSet(), hasLength(34));
     for (var i = 1; i < all.length; i++) {
       final prev = all[i - 1], cur = all[i];
       final ordered =
@@ -67,7 +67,7 @@ void main() {
     expect(tech.every((a) => a.category == 'tech'), isTrue);
 
     final easyOrHard = await _readAll(repo, levels: {1, 3});
-    expect(easyOrHard, hasLength(16));
+    expect(easyOrHard, hasLength(23)); // 16 articles + 7 hard classics
     expect(easyOrHard.every((a) => a.level != 2), isTrue);
 
     final techL2 = await _readAll(repo, category: 'tech', levels: {2});
@@ -101,7 +101,7 @@ void main() {
     final a = _remoteArticle('remote-x', publishedAt: 1);
     await repo.upsertAll([a]);
     await repo.upsertAll([a]);
-    expect(await _readAll(repo), hasLength(25));
+    expect(await _readAll(repo), hasLength(35));
     expect(await repo.paragraphs('remote-x'), ['One.', 'Two.']);
   });
 

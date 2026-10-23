@@ -26,18 +26,24 @@ abstract final class AppDatabase {
         onConfigure: _configure,
         onCreate: (db, version) => _migrate(db, 0, version),
         onUpgrade: _migrate,
+        onOpen: _enableForeignKeys,
       ),
     );
   }
 
   static Future<void> _configure(Database db) async {
-    await db.execute('PRAGMA foreign_keys = ON');
     // WAL + NORMAL: committed transactions survive an app crash or kill; only
     // power loss / OS crash may roll back the most recent commits.
     // journal_mode returns a row, so Android requires rawQuery here.
     await db.rawQuery('PRAGMA journal_mode = WAL');
     await db.execute('PRAGMA synchronous = NORMAL');
   }
+
+  /// After migrations, which may rebuild a referenced table (see schema v3)
+  /// and so run with foreign keys off. The pragma is a no-op inside a
+  /// transaction, which is why it is not set in the migration itself.
+  static Future<void> _enableForeignKeys(Database db) =>
+      db.execute('PRAGMA foreign_keys = ON');
 
   /// sqflite runs onCreate/onUpgrade inside one transaction, so a failed
   /// migration leaves the previous version intact.

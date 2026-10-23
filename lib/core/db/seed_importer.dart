@@ -52,15 +52,16 @@ abstract final class SeedImporter {
         batch.rawInsert(
           '''
           INSERT INTO articles (id, title, summary, cover, category, level,
-            body, word_count, published_at, content_version)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            body, word_count, published_at, content_version, author)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             title = excluded.title, summary = excluded.summary,
             cover = excluded.cover, category = excluded.category,
             level = excluded.level, body = excluded.body,
             word_count = excluded.word_count,
             published_at = excluded.published_at,
-            content_version = excluded.content_version
+            content_version = excluded.content_version,
+            author = excluded.author
           WHERE excluded.content_version > articles.content_version''',
           [
             a['id'],
@@ -73,6 +74,7 @@ abstract final class SeedImporter {
             a['word_count'],
             a['published_at'],
             a['content_version'] ?? 1,
+            a['author'],
           ],
         );
       }

@@ -4,6 +4,7 @@ const categoryLabels = {
   'business': '商业',
   'culture': '文化',
   'daily': '日常',
+  'classic': '名著',
 };
 
 const levelLabels = {1: '初级', 2: '中级', 3: '高级'};

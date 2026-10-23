@@ -19,7 +19,14 @@ class ArticleListPage extends ConsumerStatefulWidget {
   const ArticleListPage({super.key});
 
   /// null = all categories (推荐).
-  static const tabs = <String?>[null, 'tech', 'business', 'culture', 'daily'];
+  static const tabs = <String?>[
+    null,
+    'classic',
+    'tech',
+    'business',
+    'culture',
+    'daily',
+  ];
 
   @override
   ConsumerState<ArticleListPage> createState() => _ArticleListPageState();

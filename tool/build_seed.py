@@ -21,13 +21,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # v2: dictionary also covers the remote pool.
-SEED_VERSION = 2
+# v3: chapter 1 of ten classic novels (Project Gutenberg), with authors.
+SEED_VERSION = 3
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content" / "articles"
 REMOTE = ROOT / "content" / "remote"
 OUT = ROOT / "assets" / "seed"
 
-CATEGORIES = ("tech", "business", "culture", "daily")
+CATEGORIES = ("tech", "business", "culture", "daily", "classic")
 WORD_RE = re.compile(r"[A-Za-z]+")
 # ECDICT exchange keys that name an inflected form of the headword.
 FORM_KEYS = ("p", "d", "i", "3", "s", "r", "t")
@@ -61,6 +62,7 @@ def build_articles(articles, cover_offset=0):
             "level": a["level"],
             "word_count": sum(len(WORD_RE.findall(p)) for p in a["paragraphs"]),
             "content_version": a.get("content_version", 1),
+            "author": a.get("author"),
             "paragraphs": a["paragraphs"],
         }
         if "published_at" in a:

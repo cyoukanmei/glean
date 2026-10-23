@@ -35,10 +35,23 @@ void main() {
     await SeedImporter.importIfNeeded(db, realSeed);
     final cells = await db.rawQuery(
       'SELECT category, level, COUNT(*) AS n FROM articles '
-      'GROUP BY category, level',
+      "WHERE category != 'classic' GROUP BY category, level",
     );
     expect(cells, hasLength(12));
     expect(cells.every((c) => (c['n']! as int) >= 2), isTrue);
+  });
+
+  test('ten classic chapters, each with an author', () async {
+    final db = await openTestDb();
+    await SeedImporter.importIfNeeded(db, realSeed);
+    final classics = await db.query('articles', where: "category = 'classic'");
+    expect(classics, hasLength(10));
+    expect(classics.every((a) => (a['author'] as String?) != null), isTrue);
+    expect(
+      classics.every((a) => (a['word_count']! as int) > 800),
+      isTrue,
+      reason: 'whole chapters, not excerpts',
+    );
   });
 
   test('dictionary resolves inflections to their headword', () async {
