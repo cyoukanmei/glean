@@ -1,5 +1,5 @@
 {
- "seed_version": 1,
+ "seed_version": 2,
  "articles": [
   {
    "id": "business-1-a",
@@ -8,7 +8,6 @@
    "cover": "g0",
    "category": "business",
    "level": 1,
-   "published_at": 1785974400000,
    "word_count": 215,
    "content_version": 1,
    "paragraphs": [
@@ -17,7 +16,8 @@
     "Next, Mia looks at other shops. A big coffee chain across the street sells a small latte for four dollars. Mia does not want to be much more expensive, or people will walk past her door. But she does not want to be too cheap, because then she will not make any money.",
     "Then she thinks about her customers. Many of them are students and office workers. They want good coffee, but they do not have a lot of money. So Mia keeps plain coffee cheap. She sells special drinks, like a vanilla latte, for a little more. These drinks bring more money to her shop.",
     "Last month, Mia raised her prices by twenty cents. She put up a small sign and wrote, 'Thank you for your support.' Most customers understood. Setting prices is a hard job, but Mia learns something new about it every week."
-   ]
+   ],
+   "published_at": 1785974400000
   },
   {
    "id": "business-1-b",
@@ -26,7 +26,6 @@
    "cover": "g1",
    "category": "business",
    "level": 1,
-   "published_at": 1787788800000,
    "word_count": 203,
    "content_version": 1,
    "paragraphs": [
@@ -35,7 +34,8 @@
     "The belt took the box to a truck. The truck drove through the night to a big sorting center. There, machines read the label and sent the box in the right direction. Thousands of boxes pass through a place like this every hour.",
     "Next, the box went to a smaller center in Tom's city. Early in the morning, a driver put it in a van with many other packages. Tom got a message on his phone: 'Your package is on the way.'",
     "At noon, the driver stopped outside Tom's building. He took a photo of the box at the door and left. Tom came home, opened the box and tried on the shoes. They fit well. He did not think about the long trip, but many people helped him get his new shoes in just three days."
-   ]
+   ],
+   "published_at": 1787788800000
   },
   {
    "id": "business-2-a",
@@ -44,7 +44,6 @@
    "cover": "g2",
    "category": "business",
    "level": 2,
-   "published_at": 1788393600000,
    "word_count": 307,
    "content_version": 1,
    "paragraphs": [
@@ -53,7 +52,8 @@
     "Customers get something out of it as well. Paying a small monthly fee feels easier than paying a large price all at once. A family can watch thousands of films for the cost of a few cinema tickets. Many services also update automatically, so users always have the newest version without doing anything.",
     "However, subscriptions have a hidden problem. Because the payment is automatic, people forget about it. Someone may sign up for a free trial, forget to cancel it, and then pay for months without using the service. Some companies even make it hard to cancel by hiding the button deep inside a long menu. Small amounts also add up quickly: ten services at ten dollars each cost one hundred dollars a month, which is more than many people expect.",
     "Experts suggest a simple habit. Once every few months, look at your bank statement and make a list of everything you pay for regularly. Ask yourself, 'Did I really use this last month?' If the answer is no, cancel it. You can always sign up again later. Subscriptions can be very useful, but only when you stay in control of them."
-   ]
+   ],
+   "published_at": 1788393600000
   },
   {
    "id": "business-2-b",
@@ -62,7 +62,6 @@
    "cover": "g3",
    "category": "business",
    "level": 2,
-   "published_at": 1789689600000,
    "word_count": 298,
    "content_version": 1,
    "paragraphs": [
@@ -71,7 +70,8 @@
     "Next, test your idea before you spend much money. You do not need a fancy website or a thousand business cards. Try selling to three or four people first, and listen to what they say. Do they like the price? Do they ask for something different? This early feedback can save you from big mistakes. Many successful owners changed their original idea after talking to their first customers.",
     "You should also think about time and money. A side business usually happens in the evenings and on weekends, so be honest about how many hours you can give. Keep a simple record of what you spend and what you earn. It is also wise to check the local rules, because in some places you must register your business or pay tax on the extra income.",
     "Finally, be patient. Most side businesses grow slowly, and the first months may bring very little money. That is normal. If you keep learning, treat your customers well and improve a little each week, your small project can slowly become something bigger. Even if it does not, you will have gained experience that no classroom can give you."
-   ]
+   ],
+   "published_at": 1789689600000
   },
   {
    "id": "business-3-a",
@@ -80,7 +80,6 @@
    "cover": "g4",
    "category": "business",
    "level": 3,
-   "published_at": 1790899200000,
    "word_count": 445,
    "content_version": 1,
    "paragraphs": [
@@ -90,7 +89,8 @@
     "Still, a redesign is a gamble. A logo carries years of familiarity, and customers often feel a kind of loyalty to what they already know. If the change is too dramatic, shoppers may fail to recognize the product on the shelf, and the company may squander goodwill it spent decades building. That is why many redesigns are evolutionary rather than revolutionary: the shape is polished, the colors are nudged slightly, and most people barely notice the difference.",
     "Critics argue that a new logo is sometimes a cheap substitute for real improvement. A company with poor service will not win back customers simply by changing its symbol, and the money might be better spent on fixing the problems people actually complain about. There is some truth in this. A logo is a kind of promise, and a promise means little unless the business can keep it.",
     "Perhaps the fairest view is that a logo is a tool, not a cure. When it is updated for clear reasons and backed by genuine changes in the way a company behaves, it can help tell a new story. When it is changed merely to keep up with fashion, it tends to fade from memory as quickly as it appeared. The next time a favorite brand shows off a fresh look, it is worth asking not whether you like it, but what it is trying to say."
-   ]
+   ],
+   "published_at": 1790899200000
   },
   {
    "id": "business-3-b",
@@ -99,7 +99,6 @@
    "cover": "g5",
    "category": "business",
    "level": 3,
-   "published_at": 1791936000000,
    "word_count": 445,
    "content_version": 1,
    "paragraphs": [
@@ -109,7 +108,8 @@
     "Researchers who study workplaces often point out that the problem is rarely the technology itself. It is the habits that grow up around it. A meeting with no clear goal will waste time whether it takes place in a boardroom or on a laptop. Teams that handle remote work well tend to follow a few simple rules: they send an agenda in advance, they invite only the people who truly need to be there, and they finish on time, or even early.",
     "Many have also learned to replace some live meetings with written updates. A clear message that people can read at their own pace respects different time zones and working styles, and it leaves a record that no one has to rely on memory to recall. Quiet colleagues, who might never speak up in a crowded call, often contribute more when they can think before they reply.",
     "None of this means that live conversation has lost its value. Complex disagreements, delicate news and brainstorming still tend to work better when people can talk in real time. The real skill lies in knowing which conversations need a meeting and which do not. Companies that learn to draw that line will probably find that a few well-run meetings can achieve far more than a calendar full of calls that nobody remembers."
-   ]
+   ],
+   "published_at": 1791936000000
   },
   {
    "id": "culture-1-a",
@@ -118,7 +118,6 @@
    "cover": "g6",
    "category": "culture",
    "level": 1,
-   "published_at": 1785801600000,
    "word_count": 187,
    "content_version": 1,
    "paragraphs": [
@@ -128,7 +127,8 @@
     "In Morocco, people make tea with fresh mint and a lot of sugar. The host pours the tea from high above into small glasses. This makes bubbles on top of the drink.",
     "In India, many people drink chai. They cook the tea leaves with milk, sugar and spices like ginger. On a street corner, a seller can make a hot cup in a few minutes.",
     "Tea is not only a drink. It is a way to say hello, to welcome a guest and to take a rest. When you share tea, you share a little time with another person."
-   ]
+   ],
+   "published_at": 1785801600000
   },
   {
    "id": "culture-1-b",
@@ -137,7 +137,6 @@
    "cover": "g7",
    "category": "culture",
    "level": 1,
-   "published_at": 1787097600000,
    "word_count": 167,
    "content_version": 1,
    "paragraphs": [
@@ -146,7 +145,8 @@
     "In China, the Lantern Festival comes at the end of the New Year holiday. Children carry bright paper lanterns in the park. Some lanterns look like rabbits, fish or flowers. Many people also try to solve riddles written on the lanterns.",
     "In Thailand, people take part in a festival called Loy Krathong. They make small boats from leaves and flowers. They put a candle on each boat and set it on the river. Some people make a wish as it floats away.",
     "These festivals are different, but they share one idea. Light brings hope, and it brings people together. After a long, dark time, a small flame can make everyone smile."
-   ]
+   ],
+   "published_at": 1787097600000
   },
   {
    "id": "culture-2-a",
@@ -155,7 +155,6 @@
    "cover": "g0",
    "category": "culture",
    "level": 2,
-   "published_at": 1788393600000,
    "word_count": 310,
    "content_version": 1,
    "paragraphs": [
@@ -165,7 +164,8 @@
     "For the people who sell it, a food stall can also be a source of pride. Some vendors cook the same recipe their grandparents used. Regular customers know them by name and often stop to chat, so the stall becomes a small community space.",
     "Of course, street food has some problems. Cities worry about noise, crowded sidewalks and food safety, and some places now limit where vendors can work. Many residents feel this would be a loss, because a street without its food sellers can feel empty.",
     "Next time you buy a snack from a cart, take a moment to ask where the dish comes from. The answer may tell you more about the city than a guidebook can."
-   ]
+   ],
+   "published_at": 1788393600000
   },
   {
    "id": "culture-2-b",
@@ -174,7 +174,6 @@
    "cover": "g1",
    "category": "culture",
    "level": 2,
-   "published_at": 1789516800000,
    "word_count": 279,
    "content_version": 1,
    "paragraphs": [
@@ -184,7 +183,8 @@
     "Different cultures imagine ghosts in different ways. In some countries, spirits visit their families during special holidays, and people prepare food to welcome them. These ghosts are not always frightening. They can be kind relatives who come home for a short time. In other places, ghosts are warnings, and their stories teach children not to go out alone at night or to be careless.",
     "Finally, telling ghost stories is a social activity. It brings people close together. Someone lowers their voice, everyone leans forward, and for a few minutes the whole group shares the same feeling. That shared feeling may be the real reason the tradition survives.",
     "Today we can watch horror films or listen to scary podcasts, but the simple campfire story is still popular. All it needs is a quiet place, a good voice and a little imagination."
-   ]
+   ],
+   "published_at": 1789516800000
   },
   {
    "id": "culture-3-a",
@@ -193,7 +193,6 @@
    "cover": "g2",
    "category": "culture",
    "level": 3,
-   "published_at": 1790467200000,
    "word_count": 452,
    "content_version": 1,
    "paragraphs": [
@@ -203,7 +202,8 @@
     "In recent decades, this power has come under closer scrutiny. Critics have pointed out that many collections were formed during periods when some communities had little say over what was taken from them, and that traditional displays often reflected the tastes of a narrow group. In response, many institutions have begun to consult the communities whose heritage they hold, to rewrite labels in plainer and more honest language, and, in some cases, to return objects to the places they came from. Not everyone agrees on how far this should go, and the debates can be heated.",
     "Visitors play a part too. Surveys, comment cards and online feedback help museums find out what people actually want to see, but popularity is a double-edged sword. If a museum chases crowds alone, it risks filling its halls with only the most familiar attractions and neglecting the quiet, challenging work that makes a collection valuable in the long run.",
     "The next time you stand in front of a glass case, it is worth asking not only what is inside it, but also what was left out, and who decided. A good museum does not hide these choices. It invites you to question them, and that conversation is part of the experience."
-   ]
+   ],
+   "published_at": 1790467200000
   },
   {
    "id": "culture-3-b",
@@ -212,7 +212,6 @@
    "cover": "g3",
    "category": "culture",
    "level": 3,
-   "published_at": 1791763200000,
    "word_count": 397,
    "content_version": 1,
    "paragraphs": [
@@ -222,7 +221,8 @@
     "Yet the format raises genuine questions. Does listening count as reading? Some studies suggest that people understand and remember stories about equally well whether they hear them or read them, although the experience clearly differs. Listeners cannot easily flip back to check a detail, and their attention may drift when they are doing something else at the same time. Readers, by contrast, set their own pace and can linger over a beautiful sentence.",
     "Some worry that audiobooks will push traditional reading aside, but the evidence so far points the other way. Many people who listen to books also buy printed ones, and a good audio experience can lead them to explore an author they would never have tried otherwise. The two formats seem to feed each other rather than compete.",
     "Perhaps the best way to look at it is this: a book is a story, and a story can travel by eye or by ear. What matters is that people keep coming back to it. If a long walk with a good narrator gets someone hooked on stories, that is surely something to welcome rather than to argue about."
-   ]
+   ],
+   "published_at": 1791763200000
   },
   {
    "id": "daily-1-a",
@@ -231,7 +231,6 @@
    "cover": "g4",
    "category": "daily",
    "level": 1,
-   "published_at": 1785801600000,
    "word_count": 168,
    "content_version": 1,
    "paragraphs": [
@@ -241,7 +240,8 @@
     "After that, I make breakfast. I usually have eggs, toast and a cup of tea. I sit at the table and eat slowly. I do not look at my phone.",
     "The routine takes only forty minutes. Some days I forget a step, and that is fine. I just start again the next day. The important thing is to keep it simple.",
     "Now I leave home on time, and I feel ready for work. Small habits can make a big difference."
-   ]
+   ],
+   "published_at": 1785801600000
   },
   {
    "id": "daily-1-b",
@@ -250,7 +250,6 @@
    "cover": "g5",
    "category": "daily",
    "level": 1,
-   "published_at": 1787097600000,
    "word_count": 178,
    "content_version": 1,
    "paragraphs": [
@@ -260,7 +259,8 @@
     "My favorite dinner is fried rice. It is quick and cheap. I heat some oil, add an egg, and then put in the rice and vegetables. In fifteen minutes, dinner is ready.",
     "I also cook a little extra on purpose. The next day, I take it to work for lunch. My coworkers say it smells good.",
     "Cooking alone can be quiet, so I play music while I cook. Sometimes I call a friend, and we talk. A simple meal tastes better when I make it myself."
-   ]
+   ],
+   "published_at": 1787097600000
   },
   {
    "id": "daily-2-a",
@@ -269,7 +269,6 @@
    "cover": "g6",
    "category": "daily",
    "level": 2,
-   "published_at": 1788393600000,
    "word_count": 289,
    "content_version": 1,
    "paragraphs": [
@@ -279,7 +278,8 @@
     "Money was the other big topic. Rent was easy because we paid half each. Electricity and internet were harder, because we used them in different ways. In the end, we started using a phone app that keeps track of who paid for what. It saved us from many arguments.",
     "Of course, a good roommate does not have to become your best friend. Some evenings we cooked together and watched a film. On other days, we simply said hello and went to our own rooms. Respecting each other's space was just as important as having fun together.",
     "After a year, I can say that sharing a home taught me patience and honest communication. If something bothers you, say it early and kindly, before it grows into a big problem."
-   ]
+   ],
+   "published_at": 1788393600000
   },
   {
    "id": "daily-2-b",
@@ -288,7 +288,6 @@
    "cover": "g7",
    "category": "daily",
    "level": 2,
-   "published_at": 1789603200000,
    "word_count": 284,
    "content_version": 1,
    "paragraphs": [
@@ -298,7 +297,8 @@
     "In the afternoon, I had to find my way to a friend's house without a map app. I wrote the directions on paper before I left, and I asked a shopkeeper for help when I got lost. The conversation was short, but it felt more human than following a voice on a screen.",
     "By Sunday, I felt calmer. I read half a book, cleaned my room and went to bed early. I did not check the time every five minutes, and the day felt longer in a good way.",
     "When I turned my phone on again, there were forty messages, but nothing urgent. I will not give up my phone, of course, because it is very useful. However, I now keep it in another room during meals and after ten at night."
-   ]
+   ],
+   "published_at": 1789603200000
   },
   {
    "id": "daily-3-a",
@@ -307,7 +307,6 @@
    "cover": "g0",
    "category": "daily",
    "level": 3,
-   "published_at": 1790899200000,
    "word_count": 432,
    "content_version": 1,
    "paragraphs": [
@@ -317,7 +316,8 @@
     "So what can actually help? First, shrink the task until it feels almost silly. Instead of \"write the essay,\" try \"open the document and write one ugly sentence.\" Once you get the ball rolling, momentum often carries you much further than you expected. Second, lower the friction around the thing you want to do and raise it around the distractions. Leave your phone in another room, close the extra tabs, and set out your notebook the night before.",
     "Third, be kind to yourself. It sounds soft, but beating yourself up tends to increase the very stress that drives avoidance in the first place. When a deadline slips, a calmer review is more useful than a harsh one: what made this feel so hard, and what would make it feel smaller next time? Treating a setback as information, rather than as a verdict on your character, makes it easier to return to the work.",
     "Finally, accept that no system will turn you into a machine. Everyone puts things off now and then, and a little delay can even give an idea time to settle. The goal is not to eliminate procrastination completely, but to notice it earlier, understand what lies behind it, and take one small step before the urge to run away takes over."
-   ]
+   ],
+   "published_at": 1790899200000
   },
   {
    "id": "daily-3-b",
@@ -326,7 +326,6 @@
    "cover": "g1",
    "category": "daily",
    "level": 3,
-   "published_at": 1792108800000,
    "word_count": 366,
    "content_version": 1,
    "paragraphs": [
@@ -336,7 +335,8 @@
     "Putting the pedals back on was the next hurdle. For a week I kept stopping the moment I felt unsteady, which, ironically, made me more unsteady. The advice that helped was simple: look where you want to go, not at the obstacle in front of you. When I stared at a lamppost, I hit it. When I looked at the gap beside it, I rode straight through.",
     "What surprised me most was how emotional the first proper ride felt. I cycled along the river path for ten minutes without stopping, and I laughed out loud like a child. It was only a small skill, but it reminded me what it feels like to be a beginner, a feeling most adults go out of their way to avoid.",
     "These days I ride to the market on Saturdays. I still make mistakes, and I am still slower than almost everyone on the path. But I have learned that being bad at something for a while is not a failure. It is simply the price of admission to a new part of life."
-   ]
+   ],
+   "published_at": 1792108800000
   },
   {
    "id": "tech-1-a",
@@ -345,7 +345,6 @@
    "cover": "g2",
    "category": "tech",
    "level": 1,
-   "published_at": 1785801600000,
    "word_count": 200,
    "content_version": 1,
    "paragraphs": [
@@ -355,7 +354,8 @@
     "Offline maps are very useful in the mountains, on trains, and in other countries. They also save mobile data, so you do not pay for extra internet.",
     "But there are some limits. An offline map is not always new. A road may close, and the map will not know. Some apps also cannot show bus times or traffic jams without the internet.",
     "So here is a good tip. Download your map at home with Wi-Fi. Check it once before you travel. Then you can walk around a new city with more confidence."
-   ]
+   ],
+   "published_at": 1785801600000
   },
   {
    "id": "tech-1-b",
@@ -364,7 +364,6 @@
    "cover": "g3",
    "category": "tech",
    "level": 1,
-   "published_at": 1787097600000,
    "word_count": 197,
    "content_version": 1,
    "paragraphs": [
@@ -374,7 +373,8 @@
     "This works best for steady sounds, like the hum of a plane engine or a fan. It works less well for sudden sounds, like a person talking or a dog barking.",
     "There is one more thing. Noise cancelling needs power from a battery. If the battery is empty, the headphones can still play music, but the quiet effect stops.",
     "Some people say the feeling is strange at first, as if there is pressure in the ears. Most people get used to it soon. Also, remember that blocking sound can be unsafe near roads, so be careful when you walk outside."
-   ]
+   ],
+   "published_at": 1787097600000
   },
   {
    "id": "tech-2-a",
@@ -383,7 +383,6 @@
    "cover": "g4",
    "category": "tech",
    "level": 2,
-   "published_at": 1788393600000,
    "word_count": 304,
    "content_version": 1,
    "paragraphs": [
@@ -393,7 +392,8 @@
     "Many people believe that a battery should always be drained to zero before charging. This is an old idea from older battery types. For modern phones, deep discharges and charging to one hundred percent every time put extra stress on the battery. Many experts suggest keeping the charge between about twenty and eighty percent when it is easy to do so.",
     "Phone makers also help. Many phones now have a setting that charges slowly overnight and reaches full power just before you wake up. Others let you stop charging at eighty percent. These small features can make a battery last longer.",
     "You do not need to worry about every percentage point. Use your phone normally, avoid heat, and do not leave it charging under a pillow. When the battery finally gets weak, a replacement is often cheaper than buying a new phone."
-   ]
+   ],
+   "published_at": 1788393600000
   },
   {
    "id": "tech-2-b",
@@ -402,7 +402,6 @@
    "cover": "g5",
    "category": "tech",
    "level": 2,
-   "published_at": 1790035200000,
    "word_count": 322,
    "content_version": 1,
    "paragraphs": [
@@ -412,7 +411,8 @@
     "People also give passwords away by mistake. A fake email may say that your bank account has a problem and ask you to log in through a link. The page looks real, but it is controlled by a criminal. This is called phishing.",
     "So what can you do? First, use a different password for each important account. A password manager can remember them for you, so you only need one strong main password. Second, choose long passwords, such as four or five random words together. Length matters more than strange symbols. Third, turn on two-step login wherever you can. Even if a criminal has your password, they still need the second code from your phone.",
     "Finally, you can check whether your email address appears in known leaks by using a trusted breach-checking website. If it does, change the password right away. No system is perfect, but a few habits make you a much harder target."
-   ]
+   ],
+   "published_at": 1790035200000
   },
   {
    "id": "tech-3-a",
@@ -421,7 +421,6 @@
    "cover": "g6",
    "category": "tech",
    "level": 3,
-   "published_at": 1791417600000,
    "word_count": 434,
    "content_version": 1,
    "paragraphs": [
@@ -432,7 +431,8 @@
     "The truth probably lies somewhere in between. A feed is a slightly bent mirror: it reflects your behavior, but it also amplifies certain parts of it. If you linger on angry posts, you will be shown more of them, and soon the feed seems angrier than the world really is.",
     "The good news is that you are not powerless. The \"not interested\" button is a strong signal, and it is worth using. You can search deliberately for topics you want to explore instead of waiting to be served them. Some apps now offer a chronological feed or let you reset your recommendations. And it can help simply to ask, before you scroll on, whether you chose that video or whether it was chosen for you.",
     "Recommendation tools are not villains. They help us find music, tutorials and small creators we would never discover alone. The challenge is to stay in the driver's seat, treating the feed as a helpful guide rather than a master."
-   ]
+   ],
+   "published_at": 1791417600000
   },
   {
    "id": "tech-3-b",
@@ -441,7 +441,6 @@
    "cover": "g7",
    "category": "tech",
    "level": 3,
-   "published_at": 1792195200000,
    "word_count": 437,
    "content_version": 1,
    "paragraphs": [
@@ -451,7 +450,8 @@
     "Privacy deserves a clear-eyed look too. A speaker that waits for a wake word has to listen, and cameras and door sensors produce records of when you come and go. Reputable makers explain what is stored and offer ways to delete it, but the information is only as safe as the company and your own account password. It is wise to read the privacy options, switch off features you do not use, and keep the device software up to date.",
     "There is also the matter of dependence. Devices stop receiving updates, companies change their apps, and sometimes a service shuts down for good, leaving perfectly working hardware half useless. Before buying, it helps to ask whether a gadget still works when the internet is down, and whether it follows open standards that let it work with other brands.",
     "None of this means you should avoid smart devices. It simply means treating them as tools rather than magic. Start small, with one or two devices that solve a real annoyance, and see how they fit into daily life before adding more. Keep a manual switch for the essentials. If a device saves you time or money without making you anxious, it has earned its place; if not, there is no shame in going back to a simple light switch."
-   ]
+   ],
+   "published_at": 1792195200000
   }
  ]
 }

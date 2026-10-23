@@ -1,10 +1,15 @@
-"""Build assets/seed/{articles,dict}.json from content/articles/*.json + ECDICT.
+"""Build assets/seed/{articles,remote_pool,dict}.json from content/ + ECDICT.
+
+- content/articles/*.json -> articles.json (bundled, imported on first launch)
+- content/remote/*.json   -> remote_pool.json (served by the mock article API
+  on pull-to-refresh; no published_at, the mock stamps it when served)
+- dict.json covers the words of both, so refreshed articles work offline too
 
 Usage (from the repo root):
     python -I tool/build_seed.py --ecdict path/to/ecdict.csv
 
 ECDICT (https://github.com/skywind3000/ECDICT, MIT) is not committed; only
-the subset of entries that the seed articles actually use is written out.
+the subset of entries that the articles actually use is written out.
 """
 
 import argparse
@@ -15,9 +20,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-SEED_VERSION = 1
+# v2: dictionary also covers the remote pool.
+SEED_VERSION = 2
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content" / "articles"
+REMOTE = ROOT / "content" / "remote"
 OUT = ROOT / "assets" / "seed"
 
 CATEGORIES = ("tech", "business", "culture", "daily")
@@ -27,11 +34,10 @@ FORM_KEYS = ("p", "d", "i", "3", "s", "r", "t")
 MAX_DEFINITION_LINES = 3
 
 
-def load_articles():
+def load_articles(folder, ids):
     articles = []
-    for path in sorted(CONTENT.glob("*.json")):
+    for path in sorted(folder.glob("*.json")):
         articles.extend(json.loads(path.read_text(encoding="utf-8")))
-    ids = set()
     for a in articles:
         assert a["category"] in CATEGORIES, a["id"]
         assert a["level"] in (1, 2, 3), a["id"]
@@ -41,24 +47,26 @@ def load_articles():
     return articles
 
 
-def build_articles(articles):
+def build_articles(articles, cover_offset=0):
     out = []
     for i, a in enumerate(sorted(articles, key=lambda a: a["id"])):
-        day = datetime.strptime(a["published_at"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        out.append({
+        item = {
             "id": a["id"],
             "title": a["title"],
             "summary": a["summary"],
             # Covers are drawn in-app from a gradient palette, so the seed stays
             # tiny and nothing needs the network.
-            "cover": f"g{i % 8}",
+            "cover": f"g{(i + cover_offset) % 8}",
             "category": a["category"],
             "level": a["level"],
-            "published_at": int(day.timestamp() * 1000),
             "word_count": sum(len(WORD_RE.findall(p)) for p in a["paragraphs"]),
             "content_version": a.get("content_version", 1),
             "paragraphs": a["paragraphs"],
-        })
+        }
+        if "published_at" in a:
+            day = datetime.strptime(a["published_at"], "%Y-%m-%d")
+            item["published_at"] = int(day.replace(tzinfo=timezone.utc).timestamp() * 1000)
+        out.append(item)
     return out
 
 
@@ -131,23 +139,37 @@ def main():
     parser.add_argument("--ecdict", required=True, help="path to ecdict.csv")
     args = parser.parse_args()
 
-    articles = load_articles()
+    ids = set()
+    articles = load_articles(CONTENT, ids)
+    remote = load_articles(REMOTE, ids)
+    assert all("published_at" in a for a in articles), "seed articles need published_at"
+
     OUT.mkdir(parents=True, exist_ok=True)
+    # Tiny file the app reads on every launch to skip parsing the big seed
+    # files when this version is already installed.
+    (OUT / "manifest.json").write_text(
+        json.dumps({"seed_version": SEED_VERSION}), encoding="utf-8"
+    )
     seed_articles = build_articles(articles)
     (OUT / "articles.json").write_text(
         json.dumps({"seed_version": SEED_VERSION, "articles": seed_articles},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
+    remote_articles = build_articles(remote, cover_offset=len(seed_articles))
+    (OUT / "remote_pool.json").write_text(
+        json.dumps(remote_articles, ensure_ascii=False, indent=1),
+        encoding="utf-8",
+    )
 
-    words = article_words(articles)
+    words = article_words(articles + remote)
     dictionary, missing = build_dict(words, load_ecdict(args.ecdict))
     (OUT / "dict.json").write_text(
         json.dumps(dictionary, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
     )
 
-    print(f"articles: {len(seed_articles)}")
+    print(f"articles: {len(seed_articles)}, remote pool: {len(remote_articles)}")
     print(f"distinct words: {len(words)}, dict entries: {len(dictionary['entries'])}, "
           f"forms: {len(dictionary['forms'])}, not found: {len(missing)}")
     if missing:

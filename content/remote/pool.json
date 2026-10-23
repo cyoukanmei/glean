@@ -1,0 +1,58 @@
+[
+  {
+    "id": "remote-tech-1",
+    "title": "The Secret Inside the Little Black Square",
+    "summary": "A QR code looks like random dots, but it stores text in a smart pattern that your phone can read in a moment.",
+    "category": "tech",
+    "level": 2,
+    "paragraphs": [
+      "You see them on menus, posters and bus stops. A QR code looks like a small square full of black and white dots, but it is really a way to store text. When you point your phone camera at one, the phone turns the pattern into a web address or a short message in less than a second.",
+      "The pattern is a grid. Each tiny square is either dark or light, and the phone reads them as ones and zeros, just like a computer does. Three large squares in the corners tell the camera where the code starts and which way it is turned. This is why you can scan a code even if the photo is tilted or upside down.",
+      "Another clever part is error correction. Extra data is added to the code so that the phone can fill in the missing pieces. If a corner is dirty, scratched or covered by a small sticker, the code often still works. Some companies even put a small logo in the middle for this reason. The more extra data a code has, the more damage it can survive, but the bigger and busier the grid becomes.",
+      "QR codes were first made for a car factory, where workers needed to track parts quickly. Older barcodes could only hold a short row of numbers, while a QR code can hold much more, including letters. After phones got good cameras, ordinary people began to use them too.",
+      "There are a few things to remember. A code only stores information, and it does not do anything dangerous by itself, but the link inside can lead to a fake website. Before you tap a link, check the address on your screen. Be careful with a sticker that has been placed over another code in a public place. With this simple habit, you can enjoy the convenience safely."
+    ]
+  },
+  {
+    "id": "remote-business-1",
+    "title": "Where Will the Food Truck Be Tomorrow?",
+    "summary": "A food truck owner must plan the route as carefully as the menu, using timing, rules, social media and simple notes.",
+    "category": "business",
+    "level": 2,
+    "paragraphs": [
+      "A food truck owner has a problem that a restaurant owner never has: the customers do not know where the kitchen will be tomorrow. Because of this, planning the route is as important as planning the menu. A good route can decide whether a day is busy or quiet.",
+      "Most owners begin by thinking about time. At lunch, office workers want a quick meal, so the truck parks near office buildings between eleven and two. In the evening, the best places are near parks, sports grounds or night markets, where people are relaxed and happy to wait in line. On weekends, festivals and outdoor concerts often bring the largest crowds.",
+      "Rules matter too. Many cities allow trucks only in certain spots, and some places need a permit or a fee. Owners must also think about power, water and space, because a truck that is too big for a narrow street cannot work there. A spot that looks perfect on a map may be impossible in real life.",
+      "Social media helps solve the problem of finding the truck. Many owners post their location each morning, with a photo of the day's special dish. Regular customers follow the account and walk over when they see the post. Some owners keep a weekly schedule, so people learn that the truck is always at the same corner every Tuesday.",
+      "Finally, good owners keep notes. They write down the weather, the place, the time and how much food they sold. After a few months, they can see patterns, such as which corner is best on rainy days. Then they can drop weak spots and spend more time where customers come back. A route is never finished, and it is changed a little each week."
+    ]
+  },
+  {
+    "id": "remote-culture-1",
+    "title": "Why We Still Keep Old Letters",
+    "summary": "Even in the age of instant messages, a handwritten letter can mean more because it takes time, effort and a little personality.",
+    "category": "culture",
+    "level": 2,
+    "paragraphs": [
+      "Every day, billions of messages fly between phones and computers. They are fast, free and easy to send. Yet in many homes there is still a drawer or a box that holds a few old letters written by hand. People rarely throw these away, and that tells us something about what a letter means.",
+      "One reason is that a letter takes effort. You have to find paper, think about your words, and write them slowly, because it is hard to delete a mistake. The receiver knows this, so even a short note can feel like a gift. A text message may take five seconds to send, but a letter shows that someone sat down and spent time on you.",
+      "Handwriting also carries personality. The shape of the letters, the pressure of the pen and even a crossed-out word show something about the writer. Many people say they can recognize a family member's writing at once, and some keep a recipe card or birthday note for years only because of the handwriting on it.",
+      "Writing by hand can help the writer, too. Without a screen, there are no alerts to pull your attention away. Some people find that a letter helps them organize their feelings, especially when a topic is hard to say out loud, such as thanks, an apology or a farewell.",
+      "This does not mean we should stop using phones. Digital messages are perfect for quick plans and daily chat. But a handwritten letter can be a good choice for special moments. You do not need beautiful writing or fancy paper. A simple card with a few honest lines, sent to a friend you miss, may become the thing they keep in their drawer for many years."
+    ]
+  },
+  {
+    "id": "remote-daily-1",
+    "title": "Five Easy Ways to Make a Small Room Feel Bigger",
+    "summary": "With better light, pale colors, a mirror and a clear floor, you can make a small room feel open without spending much.",
+    "category": "daily",
+    "level": 2,
+    "paragraphs": [
+      "Not everyone lives in a large home. Many students and young workers rent a small room, and after a few weeks it can feel crowded. The good news is that you do not need to spend a lot of money or move the walls. A few simple changes in light, color and order can make the same space feel much bigger.",
+      "Start with light. A dark room feels smaller because the corners disappear into shadow. Open the curtains during the day, and choose thin, light curtains instead of heavy ones. At night, use two or three small lamps in different corners rather than one bright lamp on the ceiling. Soft light on the walls makes the room look wider.",
+      "Next, think about color. Pale colors such as white, cream and light blue reflect light and make walls seem farther away. You do not need to paint, because a bedsheet, a rug and a few cushions in light colors can have a similar effect. If you like bright colors, use them in small things, like a picture or a plant, and keep the large items calm.",
+      "A mirror is another old trick. Put one opposite a window, and it will carry the daylight deeper into the room. It also gives the feeling of an extra space behind the wall. A tall mirror leaning against a wall works well and costs little.",
+      "Finally, clear the floor. When you can see more of the floor, the room feels more open, so choose furniture with legs and use shelves on the wall. Keep only the things you use often on the desk, and put other items in boxes under the bed. Ten minutes of tidying each evening is often better than a big clean once a month."
+    ]
+  }
+]
