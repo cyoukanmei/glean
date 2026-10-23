@@ -1,9 +1,19 @@
 # 拾读 Glean
 
-离线优先的英语阅读学习 App（Flutter，Android 真机）。按分类和难度读短文与名著选章，长按取词收藏到生词本，随时从上次的位置接着读；断网也能完成「列表 → 阅读 → 取词收藏 → 进度落库」整条链路，联网后自动同步。
+离线优先的英语阅读学习 App（Flutter，Android 真机）。按分类和难度读短文与名著选章，长按取词收藏到单词本，随时从书架回到上次的位置；断网也能完成「列表 → 阅读 → 取词收藏 → 进度落库」整条链路，联网后自动同步。
 
 - 代码：`lib/`（70 多个文件），测试：`test/`（`fvm flutter test`，全部通过）
-- 设计参考页：`../docs/design/ui-reference.html`（iOS 风格，含 4 项动效的可交互演示）
+- 设计参考页：`../docs/design/ui-reference.html`（iOS 风格，含 4 项动效的可交互演示）、`../docs/design/redesign-v2.html`（五个 Tab 的结构与暖灰白卡配色）
+
+**底栏五个 Tab**：
+
+| Tab | 内容 |
+|---|---|
+| 书架 | 继续阅读卡；全部 / 在读 / 收藏 / 稍后 / 读完筛选（带数量）；封面网格（最近活动在前，封面角标进度或「读完」，金星=收藏，长按收藏 / 稍后再读）；书架为空时推荐「大家都在读」 |
+| 书城 | 搜索；分类文字 Tab；自动轮播 banner（名著共读月 / 新上架 / 本周热读，本地数据生成，离线可用）；排行榜 / 名著馆 / 新上架 / 随便读读四个入口；热读榜 / 收藏榜 / 新书榜卡片（前 6 名双列）与完整榜单页；推荐列表（难度筛选、分页、下拉刷新） |
+| 社区 | 读后分享：英文原句 + 中文感想 + 来源文章；推荐 / 最新 / 我的；帖子下露出热评，详情页可评论、回复某人、给评论点赞；从收藏词的原句发帖 |
+| 单词本 | 待复习数的复习卡；本周新增 / 认识 / 已掌握；搜索；新词 / 认识 / 已掌握筛选（带数量）；左滑删除可撤销；点词跳回原文并闪烁 |
+| 我的 | 头像与资料编辑；读完 / 生词 / 累计时长 / 连续天数；收藏、稍后再读、阅读历史、我的动态入口；今日目标环与周打卡；阅读设置、主题、提醒、同步、埋点调试 |
 - 内容与图片来源：[content/SOURCES.md](content/SOURCES.md)、[content/COVER_CREDITS.md](content/COVER_CREDITS.md)
 
 ## 目录
@@ -52,26 +62,28 @@ fvm flutter test           # 全部单测 / 组件测试
 
 ```
 lib/
-  app/            根组件（开屏 → 登录/首页）、底栏、外观、全局 provider
+  app/            根组件（开屏 → 登录/首页）、底栏（HomeTab）、外观、全局 provider
   core/
     analytics/    事件目录、SQLite 事件队列、上报、会话、曝光、分析查询
     db/           建表与迁移、种子导入
-    design/       设计 token（纸感/经典两套配色 × 浅/深色）、主题、iOS 风格基础组件、进度环
+    design/       设计 token（纸感/经典两套配色 × 浅/深色）、主题、iOS 风格基础组件、文字 Tab / 胶囊筛选、进度环
     navigation/   手势可跟随的返回路由
     widgets/      封面、彩纸、骨架屏、渐入、收藏按钮…
   features/
-    articles/     列表、分类、分页、搜索仓库、封面 Hero
+    shelf/        书架（合并阅读历史与收藏 / 稍后再读）
+    store/        书城、banner 轮播、排行榜
+    articles/     文章仓库（分页、搜索、榜单）、列表卡片、书本封面、封面 Hero
     reader/       阅读页、进度会话、阅读设置、读完卡片
-    vocab/        取词、生词本、复习卡片
-    coread/       共读（本地 mock 社区）
+    vocab/        取词、单词本、复习卡片
+    coread/       社区（本地 mock：帖子、评论、点赞）
     profile/      我的、编辑资料、提醒、埋点调试面板
-    library/      收藏、稍后再读、阅读历史（我的书架）
+    library/      收藏、稍后再读、阅读历史
     auth/         登录注册（mock 后端）
     sync/         同步服务与 mock 服务端
     search/       全文搜索页
 ```
 
-**页面与状态**：底栏四个 Tab 放在 `IndexedStack` 里保持状态；阅读页、搜索、编辑资料等推到根 Navigator 上（底栏随之隐藏）。仓库通过 Riverpod 注入；写入后 bump 对应的 `Revision`（进度、生词、文章），关心它的页面各自重新读库。
+**页面与状态**：底栏五个 Tab 放在 `IndexedStack` 里保持状态，当前 Tab 是一个 provider（空书架的「去书城」、我的 → 我的动态可以跨 Tab 跳转）；阅读页、搜索、编辑资料等推到根 Navigator 上（底栏随之隐藏）。仓库通过 Riverpod 注入；写入后 bump 对应的 `Revision`（进度、生词、文章），关心它的页面各自重新读库。
 
 **数据流**：
 
@@ -152,7 +164,7 @@ CREATE TABLE event_queue (
 | `idx_articles_feed (category, level, published_at DESC, id DESC)` | 分类 + 难度筛选下的 keyset 分页，任意深度都是一次索引范围扫描 |
 | `idx_progress_recent (user_id, last_read_at DESC)` | 「继续阅读」卡片取最近一篇 |
 | `ux_vocab_user_lemma (user_id, lemma)` UNIQUE | 同一个词只收藏一次；删除后再收藏复用同一行 |
-| `idx_vocab_list (user_id, deleted_at, created_at DESC)` | 生词本列表 |
+| `idx_vocab_list (user_id, deleted_at, created_at DESC)` | 单词本列表 |
 | `idx_seg_day (user_id, local_day)` | 「我的」今日目标、本周打卡、连续天数 |
 | `idx_eq_pick (status, next_attempt_at, ts)` | 上报时挑出到期的待发事件 |
 
@@ -194,16 +206,16 @@ CREATE TABLE event_queue (
 
 | # | 动效 | 位置 | 实现 | 关键参数 |
 |---|---|---|---|---|
-| 1 | 共享元素转场 | 列表卡片 → 阅读页封面 | `Hero` + 自定义 `flightShuttleBuilder`：圆角从 16 插值到 0；封面在宽框里由「方图」连续过渡为「立着的书」 | 直线 `RectTween`；去程 easeOutCubic 420 ms，回程 easeInCubic 350 ms |
+| 1 | 共享元素转场 | 列表卡片、书架封面、榜单 → 阅读页封面 | `Hero` + 自定义 `flightShuttleBuilder`：圆角从列表端的圆角插值到 0；封面在宽框里由「方图」连续过渡为「立着的书」 | 直线 `RectTween`；去程 easeOutCubic 420 ms，回程 easeInCubic 350 ms |
 | 1 | 手势返回（跟手、可取消回弹） | 所有二级页 | 自写 `SwipeBackPageRoute`：页面任意位置右滑（dx > 2·|dy| 才判定，避免误触滚动）+ Android 预测性返回；松手用临界阻尼弹簧 `SpringSimulation` 从手指速度接续 | 刚度 500、阻尼比 1；超过一半或速度 ≥ 1 屏宽/秒即返回，否则回弹；拖动中曲线改为线性保证页面贴手；下层页面 0.3 视差 |
-| 2 | 列表 stagger 渐入 | 首页列表首屏 | 一个 `AnimationController` 驱动前 8 项，各自 `Interval` | 每项错开 40 ms、时长 300 ms、上移 16 px，总 580 ms；之后加载的项不再动画 |
+| 2 | 列表 stagger 渐入 | 书城列表首屏、书架封面网格（切换筛选时重播） | 一个 `AnimationController` 驱动前 8 项，各自 `Interval` | 每项错开 40 ms、时长 300 ms、上移 16 px，总 580 ms；之后加载的项不再动画 |
 | 2 | 正文首屏淡入位移 | 阅读页 | 等路由转场结束（封面落位）后再淡入 | 延迟 80 ms，280 ms easeOutCubic，上移 12 px；取消的返回手势不会重播 |
 | 3 | 进度环 / 进度条平滑推进 | 继续阅读卡、阅读页顶部 3 pt 条、底部胶囊栏、「我的」目标环 | `TweenAnimationBuilder` 从旧值补间到新值；阅读条独立 `RepaintBoundary`，滚动时只重绘这一条 | 进度环 800 ms easeOutCubic；阅读条 250 ms |
 | 3 | 读完庆祝 | 阅读页（看过 90% 且读够最短时长） | 页面模糊 + 自绘彩纸（重力抛物线）+ 卡片弹出，附本篇用时、收藏数、下一篇 | 彩纸 40 片 1.6 s、重力 1800 px/s²；卡片 0.85→1 easeOutBack；触感反馈 |
 | 4 | 收藏按钮形变弹跳 | 取词面板 | `TweenSequence` 缩放 + 图标描边→实心 + 底色青绿→暖金 | 1 → 0.8（80 ms）→ 1.25（140 ms）→ 1（180 ms），共 400 ms；乐观更新，按下同帧开始 |
-| 4 | Tab 指示器滑动 | 首页分类胶囊、底栏悬浮胶囊、各处分段控件 | `AnimatedPositioned` 胶囊底色 | 420 ms easeOutBack（轻微过冲） |
-| 4 | 骨架屏 shimmer | 首页加载 | 两层：白底分组在下，占位块 + 渐变扫光在上（扫光只作用于占位块） | 1.2 s 周期；加载 < 120 ms 不显示，一旦显示至少停留 400 ms，避免闪烁 |
-| + | 其他 | — | 开屏图标过冲弹入；阅读主题 200 ms 渐变；复习卡片 3D 翻面（450 ms）与甩出；跳回原文时词底暖金闪两次；点赞心形弹性放大 | — |
+| 4 | Tab 指示器滑动 | 底栏悬浮胶囊；书城分类、社区、榜单、收藏与历史的文字 Tab 下划短条；胶囊筛选的底色渐变 | `AnimatedPositioned`；文字 Tab 用选中字号预先量宽，切换时不重排 | 380–420 ms easeOutBack（轻微过冲）；胶囊 220 ms |
+| 4 | 骨架屏 shimmer | 书城列表加载 | 两层：白底分组在下，占位块 + 渐变扫光在上（扫光只作用于占位块） | 1.2 s 周期；加载 < 120 ms 不显示，一旦显示至少停留 400 ms，避免闪烁 |
+| + | 其他 | — | 开屏图标过冲弹入；书城 banner 4.5 s 自动轮播、拖动暂停、图片反向视差；榜单切换淡入上移；新评论展开并淡出高亮；阅读主题 200 ms 渐变；复习卡片 3D 翻面（450 ms）与甩出；跳回原文时词底暖金闪两次；点赞心形弹性放大 | — |
 
 性能取舍：毛玻璃（`BackdropFilter`）只用在底栏、阅读页悬浮按钮和顶栏这类小面积；进度条和彩纸各自 `RepaintBoundary`；封面图片 ≤ 720 px WebP（单张 < 90 KB），一次解码在 Hero 飞行过程中复用。
 
@@ -223,13 +235,14 @@ CREATE TABLE event_queue (
 | 打开 App | `app_open`(cold_start_ms)、`session_start`(reason)、`app_background`(foreground_ms) |
 | 页面 | `page_view`(page) |
 | 列表曝光 | `article_impression`(article_id, surface, position) |
-| 分类 / 筛选 | `category_switch`(category)、`level_filter`(level) |
+| 分类 / 筛选 | `category_switch`(category)、`level_filter`(level)、`shelf_filter`(filter) |
+| 书城 | `banner_click`(banner)、`store_entry`(entry)、`rank_switch`(board) |
 | 搜索 | `search`(query, results)、`search_result_open`(article_id, position) |
 | 文章打开 | `article_open`(article_id, surface) |
 | 阅读时长与滚动深度 | `read_duration`(article_id, active_ms, max_progress)、`scroll_depth`(article_id, depth=25/50/75/100) |
 | 取词 / 收藏 / 发音 / 复习 | `word_lookup`(word, found, article_id)、`word_collect`、`word_delete`、`word_pronounce`、`word_review` |
 | 读完 | `article_finish`(article_id) |
-| 分享 | `article_share`、`coread_share`、`coread_like` |
+| 分享与社区 | `article_share`、`coread_share`、`coread_like`、`coread_comment`(post, reply?)、`coread_comment_like`(comment, like) |
 | 离线命中 | `offline_hit`(surface) |
 | 其他 | `login`、`register`、`logout`、`profile_update`、`reader_settings`、`appearance_set`、`reminder_set`、`sync_run` |
 
@@ -339,5 +352,5 @@ fvm flutter build appbundle --release    # 上架 Google Play（AAB）
 - 全文搜索用 `LIKE` 粗筛 + Dart 排序，几十篇文章足够；内容量上万篇时应改为 FTS（Android 自带 FTS4）。
 - 深色模式切换时整棵树重建一次（保留状态），之后的帧正常；若要零重建需把所有颜色改走 `Theme`/`InheritedWidget`。
 - 每日提醒用非精确闹钟（无需「精确闹钟」权限），系统可能延后几分钟。
-- 共读是本地 mock 内容（引用的原句来自种子文章），没有评论与真实社交关系。
+- 社区是本地 mock 内容（引用的原句来自种子文章，内置评论为示例），自己的帖子和评论只存在本机，不参与同步，也没有真实社交关系。
 - 只在 Android 真机验证；iOS 未测。
