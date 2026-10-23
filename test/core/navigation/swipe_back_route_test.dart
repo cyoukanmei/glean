@@ -1,4 +1,4 @@
-import 'package:english_reader/core/navigation/swipe_back_route.dart';
+import 'package:glean/core/navigation/swipe_back_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

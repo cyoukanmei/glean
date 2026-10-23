@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'schema.dart';
 
 abstract final class AppDatabase {
-  static const fileName = 'english_reader.db';
+  static const fileName = 'glean.db';
 
   /// Opens (creating or migrating) the app database.
   ///

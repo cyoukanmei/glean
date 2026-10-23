@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.huanming.english_reader"
+    namespace = "com.huanming.glean"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.huanming.english_reader"
+        applicationId = "com.huanming.glean"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // sqflite uses the platform SQLite; UPSERT (ON CONFLICT DO UPDATE) needs

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:english_reader/core/db/seed_importer.dart';
-import 'package:english_reader/features/vocab/data/dictionary_repository.dart';
+import 'package:glean/core/db/seed_importer.dart';
+import 'package:glean/features/vocab/data/dictionary_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 

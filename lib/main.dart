@@ -30,7 +30,7 @@ Future<void> main() async {
         prefsProvider.overrideWithValue(prefs),
         seedReadyProvider.overrideWithValue(seedReady),
       ],
-      child: const EnglishReaderApp(),
+      child: const GleanApp(),
     ),
   );
 }
@@ -57,13 +57,13 @@ Future<void> _importSeed(Database db) async {
   debugPrint('[seed] imported=$imported in ${sw.elapsedMilliseconds}ms');
 }
 
-class EnglishReaderApp extends StatelessWidget {
-  const EnglishReaderApp({super.key});
+class GleanApp extends StatelessWidget {
+  const GleanApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'English Reader',
+      title: '拾读 Glean',
       theme: ThemeData(colorSchemeSeed: Colors.teal),
       // Every page uses SwipeBackPageRoute, so the page underneath also gets
       // the parallax secondary animation while the top page slides.

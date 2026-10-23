@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:english_reader/app/providers.dart';
-import 'package:english_reader/core/widgets/shimmer.dart';
-import 'package:english_reader/core/widgets/stagger_in.dart';
-import 'package:english_reader/features/articles/data/article_repository.dart';
-import 'package:english_reader/features/articles/ui/article_card.dart';
-import 'package:english_reader/features/articles/ui/article_feed.dart';
+import 'package:glean/app/providers.dart';
+import 'package:glean/core/widgets/shimmer.dart';
+import 'package:glean/core/widgets/stagger_in.dart';
+import 'package:glean/features/articles/data/article_repository.dart';
+import 'package:glean/features/articles/ui/article_card.dart';
+import 'package:glean/features/articles/ui/article_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

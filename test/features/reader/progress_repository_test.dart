@@ -1,5 +1,5 @@
-import 'package:english_reader/features/reader/data/progress_repository.dart';
-import 'package:english_reader/features/reader/data/reading_time_repository.dart';
+import 'package:glean/features/reader/data/progress_repository.dart';
+import 'package:glean/features/reader/data/reading_time_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_db.dart';

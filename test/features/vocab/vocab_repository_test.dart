@@ -1,4 +1,4 @@
-import 'package:english_reader/features/vocab/data/vocab_repository.dart';
+import 'package:glean/features/vocab/data/vocab_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_db.dart';

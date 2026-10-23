@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:english_reader/core/db/seed_importer.dart';
-import 'package:english_reader/features/articles/data/article_remote.dart';
-import 'package:english_reader/features/articles/data/article_repository.dart';
+import 'package:glean/core/db/seed_importer.dart';
+import 'package:glean/features/articles/data/article_remote.dart';
+import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_db.dart';

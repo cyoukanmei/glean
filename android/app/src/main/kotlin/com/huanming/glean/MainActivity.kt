@@ -1,4 +1,4 @@
-package com.huanming.english_reader
+package com.huanming.glean
 
 import io.flutter.embedding.android.FlutterActivity
 

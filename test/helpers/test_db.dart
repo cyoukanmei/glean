@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:english_reader/core/db/app_database.dart';
-import 'package:english_reader/core/db/schema.dart';
+import 'package:glean/core/db/app_database.dart';
+import 'package:glean/core/db/schema.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -26,7 +26,7 @@ Future<Database> openTestDb({
 }
 
 Future<String> newTestDbPath() async {
-  final dir = await Directory.systemTemp.createTemp('english_reader_test_');
+  final dir = await Directory.systemTemp.createTemp('glean_test_');
   addTearDown(() async {
     try {
       await dir.delete(recursive: true);

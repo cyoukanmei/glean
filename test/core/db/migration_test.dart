@@ -1,4 +1,4 @@
-import 'package:english_reader/core/db/schema.dart';
+import 'package:glean/core/db/schema.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 

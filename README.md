@@ -1,17 +1,17 @@
-# english_reader
+# 拾读 Glean
 
-Offline-first English reading app
+Offline-first English reading app (Flutter): read short articles by category
+and level, long-press to look up and collect words, and pick up exactly where
+you left off — with or without a network.
 
-## Getting Started
+> Work in progress for a take-home assessment. The full README (architecture,
+> schema, motion list, analytics plan, build & release) lands at the end.
 
-This project is a starting point for a Flutter application.
+## Run
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+fvm flutter pub get
+fvm flutter run
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Flutter 3.44.9 is pinned in `.fvmrc`. Seed content sources: `content/SOURCES.md`.

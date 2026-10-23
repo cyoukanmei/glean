@@ -43,7 +43,7 @@ class _ArticleListPageState extends ConsumerState<ArticleListPage>
     final offline = ref.watch(onlineProvider).value == false;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('English Reader'),
+        title: const Text('拾读'),
         bottom: TabBar(
           controller: _tabs,
           // The indicator stretches towards the next tab and then catches up,
