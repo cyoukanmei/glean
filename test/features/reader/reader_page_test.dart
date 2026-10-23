@@ -393,7 +393,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('reader-next')));
     await _run(tester, const Duration(seconds: 1));
-    expect(find.text('Title of a2'), findsOneWidget);
+    expect(find.text('Title of a2'), findsWidgets); // also on the cover
     expect(find.byType(ReaderPage), findsOneWidget);
     await _close(tester);
   });

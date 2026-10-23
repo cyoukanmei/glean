@@ -19,9 +19,10 @@ class CategoryChips extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onSelected;
 
-  static const chipWidth = 60.0;
+  // Six tabs fit a 390 pt wide screen without scrolling.
+  static const chipWidth = 56.0;
   static const chipHeight = 34.0;
-  static const gap = 6.0;
+  static const gap = 5.0;
   static const slide = Duration(milliseconds: 420);
 
   @override

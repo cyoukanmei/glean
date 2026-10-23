@@ -4,7 +4,6 @@ Usage (from the repo root):
     python -I tool/build_assets.py --pack path/to/asset-pack-original
 
 The pack (PNG originals, ~12 MB) is kept outside the repo; this writes:
-- assets/covers/<category>.webp      720 px, the size the reader header needs
 - assets/illustrations/reading.webp  1080 px wide
 - assets/illustrations/*.svg         copied as-is
 - Android adaptive launcher icon: the full-bleed icon is the *background*
@@ -26,8 +25,6 @@ ASSETS = ROOT / "assets"
 RES = ROOT / "android" / "app" / "src" / "main" / "res"
 IOS_ICONS = ROOT / "ios" / "Runner" / "Assets.xcassets" / "AppIcon.appiconset"
 
-CATEGORIES = ("tech", "business", "culture", "daily")
-COVER_PX = 720
 ILLUSTRATION_PX = 1080
 WEBP_QUALITY = 80
 
@@ -57,8 +54,8 @@ def save_webp(img, path, width):
 
 def build_images(pack):
     total = 0
-    for c in CATEGORIES:
-        total += save_webp(Image.open(pack / "covers" / f"{c}.png"), ASSETS / "covers" / f"{c}.webp", COVER_PX)
+    # Article covers are drawn in-app as book jackets (ArticleCover); the
+    # pack's category covers are no longer bundled.
     total += save_webp(
         Image.open(pack / "illustrations" / "reading.png"),
         ASSETS / "illustrations" / "reading.webp",

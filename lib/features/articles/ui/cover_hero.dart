@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/article_cover.dart';
 import '../data/article_repository.dart';
+import 'labels.dart';
 
 /// Article cover shared between a list card and the reader header.
 ///
@@ -47,8 +48,14 @@ class CoverHero extends StatelessWidget {
   }
 
   Widget _cover(double radius) => ArticleCover(
-    palette: article.cover,
-    category: article.category,
+    seed: article.id,
+    title: article.title,
+    band:
+        article.author?.toUpperCase() ??
+        'GLEAN · ${categoryLabels[article.category] ?? article.category}',
+    footer: article.author != null
+        ? '拾读 · 名著'
+        : '${levelLabels[article.level] ?? ''} · ${article.wordCount} 词',
     borderRadius: BorderRadius.circular(radius),
   );
 

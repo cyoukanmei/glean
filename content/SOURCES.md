@@ -7,7 +7,7 @@
 | `assets/seed/remote_pool.json` | `content/remote/*.json`: 4 more original articles (one per category, level 2) that the mock article API serves on pull-to-refresh, two per refresh | Project content |
 | `assets/seed/dict.json` | Subset of [ECDICT](https://github.com/skywind3000/ECDICT): only headwords and inflections used by the seed and remote-pool articles | MIT, see `assets/seed/ECDICT-LICENSE.txt` |
 | `assets/seed/manifest.json` | Seed version only; read on every launch so the big files are parsed only when a newer seed ships | — |
-| `assets/covers/*.webp` | Category illustrations from the project's design pack (see `assets/ASSETS.md`), 720 px WebP; unknown categories fall back to an in-app gradient (`cover: g0..g7`) | Made for this project |
+| Article covers | Drawn in-app as book jackets (`ArticleCover`): colour from the article id, title and author/category typeset; no image assets | Made for this project |
 | `assets/illustrations/*` | Empty / offline / done / reading illustrations from the same pack (SVG as delivered, `reading` as 1080 px WebP) | Made for this project |
 | Launcher icons (`android/.../mipmap-*`, iOS `AppIcon.appiconset`) | The pack's app icon; Android uses it as the adaptive-icon background, shrunk to 80 % to stay inside the safe zone | Made for this project |
 

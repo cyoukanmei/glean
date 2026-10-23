@@ -82,6 +82,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
     with TickerProviderStateMixin {
   static const _coverHeight = 300.0;
 
+  /// Room for the floating buttons under the status bar.
+  static const _topBarHeight = 58.0;
+
   /// Positions store the text layout scale, so one saved at another font
   /// size or line spacing restores by paragraph anchor instead of pixels.
   double get _layoutScale => ref.read(readerSettingsProvider).layoutScale;
@@ -577,7 +580,8 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              stops: const [0.55, 1],
+                              // Late, so the cover's book stays clear.
+                              stops: const [0.78, 1],
                               colors: [
                                 palette.background.withValues(alpha: 0),
                                 palette.background,
@@ -639,19 +643,21 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
               ),
             ),
           ),
-          // Status-bar glass: clear over the cover, frosts in once text would
-          // scroll under the system icons.
+          // Top glass: clear over the cover, frosts in once text would scroll
+          // under the system icons and the floating buttons.
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: padding.top,
+            height: padding.top + _topBarHeight,
             child: IgnorePointer(
               child: AnimatedBuilder(
                 animation: _scroll,
                 builder: (context, _) {
                   final offset = _scroll.hasClients ? _scroll.offset : 0.0;
-                  final t = ((offset - _coverHeight + 40) / 40).clamp(0.0, 1.0);
+                  // Text reaches the buttons _topBarHeight before the cover's end.
+                  final t = ((offset - _coverHeight + _topBarHeight + 40) / 40)
+                      .clamp(0.0, 1.0);
                   return t == 0
                       ? const SizedBox.shrink()
                       : Opacity(

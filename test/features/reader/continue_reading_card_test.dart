@@ -57,7 +57,7 @@ void main() {
       FakeProgressRepository(unfinished: ('a1', progressAt(0, progress: 0.63))),
     );
     await tester.pump();
-    expect(find.text('Half-read article'), findsOneWidget);
+    expect(find.text('Half-read article'), findsWidgets); // also on the cover
 
     await tester.pump(ContinueReadingCard.barGlide ~/ 4);
     final mid = tester.widget<ProgressRing>(find.byType(ProgressRing)).value;
