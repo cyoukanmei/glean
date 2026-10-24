@@ -90,6 +90,23 @@ const eventSpecs = <String, EventSpec>{
   'word_pronounce': EventSpec('播放发音', required: {'word', 'surface'}),
   'word_review': EventSpec('复习卡片打分', required: {'lemma', 'status'}),
 
+  // AI
+  'ai_guide_open': EventSpec('展开 AI 导读', required: {'article_id'}),
+  'quiz_open': EventSpec('打开阅读理解', required: {'article_id', 'surface'}),
+  'quiz_answer': EventSpec(
+    '回答一道阅读理解题',
+    required: {'article_id', 'index', 'correct'},
+  ),
+  'quiz_complete': EventSpec(
+    '完成阅读理解',
+    required: {'article_id', 'correct', 'total'},
+  ),
+  'ai_explain': EventSpec(
+    '取词面板 AI 解释（source: cache / api / error）',
+    required: {'lemma', 'source'},
+    optional: {'latency_ms'},
+  ),
+
   // Community
   'coread_like': EventSpec('社区帖子点赞', required: {'post', 'like'}),
   'coread_comment': EventSpec(

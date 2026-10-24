@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../core/analytics/analytics_service.dart';
+import '../features/ai/data/ai_repository.dart';
+import '../features/ai/data/deepseek_client.dart';
 import '../features/articles/data/article_remote.dart';
 import '../features/articles/data/article_repository.dart';
 import '../features/auth/application/auth.dart';
@@ -68,6 +70,18 @@ final vocabRepositoryProvider = Provider(
 
 final marksRepositoryProvider = Provider(
   (ref) => MarksRepository(ref.watch(databaseProvider)),
+);
+
+final aiRepositoryProvider = Provider(
+  (ref) => AiRepository(ref.watch(databaseProvider)),
+);
+
+/// Live AI calls; null when the build has no key (the bundled AI aids still
+/// work, only the word panel's AI 解释 is hidden).
+final deepSeekClientProvider = Provider<DeepSeekClient?>(
+  (ref) => DeepSeekClient.keyFromBuild.isEmpty
+      ? null
+      : DeepSeekClient(apiKey: DeepSeekClient.keyFromBuild),
 );
 
 final dictionaryRepositoryProvider = Provider(

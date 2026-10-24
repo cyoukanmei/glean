@@ -8,6 +8,7 @@ import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
 import '../../../core/speech/speaker.dart';
 import '../../../core/widgets/collect_button.dart';
+import '../../ai/ui/ai_explain.dart';
 import '../../coread/ui/share_quote_sheet.dart';
 import '../data/dictionary_repository.dart';
 import '../data/vocab_repository.dart';
@@ -230,6 +231,12 @@ class _WordSheetState extends ConsumerState<WordSheet> {
                 sentence: sentence,
                 word: widget.word,
                 title: widget.articleTitle,
+              ),
+              AiExplainSection(
+                word: widget.word,
+                lemma: entry?.lemma ?? widget.word.toLowerCase(),
+                sentence: sentence,
+                articleTitle: widget.articleTitle,
               ),
             ],
             const SizedBox(height: 20),

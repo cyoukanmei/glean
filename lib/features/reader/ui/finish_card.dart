@@ -31,6 +31,7 @@ class FinishOverlay extends StatefulWidget {
     required this.stats,
     required this.onNext,
     required this.onClose,
+    this.onQuiz,
     this.backdrop = const Color(0xFFFBF7EE),
   });
 
@@ -40,6 +41,9 @@ class FinishOverlay extends StatefulWidget {
   final FinishStats stats;
   final ValueChanged<ArticleSummary> onNext;
   final VoidCallback onClose;
+
+  /// Opens the comprehension quiz; null when the article has none.
+  final VoidCallback? onQuiz;
 
   static const popIn = Duration(milliseconds: 520);
 
@@ -165,6 +169,18 @@ class _FinishOverlayState extends State<FinishOverlay>
                         _Stat('${stats.finishedTotal}', '累计读完'),
                       ],
                     ),
+                    if (widget.onQuiz case final onQuiz?) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          key: const Key('finish-quiz'),
+                          onPressed: onQuiz,
+                          icon: const Icon(Icons.quiz_rounded, size: 18),
+                          label: const Text('做 3 道阅读理解题'),
+                        ),
+                      ),
+                    ],
                     if (stats.next case final next?) ...[
                       const SizedBox(height: 16),
                       _NextRow(article: next),

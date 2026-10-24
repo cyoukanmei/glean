@@ -13,6 +13,9 @@ import '../../../core/design/glean_theme.dart';
 import '../../../core/design/ios_widgets.dart';
 import '../../../core/widgets/cover_catalog.dart';
 import '../../../core/widgets/state_illustration.dart';
+import '../../ai/data/ai_repository.dart';
+import '../../ai/ui/ai_guide_card.dart';
+import '../../ai/ui/quiz_page.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/labels.dart';
 import '../../vocab/application/word_picking.dart';
@@ -74,11 +77,15 @@ class ReaderPage extends ConsumerStatefulWidget {
 
 /// Everything the page needs before it can track and restore reading.
 class _Loaded {
-  const _Loaded(this.paragraphs, this.saved, this.priorActiveMs);
+  const _Loaded(this.paragraphs, this.saved, this.priorActiveMs, this.ai);
 
   final List<String> paragraphs;
   final ReadingProgress? saved;
   final int priorActiveMs;
+
+  /// Bundled AI aids; loaded with the text so the AI 导读 card is laid out
+  /// on the first frame and restoring the position does not shift.
+  final ArticleAi? ai;
 }
 
 class _ReaderPageState extends ConsumerState<ReaderPage>
@@ -130,6 +137,11 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
 
   /// Words saved from this article, for the byline.
   int _savedHere = 0;
+
+  /// AI aids (null until loaded, or when the article has none) and the
+  /// last comprehension-quiz attempt on this article.
+  ArticleAi? _ai;
+  QuizResult? _quiz;
 
   /// Lower-cased forms of every saved word, underlined in the text.
   Set<String> _collected = const {};
@@ -326,13 +338,31 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
 
   Future<_Loaded> _load() async {
     final id = widget.article.id;
-    final (paragraphs, saved, prior) = await (
+    final ai = ref.read(aiRepositoryProvider);
+    final (paragraphs, saved, prior, aids, quiz) = await (
       ref.read(articleRepositoryProvider).paragraphs(id),
       ref.read(progressRepositoryProvider).get(_userId, id),
       ref.read(readingTimeRepositoryProvider).totalActiveMs(_userId, id),
+      ai.forArticle(id),
+      ai.result(_userId, id),
     ).wait;
-    return _Loaded(paragraphs, saved, prior);
+    _ai = aids;
+    _quiz = quiz;
+    return _Loaded(paragraphs, saved, prior, aids);
   }
+
+  Future<void> _openQuiz(ArticleAi ai, String surface) => openQuiz(
+    context,
+    widget.article,
+    ai,
+    surface: surface,
+    onDone: () async {
+      final quiz = await ref
+          .read(aiRepositoryProvider)
+          .result(_userId, widget.article.id);
+      if (mounted) setState(() => _quiz = quiz);
+    },
+  );
 
   @override
   void didChangeDependencies() {
@@ -649,8 +679,14 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                             ];
                           }
                           final pulseAt = _pulseAt;
+                          final ai = snap.data?.ai;
                           return _Body(
                             article: article,
+                            ai: ai,
+                            quiz: _quiz,
+                            onQuiz: ai == null
+                                ? null
+                                : (surface) => _openQuiz(ai, surface),
                             palette: palette,
                             settings: settings,
                             savedHere: _savedHere,
@@ -809,6 +845,12 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                 stats: finishStats,
                 onNext: (a) => _openNeighbor(a, FinishOverlay.nextSurface),
                 onClose: () => setState(() => _finishStats = null),
+                onQuiz: _ai == null
+                    ? null
+                    : () {
+                        setState(() => _finishStats = null);
+                        _openQuiz(_ai!, 'finish');
+                      },
               ),
             ),
         ],
@@ -820,6 +862,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
 class _Body extends StatelessWidget {
   const _Body({
     required this.article,
+    required this.ai,
+    required this.quiz,
+    required this.onQuiz,
     required this.palette,
     required this.settings,
     required this.savedHere,
@@ -834,6 +879,11 @@ class _Body extends StatelessWidget {
   });
 
   final ArticleSummary article;
+  final ArticleAi? ai;
+  final QuizResult? quiz;
+
+  /// Opens the quiz; the argument names where from (analytics surface).
+  final ValueChanged<String>? onQuiz;
   final ReaderPalette palette;
   final ReaderSettings settings;
   final int savedHere;
@@ -892,6 +942,14 @@ class _Body extends StatelessWidget {
                 style: TextStyle(fontSize: 11.5, color: palette.secondary),
               ),
             ),
+          if (ai case final ai?)
+            AiGuideCard(
+              articleId: article.id,
+              ai: ai,
+              palette: palette,
+              quiz: quiz,
+              onQuiz: () => onQuiz?.call('ai_guide'),
+            ),
           const SizedBox(height: 8),
           for (final (i, p) in paragraphs.indexed)
             Padding(
@@ -906,6 +964,13 @@ class _Body extends StatelessWidget {
                 pulse: pulse?.$1 == i ? (pulse!.$2, pulse!.$3) : null,
                 onWord: (range) => onWord(i, range),
               ),
+            ),
+          if (ai case final ai? when paragraphs.isNotEmpty)
+            QuizPromptCard(
+              count: ai.questions.length,
+              quiz: quiz,
+              palette: palette,
+              onTap: () => onQuiz?.call('article_end'),
             ),
           AnimatedSize(
             duration: const Duration(milliseconds: 350),

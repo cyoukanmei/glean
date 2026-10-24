@@ -24,7 +24,8 @@ from pathlib import Path
 # v2: dictionary also covers the remote pool.
 # v3: chapter 1 of ten classic novels (Project Gutenberg), with authors.
 # v4: community stats (readers / favorites) per article.
-SEED_VERSION = 4
+# v5: AI reading aids (assets/seed/ai.json, written by tool/ai_enrich.py).
+SEED_VERSION = 5
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content" / "articles"
 REMOTE = ROOT / "content" / "remote"

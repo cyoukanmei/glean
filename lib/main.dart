@@ -150,6 +150,7 @@ Future<void> _importSeed(Database db) async {
   final seed = SeedBundle.fromJson(
     articlesJson: await rootBundle.loadString('assets/seed/articles.json'),
     dictJson: await rootBundle.loadString('assets/seed/dict.json'),
+    aiJson: await rootBundle.loadString('assets/seed/ai.json'),
   );
   final imported = await SeedImporter.importIfNeeded(db, seed);
   debugPrint('[seed] imported=$imported in ${sw.elapsedMilliseconds}ms');

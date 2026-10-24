@@ -1,0 +1,1871 @@
+{
+ "model": "deepseek-flash",
+ "generated_at": "2026-10-24",
+ "articles": {
+  "business-1-a": {
+   "hash": "10cb269d93fb0424",
+   "summary_zh": "米娅在汽车站附近开咖啡店，定价需考虑成本、同行价格和顾客承受力。她让普通咖啡保持便宜，特色饮品稍贵，最近涨价20美分并得到多数顾客理解。",
+   "key_points_zh": [
+    "定价先核算成本，包括咖啡豆、牛奶、杯子和糖，以及房租和两名员工的工资。",
+    "参考街对面大型连锁店的价格，避免比对方贵太多，也不能便宜到不赚钱。",
+    "根据学生和上班族顾客的特点，普通咖啡低价、特色饮品稍高价；上月涨价20美分，多数顾客理解。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇和句式较简单，但涉及成本、竞争和顾客承受力等多步骤商业决策，话题略抽象。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to make a vanilla latte.",
+      "How Mia sets prices for her coffee shop.",
+      "Why a big coffee chain is successful.",
+      "Why students do not drink coffee."
+     ],
+     "answer": 1,
+     "explain_zh": "全文围绕米娅如何给咖啡定价展开：先算成本，再看同行价格，最后考虑顾客并调整价格。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what does Mia sell for a little more?",
+     "options": [
+      "Coffee beans.",
+      "Plain coffee.",
+      "Cups and sugar.",
+      "Special drinks like a vanilla latte."
+     ],
+     "answer": 3,
+     "explain_zh": "原文明确说 She sells special drinks, like a vanilla latte, for a little more，即特色饮品卖得稍贵。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about Mia's attitude toward setting prices?",
+     "options": [
+      "She knows it is difficult and tries to learn about it.",
+      "She thinks it is a simple job.",
+      "She wants to close her coffee shop.",
+      "She never changes her prices."
+     ],
+     "answer": 0,
+     "explain_zh": "原文最后说 Setting prices is a hard job, but Mia learns something new about it every week，可推断她认为定价难并持续学习。"
+    }
+   ]
+  },
+  "business-1-b": {
+   "hash": "49990fc837601ac1",
+   "summary_zh": "文章讲述 Tom 网购一双鞋后，包裹从仓库拣货、贴单、上卡车、经大型分拣中心和中转站，最后由司机送到家门口的全过程。三天送达的背后，是许多人和机器共同完成的漫长旅程，而顾客往往毫无察觉。",
+   "key_points_zh": [
+    "仓库工人按订单取货装盒，机器打印带有姓名和地址的标签",
+    "卡车连夜把包裹送到大型分拣中心，机器读标签分方向，每小时处理成千上万件",
+    "包裹再转到本市的小站点，清晨装上送货车；司机中午送达，拍照留证，三天到货"
+   ],
+   "cefr": "A2",
+   "cefr_reason_zh": "词汇为 warehouse、label、truck 等日常具体词，句子多为简单句和并列句，话题贴近生活，抽象度低。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How a package travels from an online order to a customer's home",
+      "Why delivery trucks drive only at night",
+      "How to find a job in a big warehouse",
+      "Why Tom likes to buy his shoes online"
+     ],
+     "answer": 0,
+     "explain_zh": "全文按时间顺序写 Tom 下单后的包裹旅程：仓库→卡车→分拣中心→本市小站→送到门口，最后总结“three days”“many people helped him”。其余选项文中均未展开。"
+    },
+    {
+     "type": "detail",
+     "q": "What did Tom get on his phone?",
+     "options": [
+      "A message that his package was on the way",
+      "A call from the warehouse worker",
+      "A photo of his new shoes",
+      "A label with his name and address"
+     ],
+     "answer": 0,
+     "explain_zh": "原文明确写道：Tom got a message on his phone: 'Your package is on the way.' 标签是机器打印贴在箱子上的，照片是司机拍的，都没有发到 Tom 手机上。"
+    },
+    {
+     "type": "inference",
+     "q": "Why did the driver take a photo of the box at the door?",
+     "options": [
+      "Because Tom asked him to wait outside",
+      "To help Tom open the box later",
+      "To send it to the warehouse worker",
+      "To show that the package had been delivered"
+     ],
+     "answer": 3,
+     "explain_zh": "原文说司机把箱子放在门口、拍照后就离开了，而 Tom 当时不在家；拍照是为了记录包裹已送达，属于合理推断。其余选项文中均无依据。"
+    }
+   ]
+  },
+  "business-2-a": {
+   "hash": "a89e22343da9f587",
+   "summary_zh": "订阅制如今无处不在。对企业而言，它能带来稳定、可预测的收入，便于规划和投资；对消费者而言，小额月付比一次性大额支出更轻松，服务还能自动更新。但自动扣费也会让人忘记取消、小额累积成高额开销，专家建议定期查看账单、取消不用的服务。",
+   "key_points_zh": [
+    "订阅给企业带来持续、可预测的收入，因此企业乐于采用，投资者也偏爱这类生意。",
+    "消费者觉得每月小额付费比一次性付大钱更容易接受，还能自动获得最新版本。",
+    "自动续费有隐患：人们容易忘记取消，小额费用累积起来可能远超预期，因此要定期查账单、及时取消不用的服务。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "句子结构以简单句和常见从句为主，词汇多为日常生活用语，只出现“steady income”“predict”等少量抽象商业概念，整体难度属 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "Why subscriptions are popular and how people can stay in control of them.",
+      "Why buying films on discs is better than paying every month.",
+      "The history of monthly payments in different countries.",
+      "How to start a subscription business and find investors."
+     ],
+     "answer": 0,
+     "explain_zh": "全文先讲订阅对企业的好处（稳定收入），再讲对顾客的好处（小额月付、自动更新），最后讲隐患与专家建议，因此主旨是“订阅为何流行以及如何管理好它”。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, why do investors like subscription businesses?",
+     "options": [
+      "Because these businesses have no customers to serve.",
+      "Because only families with children buy them.",
+      "Because these businesses cost almost nothing to start.",
+      "Because their income is much easier to predict."
+     ],
+     "answer": 3,
+     "explain_zh": "原文明确说“Investors like this kind of business too, because it is much easier to predict.”，即收入更容易预测，故选 B。"
+    },
+    {
+     "type": "inference",
+     "q": "A man signs up for a free trial, forgets to cancel it, and pays for months without using the service. What would the article most likely tell him to do?",
+     "options": [
+      "Pay for a whole year at once to save money.",
+      "Check his bank statement, see that he did not use it, and cancel it.",
+      "Sign up for more free trials so he gets more value.",
+      "Ask the company to hide the cancel button in a long menu."
+     ],
+     "answer": 1,
+     "explain_zh": "原文建议“look at your bank statement…Ask yourself, ‘Did I really use this last month?’ If the answer is no, cancel it.”，因此推断他应查账单、确认没用后就取消。隐藏取消按钮是文中批评的公司做法，不能选。"
+    }
+   ]
+  },
+  "business-2-b": {
+   "hash": "842656b3f879839c",
+   "summary_zh": "文章讲如何从小处着手开展副业：先发现身边真实需求，再低成本试卖并听取早期客户反馈，同时管理好时间与金钱、了解当地规定，最后保持耐心、逐步改进。",
+   "key_points_zh": [
+    "副业应基于自己擅长且喜欢、别人愿意付费的真实问题。",
+    "先小规模试卖、收集反馈，避免一开始投入过多金钱和精力。",
+    "要诚实评估可投入时间、记录收支、了解注册纳税等当地规定，并耐心坚持逐步改进。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇多为日常具体词（如 feedback、register、tax），句子以简单句和并列句为主，话题是具体的副业建议，少量抽象表达但整体易懂。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to build a fancy website for a new company.",
+      "Why side businesses always fail in the first months.",
+      "How to start a side business by taking small, careful steps.",
+      "Why people should leave their normal jobs to become rich."
+     ],
+     "answer": 2,
+     "explain_zh": "原文开头指出副业不只是有一个好想法，而是要“taking small, careful steps”，后文围绕发现需求、试卖、管理时间和耐心等小步骤展开。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what should you do before spending much money on your idea?",
+     "options": [
+      "Buy a thousand business cards.",
+      "Try selling to three or four people first.",
+      "Wait until you have a fancy website.",
+      "Register your business immediately."
+     ],
+     "answer": 1,
+     "explain_zh": "原文明确说“Try selling to three or four people first, and listen to what they say”，并指出不需要 fancy website 或 a thousand business cards。"
+    },
+    {
+     "type": "inference",
+     "q": "What can be inferred about early customer feedback?",
+     "options": [
+      "It usually makes customers unhappy.",
+      "It is not useful until the business is big.",
+      "It is only about how much money the owner spends.",
+      "It may help owners change their original idea and avoid big mistakes."
+     ],
+     "answer": 3,
+     "explain_zh": "原文说早期反馈“can save you from big mistakes”，并且许多成功店主在和第一批顾客交谈后改变了最初想法，因此可推断反馈有助于调整想法、避免大错。"
+    }
+   ]
+  },
+  "business-3-a": {
+   "hash": "adbcef5eb4cbc450",
+   "summary_zh": "文章探讨知名企业为何不断更换标志。原因包括适应手机屏幕等新技术、业务转型或并购，以及重塑形象；但换标风险很大，可能损害多年积累的熟悉感与好感。作者认为标志只是工具而非解药，只有配合企业真正的改变、且有明确理由时才有意义。",
+   "key_points_zh": [
+    "技术原因：标志要在手机小图标到巨型广告牌上都清晰，因此设计师简化形状、扁平化颜色、加粗字体。",
+    "商业原因：产品线扩大、转型、走出困境或并购换主，都可能需要新标志来传递新方向。",
+    "换标是赌博：太激进会让顾客认不出产品，浪费数十年积累的好感，所以多数改版是渐进式的。",
+    "标志是一种承诺，若服务等问题不解决，换标只是廉价的替代品；它是工具，不是解药。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "话题涉及品牌战略等抽象商业概念，句式较长且含让步、条件等复杂结构，词汇如 squander goodwill、evolutionary rather than revolutionary 属于中高级。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main point of the article?",
+     "options": [
+      "Logo changes are usually the result of clear strategic thinking, but a logo can only help if the business really changes.",
+      "Customers are always right to complain when a well-known company changes its logo.",
+      "A new logo is the best way for a company to win back unhappy customers.",
+      "Companies change their logos mainly because designers want to follow the latest fashion."
+     ],
+     "answer": 0,
+     "explain_zh": "全文主旨：换标背后通常是长期战略决策（第1段），但结尾指出标志是「工具，不是解药」，只有理由明确并有真实改变支撑时才有效。B、C、D 均与原文相反或过度。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, why do designers simplify shapes and use bolder fonts?",
+     "options": [
+      "Because customers say they prefer plain designs.",
+      "Because old logos often contain too many colors.",
+      "So that the logo stays readable at any size, from a tiny app icon to a billboard.",
+      "Because simple designs cost less money to produce."
+     ],
+     "answer": 2,
+     "explain_zh": "第二段末尾明确说明：设计师简化形状、扁平化颜色、选更粗的字体，是为了让标志在任何尺寸下都清晰可读——从手机小图标到巨型广告牌。"
+    },
+    {
+     "type": "inference",
+     "q": "Why are many redesigns 'evolutionary rather than revolutionary'?",
+     "options": [
+      "Because companies cannot afford to hire top designers.",
+      "Because customers have asked for only small changes.",
+      "Because technology does not allow big changes.",
+      "Because a completely new look could confuse shoppers and waste the goodwill built up over years."
+     ],
+     "answer": 3,
+     "explain_zh": "第四段指出：标志承载多年熟悉感，改动太剧烈会让顾客认不出货架上的产品，白白浪费数十年积累的好感；因此多数改版只是在原基础上打磨，属于渐进式。"
+    }
+   ]
+  },
+  "business-3-b": {
+   "hash": "c59b06322e30d4c7",
+   "summary_zh": "远程会议既省时又耗时：它让跨城市团队和育儿员工平等参与、协作更方便，但线上丢失了点头、皱眉等细微信号，加上日历排满连轴会议，让人显得忙碌却无进展。问题多不在技术而在习惯；发议程、只请必要的人、准时结束、用书面更新替代部分会议，并分清哪些事真正需要面谈，才能让会议有价值。",
+   "key_points_zh": [
+    "远程会议的好处：免去出差与通勤、让有家庭负担的人更平等地参与、可共同编辑文档、录制便于补看。",
+    "缺点较隐蔽：屏幕丢失眼神与表情等细微信号，沉默难以判断；日历太方便导致一天被切成一段段连续会议，没时间思考。",
+    "关键不在技术而在习惯与取舍：提前发议程、只邀必要的人、准时结束，部分会议改书面更新，复杂分歧和头脑风暴仍宜实时沟通。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "话题为抽象的职场协作与沟通习惯，含 subtler、back-to-back、delicate news 等较抽象词汇和较多从句与对比结构，但句子整体清晰，故属 B2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main point of the article?",
+     "options": [
+      "Companies should stop using video calls and go back to face-to-face meetings.",
+      "The problems with remote meetings come mostly from how people organise them, not from the technology.",
+      "Remote meetings are always worse than meetings in a room.",
+      "Written updates should replace all live conversations at work."
+     ],
+     "answer": 1,
+     "explain_zh": "第四段明确说“the problem is rarely the technology itself. It is the habits that grow up around it”，第五、六段也强调要区分哪些对话需要开会，故 A 正确。B、C 与第六段“live conversation 仍有价值”矛盾；D 与“replace some live meetings”不符，原文只是部分替代。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what do teams that handle remote work well do?",
+     "options": [
+      "They make every meeting longer so that all topics can be discussed.",
+      "They send an agenda in advance and invite only the people who truly need to be there.",
+      "They record every call and watch it again together later.",
+      "They keep their cameras off so that nobody feels watched."
+     ],
+     "answer": 1,
+     "explain_zh": "第四段末尾列出高效远程团队的三条简单规则：提前发议程、只邀请真正需要参加的人、准时（甚至提前）结束。B 直接对应其中两条。A、C 文中未提；D 中“录制”只在第二段作为好处提到，并非这些团队的做法。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about quieter employees from the article?",
+     "options": [
+      "They usually speak more in big video calls than in small ones.",
+      "They may contribute better ideas when they can write and think before replying.",
+      "They prefer meetings without any written record.",
+      "They need more meetings than their colleagues to share ideas."
+     ],
+     "answer": 1,
+     "explain_zh": "第五段说“Quiet colleagues, who might never speak up in a crowded call, often contribute more when they can think before they reply”，可推知书面更新给他们思考时间后贡献更大，故选 C。B 与“crowded call 中可能从不发言”相反；A、D 文中无依据。"
+    }
+   ]
+  },
+  "classic-a-christmas-carol-1": {
+   "hash": "a2f09543a9cd17cb",
+   "summary_zh": "故事开篇介绍守财奴斯克鲁奇的冷酷吝啬：他不愿捐款、厌恶圣诞，也苛待职员。他已故七年的合伙人马利鬼魂出现，身缠由钱箱、账本等铸成的锁链，警告他若不改变将遭同样命运，并告知将有三位精灵来访。",
+   "key_points_zh": [
+    "斯克鲁奇冷酷、贪婪、孤僻，拒绝为穷人捐款，也不愿庆祝圣诞。",
+    "他对职员刻薄，对侄子冷漠，只关心生意和金钱。",
+    "已故合伙人马利的鬼魂出现，锁链象征其生前的自私，并警告斯克鲁奇将有三位精灵来访。"
+   ],
+   "cefr": "C2",
+   "cefr_reason_zh": "词汇含 executor、workhouse、treadmill 等历史与抽象词，句式长且修辞密集，话题涉及社会责任与道德，适合 C2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is this excerpt mainly about?",
+     "options": [
+      "It tells how Scrooge and Marley built a successful business together.",
+      "It introduces Scrooge as a cold, greedy man and shows Marley's ghost warning him to change.",
+      "It describes how the poor people of London celebrate Christmas Eve.",
+      "It explains why Scrooge's nephew and clerk love Christmas."
+     ],
+     "answer": 1,
+     "explain_zh": "全文先集中描写斯克鲁奇冷酷吝啬，随后写马利鬼魂出现并警告他，因此 A 最全面。B、C、D 都只是文中零散内容，不是主旨。"
+    },
+    {
+     "type": "detail",
+     "q": "When the gentlemen asked Scrooge to give money to the poor, what did he say?",
+     "options": [
+      "He said he would ask his clerk.",
+      "He said he would give a day's wages.",
+      "He said, \"Nothing!\"",
+      "He said he would give fifteen shillings."
+     ],
+     "answer": 2,
+     "explain_zh": "原文中绅士问“What shall I put you down for?”，斯克鲁奇回答“Nothing!”，并说他只想被留下独自一人。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about the chain Marley's Ghost wears?",
+     "options": [
+      "It was made by Scrooge as a present for Marley.",
+      "It is a sign that Marley was a kindly, generous man.",
+      "It shows the selfish business life Marley chose and must now carry.",
+      "It was taken from the wine-merchant's cellar below Scrooge's rooms."
+     ],
+     "answer": 2,
+     "explain_zh": "鬼魂说“I wear the chain I forged in life... I made it link by link”，锁链由钱箱、钥匙、账本等构成，象征他生前只重金钱、忽视他人的责任。"
+    }
+   ]
+  },
+  "classic-alice-in-wonderland-1": {
+   "hash": "f261a7a4e5ab4083",
+   "summary_zh": "爱丽丝因好奇跟随一只看怀表的白兔跳进兔子洞，坠入深井后进入一个大厅。她找到小金钥匙和写有“DRINK ME”的瓶子，喝后变小，却够不到钥匙；随后又吃下“EAT ME”的蛋糕。",
+   "key_points_zh": [
+    "爱丽丝觉得无图无对话的书没意思，正无聊时看见一只穿马甲、掏怀表的白兔。",
+    "她好奇追兔，掉进兔子洞并长时间下坠，途中看到橱柜、书架和空果酱罐。",
+    "她进入锁着门的大厅，找到小钥匙和“DRINK ME”瓶子，喝后缩小却拿不到钥匙，最后吃“EAT ME”蛋糕。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "词汇含 waistcoat、marmalade、latitude 等，句式多长句和插入语，叙事具体但语言带文学性。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is this excerpt mainly about?",
+     "options": [
+      "Alice follows a White Rabbit down a rabbit-hole and has strange adventures underground.",
+      "Alice learns about latitude and longitude in her schoolroom.",
+      "Alice's sister reads her a book full of pictures and conversations.",
+      "Alice gets lost in a garden while looking for her cat Dinah."
+     ],
+     "answer": 0,
+     "explain_zh": "全文从爱丽丝追白兔、坠入兔子洞写到大厅中喝药水、吃蛋糕，核心是地下奇遇的开端。"
+    },
+    {
+     "type": "detail",
+     "q": "Why does Alice run after the White Rabbit?",
+     "options": [
+      "She is curious because it has a waistcoat pocket and a watch.",
+      "She wants to give it some orange marmalade.",
+      "She is trying to catch Dinah the cat.",
+      "She wants to ask it for a watch."
+     ],
+     "answer": 0,
+     "explain_zh": "原文说白兔从马甲口袋掏出怀表看，爱丽丝“burning with curiosity”，于是追了上去。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about Alice from her actions after she finds the bottle?",
+     "options": [
+      "She is careful and thinks about possible danger before trying new things.",
+      "She acts without thinking and never worries about danger.",
+      "She is angry at the White Rabbit for leaving her.",
+      "She knows exactly how to become tall again."
+     ],
+     "answer": 0,
+     "explain_zh": "原文中她先看瓶上是否标有“poison”，还想起朋友教过的安全规则，说明她好奇但谨慎。"
+    }
+   ]
+  },
+  "classic-dorian-gray-1": {
+   "hash": "3d3e06e827081537",
+   "summary_zh": "在霍尔沃德的画室里，他与亨利勋爵谈论多里安·格雷的肖像。巴西尔拒绝展出此画，因为画中倾注了太多自己的灵魂，并担心亨利会带坏多里安。多里安到访时，巴西尔恳求亨利不要影响他。",
+   "key_points_zh": [
+    "巴西尔认为有感情的肖像画的是画家自己，他拒绝展出多里安的肖像，因为画中暴露了自己灵魂的秘密。",
+    "亨利勋爵玩世不恭，谈论朋友、敌人与婚姻，并坚持要见多里安。",
+    "巴西尔称多里安是自己的全部艺术和挚友，恳求亨利不要影响他。"
+   ],
+   "cefr": "C1",
+   "cefr_reason_zh": "词汇丰富且偏文学化（如 languidly、cynicism、idolatry），长句嵌套多，话题涉及艺术、人格与影响等抽象观念。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main subject of the conversation between Basil and Lord Henry?",
+     "options": [
+      "Why Lady Brandon gives parties and how she introduces guests.",
+      "How Lord Henry met his wife and why their marriage is unhappy.",
+      "Whether Basil should exhibit Dorian Gray's portrait and why he refuses.",
+      "How Basil learned to paint landscapes in the English countryside."
+     ],
+     "answer": 2,
+     "explain_zh": "全文围绕巴西尔拒绝展出多里安·格雷的肖像展开，亨利勋爵不断追问原因，巴西尔最后说明画中倾注了太多自己。"
+    },
+    {
+     "type": "detail",
+     "q": "According to Basil, why does he refuse to exhibit the portrait?",
+     "options": [
+      "He is angry that Lord Henry has already seen it.",
+      "He fears it reveals too much of himself and the secret of his soul.",
+      "He thinks it is not as good as his landscape.",
+      "He wants to sell it to Agnew for a high price."
+     ],
+     "answer": 1,
+     "explain_zh": "原文中巴西尔说“I am afraid that I have shown in it the secret of my own soul”，并反复说“too much of myself in the thing”。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about Basil's feelings toward Dorian Gray?",
+     "options": [
+      "He considers Dorian merely an ordinary model for hire.",
+      "He wants Dorian to marry Lord Henry's cousin.",
+      "He dislikes Dorian and avoids seeing him.",
+      "He is deeply attached to Dorian and sees him as central to his art."
+     ],
+     "answer": 3,
+     "explain_zh": "巴西尔说“Every day... He is absolutely necessary to me”“He is all my art to me now”，还称多里安是“my dearest friend”，可见他非常依恋多里安并视其为艺术核心。"
+    }
+   ]
+  },
+  "classic-frankenstein-1": {
+   "hash": "945623b8a5e0e26f",
+   "summary_zh": "节选自《弗兰肯斯坦》开篇，维克多讲述家族背景：父亲因救助落难友人博福特而结识其女卡罗琳，后与她结婚。维克多出生后备受宠爱，五岁时母亲在科莫湖畔收养孤女伊丽莎白，维克多将她视为自己的珍宝与责任。",
+   "key_points_zh": [
+    "维克多出身日内瓦名门，父亲正直尽责；父亲寻找落难好友博福特，后来娶了博福特的女儿卡罗琳。",
+    "维克多是父母独子，童年受尽关爱；父母带他游历意大利等地，他出生在那不勒斯。",
+    "五岁时母亲在科莫湖畔的贫苦农家发现孤女伊丽莎白，她实为米兰贵族之女，被收养后成为维克多挚爱的“表妹”。"
+   ],
+   "cefr": "C1",
+   "cefr_reason_zh": "词汇正式且含 syndics、indefatigable、penury 等生僻词，长句嵌套多，叙事带有19世纪文学风格。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is this excerpt mainly about?",
+     "options": [
+      "How Beaufort became rich again through business",
+      "How Victor's father became a famous politician",
+      "Victor's family history and how Elizabeth joined his family",
+      "Victor's first journey to England"
+     ],
+     "answer": 2,
+     "explain_zh": "原文从父亲的品格与婚姻写起，再写维克多出生及母亲收养伊丽莎白，主旨是家族背景与伊丽莎白的加入。"
+    },
+    {
+     "type": "detail",
+     "q": "Why did Beaufort move to Lucerne?",
+     "options": [
+      "He was sent there by the government",
+      "He wanted to start a new business there",
+      "He wanted his daughter to marry Victor's father",
+      "He was proud and could not bear to live in poverty where he had once been important"
+     ],
+     "answer": 3,
+     "explain_zh": "原文说 Beaufort “could not bear to live in poverty and oblivion in the same country where he had formerly been distinguished...”，于是还债后隐居卢塞恩。"
+    },
+    {
+     "type": "inference",
+     "q": "What can be inferred from Victor's words that he looked upon Elizabeth as “mine—mine to protect, love, and cherish”?",
+     "options": [
+      "He believed Elizabeth was a servant in his house",
+      "He felt responsible for her and thought of her as specially belonging to him",
+      "He was angry that his mother had brought her home",
+      "He wanted Elizabeth to return to her poor family"
+     ],
+     "answer": 1,
+     "explain_zh": "原文说他把母亲送的伊丽莎白当作“promised gift”，并说“mine to protect, love, and cherish”，可见他把她视为自己要守护的珍宝，而非仆人或负担。"
+    }
+   ]
+  },
+  "classic-jane-eyre-1": {
+   "hash": "a91a2994388f4c4c",
+   "summary_zh": "简·爱因不被里德太太喜欢而被排除在客厅之外，独自在早餐室读书。约翰·里德发现她后辱骂并用书砸伤她，简反抗，最后里德太太下令把她关进红房子。",
+   "key_points_zh": [
+    "简·爱被里德太太排斥，不能和表兄妹待在一起，只能独自躲进早餐室读书。",
+    "约翰·里德长期欺凌简，这次因她躲在窗帘后读书而辱骂她，并用书砸伤她。",
+    "简被砸伤后反抗，里德太太不问缘由，命令仆人把她关进红房子。"
+   ],
+   "cefr": "C1",
+   "cefr_reason_zh": "词汇文学性强且较生僻（如 sombre、cavillers、moreen、bilious），长句与复杂句式多，心理和家庭关系描写较抽象。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "Which sentence best states the main idea of this excerpt?",
+     "options": [
+      "Jane plans to run away from the Reed house because she has no money.",
+      "Jane is excluded and bullied by the Reed family, and after John attacks her she is punished.",
+      "Jane and John Reed become friends after she shows him her book.",
+      "Jane enjoys a peaceful afternoon reading and then plays with her cousins."
+     ],
+     "answer": 1,
+     "explain_zh": "原文开头写简被里德太太排除在客厅之外，中间写约翰辱骂并用书砸她，结尾写里德太太下令把她关进红房子，因此B最全面。"
+    },
+    {
+     "type": "detail",
+     "q": "Why does Mrs Reed say she keeps Jane away from the other children?",
+     "options": [
+      "Because Mrs Reed wants Jane to become more sociable and childlike.",
+      "Because Jane is ill and must rest.",
+      "Because Jane has run out into the rain.",
+      "Because Jane has been reading too many books."
+     ],
+     "answer": 0,
+     "explain_zh": "原文中里德太太说，除非简努力养成“more sociable and childlike disposition”，否则不能享有其他快乐孩子才有的待遇。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about Mrs Reed from her treatment of Jane in this excerpt?",
+     "options": [
+      "She favors her own children and allows John to hurt Jane.",
+      "She treats Jane and her own children equally.",
+      "She is willing to listen carefully to Jane's side of the story.",
+      "She believes John is usually well-behaved and never cruel."
+     ],
+     "answer": 0,
+     "explain_zh": "里德太太把简排除在外，且原文说她对约翰欺负简“blind and deaf”，最后不问缘由就罚简关红房子，可见她偏袒自己的孩子并纵容约翰伤害简。"
+    }
+   ]
+  },
+  "classic-little-women-1": {
+   "hash": "8602acbdb3876e86",
+   "summary_zh": "《小妇人》节选写四姐妹在圣诞节前夕谈论贫穷与父亲远赴战场的处境，最终决定把各自的钱用来给母亲买礼物；母亲带回父亲的信，姐妹们受鼓舞，决心努力变得更好。",
+   "key_points_zh": [
+    "四姐妹因家境贫穷、父亲远在前线而无法像往常一样过圣诞，母亲也提议不买礼物。",
+    "她们最终决定用各自的一美元给母亲买圣诞礼物，并一起排练圣诞剧。",
+    "母亲带回父亲的信，姐妹们受信鼓舞，决心改正缺点、承担自己的责任。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "词汇含一定文学性和时代用语（如 niminy-piminy、Slough of Despond），句式较长且有比喻和典故，话题涉及家庭责任与成长，故定为 B2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "Which sentence best states the main idea of this excerpt?",
+     "options": [
+      "Jo writes a play about Pilgrim's Progress for Christmas.",
+      "Mrs. March scolds her daughters for being lazy and selfish.",
+      "Four sisters complain about poverty, but after their father's letter they decide to try to become better and help their mother.",
+      "The sisters spend the day shopping for Christmas presents for themselves."
+     ],
+     "answer": 2,
+     "explain_zh": "全文围绕四姐妹在圣诞前夕的对话、为母亲准备礼物以及父亲来信后的决心展开；B、C、D 均只涉及局部或与原文相反。"
+    },
+    {
+     "type": "detail",
+     "q": "What do the sisters decide to do with their dollar?",
+     "options": [
+      "Save it until their father returns from the war.",
+      "Give it to the army to help the soldiers.",
+      "Buy books, music, pencils, and other things for themselves.",
+      "Buy small gifts for their mother for Christmas."
+     ],
+     "answer": 3,
+     "explain_zh": "Beth 提议“each get her something for Christmas, and not get anything for ourselves”，随后大家分配给母亲的礼物；因此不是给自己买，也不是捐给军队。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about Jo from her words and actions?",
+     "options": [
+      "She wants to stop acting because she thinks she is too old.",
+      "She is the youngest sister and cares most about pretty clothes.",
+      "She wishes she were a boy and finds growing up as a young lady difficult.",
+      "She dislikes reading and prefers to spend her time knitting."
+     ],
+     "answer": 2,
+     "explain_zh": "Jo 明说“I hate to think I've got to grow up”“disappointment in not being a boy”，并想“go and fight with papa”，可见她不愿长大、希望自己是男孩。"
+    }
+   ]
+  },
+  "classic-pride-and-prejudice-1": {
+   "hash": "80aa9de78b8f46cf",
+   "summary_zh": "班纳特太太听说内瑟菲尔德庄园被一位有钱的单身青年宾利租下，便急着催丈夫前去拜访，好让女儿们有机会嫁给他；班纳特先生却一味冷嘲热讽。这段对话勾勒出以嫁女为业的母亲与古怪含蓄的父亲，也讽刺了当时以财产为目的的婚姻市场。",
+   "key_points_zh": [
+    "开篇提出一条“公认的真理”：有钱的单身汉总会被邻居看作某个女儿的合法财产，直接点出婚姻交易的主题。",
+    "班纳特太太看中宾利是年收入四五千镑的单身汉，反复要求丈夫先去拜访；班纳特先生则用玩笑话回避，还故意说要替小女儿丽琪美言。",
+    "结尾的叙述交代两人性格：先生机敏、爱讽刺、含蓄古怪；太太见识浅薄、脾气不定，一生的正事就是把女儿们嫁出去。"
+   ],
+   "cefr": "C1",
+   "cefr_reason_zh": "词汇本身多为常用词，但句子多为19世纪长复句，含反讽、间接叙述和对当时社交习俗的隐含理解，需把握人物性格与言外之意，抽象程度较高。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What does this passage mainly present?",
+     "options": [
+      "An argument between Mr. Bennet and Sir William Lucas about visiting new neighbours.",
+      "The story of how one of the Bennet daughters became engaged to Mr. Bingley.",
+      "A conversation between Mr. and Mrs. Bennet about a rich new neighbour, showing their different characters and how much marriage matters to the family.",
+      "A long description of a young man's journey from the north of England to Netherfield Park."
+     ],
+     "answer": 2,
+     "explain_zh": "全文主体是班纳特夫妇围绕新邻居宾利的对话：太太一心想把女儿嫁给他，先生则不断打趣，最后一段还专门概括两人性格，可见主线在此。B、C、D 在文中均无依据（文中只提到宾利坐马车来看房子，只提及卢卡斯家要去拜访，也没有任何订婚情节）。"
+    },
+    {
+     "type": "detail",
+     "q": "According to Mrs. Bennet, how much money does Mr. Bingley have a year?",
+     "options": [
+      "Four or five hundred pounds.",
+      "About twenty thousand pounds.",
+      "Ten thousand pounds.",
+      "Four or five thousand pounds."
+     ],
+     "answer": 3,
+     "explain_zh": "原文中班纳特太太说：“A single man of large fortune; four or five thousand a year.”，即每年四五千镑。文中出现的“twenty”指她丈夫开玩笑说的二十个这样的年轻人，并非宾利的收入。"
+    },
+    {
+     "type": "inference",
+     "q": "When Mr. Bennet says “when there are twenty, I will visit them all”, what does he most likely mean?",
+     "options": [
+      "He is teasing his wife and does not really mean what he says.",
+      "He is angry that so many rich men are coming into the neighbourhood.",
+      "He seriously plans to visit twenty rich young men in the neighbourhood.",
+      "He wants his wife to visit all twenty men by herself."
+     ],
+     "answer": 0,
+     "explain_zh": "前文他刚说“I see no occasion for that”，又拿太太的美貌和“my poor nerves”开玩笑；结尾叙述还点明他是“sarcastic humour”。因此这句话只是敷衍与调侃，并非认真许诺，更不是生气或让太太独自去拜访。"
+    }
+   ]
+  },
+  "classic-sherlock-holmes-1": {
+   "hash": "adace05e053c97e3",
+   "summary_zh": "华生婚后拜访福尔摩斯，见证其惊人推理，并接待戴面具的波希米亚国王。国王委托福尔摩斯取回艾琳·阿德勒持有的合影，以免婚事被毁。",
+   "key_points_zh": [
+    "福尔摩斯从华生鞋上的划痕、碘仿气味等推断其行医、淋雨和女仆粗心，强调“看见”不等于“观察”。",
+    "一封写在波希米亚纸上、带德文句式的匿名信引出戴面具的访客，福尔摩斯当场识破他是波希米亚国王。",
+    "国王五年前与艾琳·阿德勒有牵连，她持有两人合影并威胁在订婚公布时寄出，国王重金请福尔摩斯取回。"
+   ],
+   "cefr": "C1",
+   "cefr_reason_zh": "词汇高级且文学性强，长句和抽象推理多，涉及社会身份与微妙语境。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is this excerpt mainly about?",
+     "options": [
+      "Watson decides to leave medical practice and become Holmes's partner.",
+      "The King of Bohemia asks Holmes to find Irene Adler a new husband.",
+      "Holmes explains how he solved the Trepoff murder in Odessa.",
+      "Holmes proves his deductive powers and accepts a delicate case from the King of Bohemia."
+     ],
+     "answer": 3,
+     "explain_zh": "全文先写福尔摩斯展示推理，再写戴面具的国王来访并委托他取回艾琳·阿德勒手中的合影，故 A 正确。B、D 与原文不符；C 只是顺带提到的旧案。"
+    },
+    {
+     "type": "detail",
+     "q": "How does Holmes know that Watson has been out in bad weather?",
+     "options": [
+      "He sees Watson's top-hat has a bulge from a stethoscope.",
+      "Watson tells him about a country walk on Thursday.",
+      "He sees six parallel cuts on the inside of Watson's left shoe.",
+      "He notices a black mark of nitrate of silver on Watson's finger."
+     ],
+     "answer": 2,
+     "explain_zh": "原文中福尔摩斯说华生左鞋内侧有六道几乎平行的划痕，是有人粗心刮泥所致，因此推断他淋过雨且有粗心女仆。A 是华生后来承认；C、D 用来推断他行医。"
+    },
+    {
+     "type": "inference",
+     "q": "Why does Holmes refuse to let Watson leave when the visitor asks to speak alone?",
+     "options": [
+      "He wants Watson to protect him if the visitor becomes violent.",
+      "He trusts Watson and wants his friend present during the case.",
+      "He wants Watson to write down every word for the newspapers.",
+      "He believes Watson already knows the King's secret."
+     ],
+     "answer": 1,
+     "explain_zh": "福尔摩斯说“It is both, or none”，并允许华生听一切内容，还称“I am lost without my Boswell”，可见他信任并需要华生在场，并非因暴力、报纸或华生已知秘密。"
+    }
+   ]
+  },
+  "classic-tom-sawyer-1": {
+   "hash": "08d1fcce16d790da",
+   "summary_zh": "节选写汤姆偷吃果酱被波莉姨妈抓住，他用“看后面”的诡计逃脱；随后逃学、撒谎，与新来男孩打架，深夜脏衣回家被姨妈发现，被罚周六干活。",
+   "key_points_zh": [
+    "波莉姨妈叫汤姆不应，发现他偷吃果酱；汤姆骗她回头看并翻篱笆逃走。",
+    "汤姆用“水浇头”和缝衣线颜色掩饰逃学，被弟弟西德揭穿。",
+    "汤姆与新来男孩争吵打斗，深夜回家被姨妈抓住，罚他周六做工。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "文本含19世纪方言、口语缩略和较长复句，话题为儿童冒险与家庭管教，叙事具体但语言风格较古旧。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is this excerpt mainly about?",
+     "options": [
+      "Tom's happy swimming afternoon with his friends.",
+      "Tom's first day at a new school in St. Petersburg.",
+      "How Sid helps Aunt Polly catch Tom in a lie.",
+      "Tom's naughty actions and Aunt Polly's trouble in controlling him."
+     ],
+     "answer": 3,
+     "explain_zh": "全文围绕汤姆偷吃果酱、逃学、打架等顽皮行为，以及波莉姨妈想管教却常被逗笑、心软展开。"
+    },
+    {
+     "type": "detail",
+     "q": "Why does Aunt Polly decide that Tom must work on Saturday?",
+     "options": [
+      "He lost his needle and thread.",
+      "He came home late with his clothes in a mess after a fight.",
+      "He told her he had gone swimming.",
+      "He refused to help Jim saw the wood."
+     ],
+     "answer": 1,
+     "explain_zh": "原文末尾说，姨妈看到汤姆衣服的状态后，才坚定地把他周六的假日变成干活；他当晚很晚才回家，且刚打过架。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about Aunt Polly from the passage?",
+     "options": [
+      "She never laughs at Tom's tricks.",
+      "She wants Tom to spend more time fighting.",
+      "She loves Tom but finds it hard to punish him.",
+      "She believes Tom is the model boy of the village."
+     ],
+     "answer": 2,
+     "explain_zh": "原文写她“broke into a gentle laugh”，又说“ain't got the heart to lash him”，每次打他“old heart most breaks”，可见她爱汤姆却难下狠心管教。"
+    }
+   ]
+  },
+  "classic-treasure-island-1": {
+   "hash": "0a9dbd56a18d66db",
+   "summary_zh": "小说开头，叙述者吉姆回忆父亲客栈里来了一位自称船长的老海员。他沉默凶悍，常喝朗姆酒，付钱让吉姆留意一个独腿海员，还用故事吓唬客人，最后被李弗西医生制止。",
+   "key_points_zh": [
+    "叙述者应乡绅和医生之请，追述父亲经营本鲍海军上将客栈时的往事。",
+    "一位自称“船长”的褐肤老海员住进客栈，付金币、喝烈酒，性格沉默而凶悍。",
+    "他每月给吉姆四便士，让吉姆留意独腿海员，并因醉酒闹事被李弗西医生警告。"
+   ],
+   "cefr": "C1",
+   "cefr_reason_zh": "用词含航海、法律及古旧表达（如 capstan bars、assizes），长句和文学叙事较多，但情节具体，故评为 C1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is this excerpt mainly about?",
+     "options": [
+      "The narrator's father becomes rich by running an inn.",
+      "Dr. Livesey teaches the narrator how to become a doctor.",
+      "The narrator finds a treasure map in a sea-chest.",
+      "A mysterious old seaman arrives at the narrator's family inn and behaves strangely."
+     ],
+     "answer": 3,
+     "explain_zh": "选文主要写老海员住进本鲍客栈后的言行、秘密和与医生的冲突，并未写寻宝或发现地图。"
+    },
+    {
+     "type": "detail",
+     "q": "What did the captain promise to give the narrator every month?",
+     "options": [
+      "A glass of rum",
+      "A brass telescope",
+      "A silver fourpenny piece",
+      "A gold coin"
+     ],
+     "answer": 2,
+     "explain_zh": "原文明确说船长承诺“a silver fourpenny on the first of every month”，条件是吉姆留意独腿海员。"
+    },
+    {
+     "type": "inference",
+     "q": "Why did the captain most likely choose the Admiral Benbow?",
+     "options": [
+      "It was quiet and lonely, which helped him avoid other seamen.",
+      "It was well known for having many seafaring guests.",
+      "It was close to Dr. Livesey's house.",
+      "It was owned by an old friend of his."
+     ],
+     "answer": 0,
+     "explain_zh": "原文说客栈被描述为“lonely”，船长因此选择它；后文又写他有意避开海员，所以安静偏僻最合理解释。"
+    }
+   ]
+  },
+  "culture-1-a": {
+   "hash": "62cf8f4ffb18d63c",
+   "summary_zh": "文章介绍中国、英国、摩洛哥和印度饮茶的不同方式，说明茶不仅是饮料，也是待客、问候和休息的方式，分享茶就是分享时间。",
+   "key_points_zh": [
+    "中国常喝不加奶糖的茶，用小杯多次冲泡，朋友慢慢聊天。",
+    "英国人常加牛奶，下午茶配小三明治和蛋糕，是愉快的休息。",
+    "摩洛哥用薄荷和大量糖，从高处倒茶形成气泡；印度常喝加奶、糖和香料的chai。"
+   ],
+   "cefr": "A2",
+   "cefr_reason_zh": "词汇多为日常具体词，句子以简单现在时和短句为主，话题贴近生活。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "The history of tea in England.",
+      "Different ways people enjoy tea around the world.",
+      "How to make tea in China.",
+      "Why tea is more popular than coffee."
+     ],
+     "answer": 1,
+     "explain_zh": "全文分别介绍中国、英国、摩洛哥和印度的饮茶方式，因此主旨是世界各地不同的饮茶方式。"
+    },
+    {
+     "type": "detail",
+     "q": "In Morocco, how do people make tea special?",
+     "options": [
+      "They drink it without milk or sugar.",
+      "They cook tea leaves with ginger and milk.",
+      "They drink it with small sandwiches.",
+      "They add fresh mint and a lot of sugar."
+     ],
+     "answer": 3,
+     "explain_zh": "原文说 In Morocco, people make tea with fresh mint and a lot of sugar，即加新鲜薄荷和大量糖。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer from the last paragraph?",
+     "options": [
+      "Tea is expensive in many countries.",
+      "People should not talk while drinking tea.",
+      "Sharing tea can help people feel close to each other.",
+      "Tea is only for breakfast."
+     ],
+     "answer": 2,
+     "explain_zh": "最后一段说茶是问候、待客和休息的方式，并说分享茶就是分享时间，可推知喝茶能拉近人与人的关系。"
+    }
+   ]
+  },
+  "culture-1-b": {
+   "hash": "fbea37d14cb08f25",
+   "summary_zh": "文章介绍印度、中国和泰国三个国家的灯节：人们点灯、放灯、放河灯，形式各不相同，但都表达同一个理念——光带来希望，也让人与人聚在一起。",
+   "key_points_zh": [
+    "许多文化都有灯节，人们用灯照亮黑夜，让街道温暖美丽。",
+    "印度排灯节在秋天，人们门口放油灯、打扫房屋、吃甜食、送礼物。",
+    "中国元宵节孩子提纸灯笼、猜灯谜；泰国水灯节放花叶小船和蜡烛并许愿。",
+    "这些节日虽然不同，但都认为光带来希望、把人聚在一起。"
+   ],
+   "cefr": "A2",
+   "cefr_reason_zh": "词汇都是灯、蜡烛、礼物等日常高频词，句子多为简单句和并列句，话题具体，属于A2水平。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main idea of the article?",
+     "options": [
+      "Festivals of light in different countries share the idea that light brings hope and brings people together.",
+      "The Lantern Festival is the most important festival in the world.",
+      "India, China and Thailand all celebrate their light festivals in the same way.",
+      "People should stop using lamps and candles at night."
+     ],
+     "answer": 0,
+     "explain_zh": "文章最后一段点明主旨：'These festivals are different, but they share one idea. Light brings hope, and it brings people together.' 第一项正是此意；第二项与'These festivals are different'矛盾；第三、四项文中均无依据。"
+    },
+    {
+     "type": "detail",
+     "q": "What do children do at the Lantern Festival in China?",
+     "options": [
+      "They set small boats on the river.",
+      "They carry bright paper lanterns in the park.",
+      "They clean their homes and give gifts.",
+      "They put oil lamps outside their doors."
+     ],
+     "answer": 1,
+     "explain_zh": "原文中国部分写道：'Children carry bright paper lanterns in the park.' 放小船、点油灯、打扫房屋和送礼物分别是泰国和印度的做法。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about these light festivals from the last paragraph?",
+     "options": [
+      "They can make people feel happy after a dark time.",
+      "They are becoming less popular today.",
+      "They are only for children.",
+      "They are held only in Asia."
+     ],
+     "answer": 0,
+     "explain_zh": "结尾说'After a long, dark time, a small flame can make everyone smile.' 可推断灯节能让人在艰难之后感到快乐。文中未说节日只属于孩子或只流行于亚洲，也没有提到节日变得不受欢迎。"
+    }
+   ]
+  },
+  "culture-2-a": {
+   "hash": "18d816d5de711759",
+   "summary_zh": "街头小吃不只是便宜快捷的一餐。它源于工人的需要，随着移民的迁徙而传播变化，也承载着摊主的自豪与社区联系。因此，街头小吃能展现一座城市的人、历史与日常。",
+   "key_points_zh": [
+    "许多街头小吃最初是给时间和钱都不多的工人吃的，用当地食材和简单做法制作，所以各地风味不同。",
+    "家庭迁移到新的国家时把食谱带去，摆小摊是容易的谋生方式，食物会慢慢融合新旧食材。",
+    "街头小吃也是摊主的骄傲和社区交流的空间；但城市担心噪音、人行道拥挤和食品安全，有的地方限制摆摊，许多居民认为这会是损失。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇较日常但含少量抽象表达（source of pride, community space），句子以简单句和常见从句为主，话题涉及文化与社会，属于中等抽象程度。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "Street food tastes the same in every big city.",
+      "Street food tells us about a city's people, history and daily life.",
+      "Street food causes too many problems and should be stopped.",
+      "Street food is popular only because it is cheap and fast."
+     ],
+     "answer": 1,
+     "explain_zh": "文章开门见山说街头小吃“is also much more than a quick meal. It is a way for a city to show who it is”，后文又从工人、移民、摊主自豪感三方面展开，所以主旨是 B。A 被 “much more than a quick meal” 否定；C 与最后两段居民认为限制是损失相悖；D 与“each place developed its own flavors”相反。"
+    },
+    {
+     "type": "detail",
+     "q": "Why did many street dishes begin as food for workers?",
+     "options": [
+      "Because workers wanted to open small restaurants.",
+      "Because workers needed cheap, filling food they could eat standing up.",
+      "Because rich families did not like local ingredients.",
+      "Because guidebooks told visitors to eat them."
+     ],
+     "answer": 1,
+     "explain_zh": "第二段明确写道：“People who had little time and little money needed something filling that they could eat standing up.” 对应选项 B，其余选项文中均无依据。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about a street with no food sellers?",
+     "options": [
+      "Guidebooks would no longer be useful.",
+      "It would become more popular with visitors.",
+      "The vendors would be happy about the change.",
+      "It may be quieter, but many people would feel something is lost."
+     ],
+     "answer": 3,
+     "explain_zh": "第五段说城市担心噪音等问题并限制摆摊，但“Many residents feel this would be a loss, because a street without its food sellers can feel empty”。由此可推知：街道也许更安静，但很多人会觉得少了点什么，故选 A。"
+    }
+   ]
+  },
+  "culture-2-b": {
+   "hash": "6be21478d35729f6",
+   "summary_zh": "文章探讨人们喜爱鬼故事的原因：鬼故事能让人在安全环境中体验恐惧、为地点留下记忆、反映不同文化对鬼魂的想象，并作为社交活动把人们联系在一起。",
+   "key_points_zh": [
+    "鬼故事让人在安全环境中面对恐惧，事后常感到更勇敢。",
+    "鬼故事常与真实地点相连，为地方留下记忆，并体现不同文化对鬼魂的不同想象。",
+    "讲鬼故事是一种社交活动，共享的紧张感使这一传统延续至今。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇以常用词为主，但包含 spirits、linked、survives、podcasts 等抽象表达，且需要理解多重原因和文化比较，适合 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "Why horror films are better than podcasts.",
+      "Why ghost stories are still popular around the world.",
+      "How to write a good ghost story.",
+      "How people can show that ghosts are real."
+     ],
+     "answer": 1,
+     "explain_zh": "全文围绕“If these stories scare us, why do we keep telling them?”展开，并逐段说明鬼故事受欢迎的原因。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what can a ghost story do for a real place?",
+     "options": [
+      "It brings food to the place.",
+      "It gives the place a memory.",
+      "It teaches people to build new houses.",
+      "It makes the place safer at night."
+     ],
+     "answer": 1,
+     "explain_zh": "原文说“The story gives the place a memory.”，即鬼故事为真实地点留下记忆。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about why ghost stories survive as a tradition?",
+     "options": [
+      "People enjoy them only because they believe ghosts are real.",
+      "They are popular only in countries with special holidays.",
+      "The shared feeling they create is more important than fear itself.",
+      "Modern films and podcasts have completely replaced them."
+     ],
+     "answer": 2,
+     "explain_zh": "原文结尾说共享的感受“may be the real reason the tradition survives”，可推知这种共同体验比单纯的恐惧更重要。"
+    }
+   ]
+  },
+  "culture-3-a": {
+   "hash": "6f7b010f639a202a",
+   "summary_zh": "博物馆展出的只是藏品的一小部分，策展要兼顾文物保护、空间与预算，也要让展品串成一个连贯的故事。展览本身在表达某种观点，近年来藏品的来源与阐释方式受到更多审视，社区协商和文物归还在改变博物馆的做法。观众反馈影响展出决定，但只追逐人气也可能让展览变得单一。",
+   "key_points_zh": [
+    "展出决定首先受现实条件限制：光线会损伤纸质绘画和旧织物，空间、预算有限，展柜也未必通用。",
+    "每个展览都在悄悄表达某种观点，选择哪些展品、如何摆放，会影响观众对历史与日常生活的理解。",
+    "许多博物馆开始与相关社区协商、改写说明文字甚至归还文物，但这些做法仍有争议；观众也应追问什么被排除在外、由谁决定。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "词汇较抽象（consequential、scrutiny、coherent、double-edged sword），句子含较多从句与被动结构，话题涉及策展伦理与公共争议，故评为 B2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How museums decide what to display, and why those choices are debated.",
+      "Why museums should keep fewer objects in their collections.",
+      "Why visitors only want to see famous objects.",
+      "How to repair old paintings and textiles in museums."
+     ],
+     "answer": 0,
+     "explain_zh": "全文围绕“博物馆如何决定展出什么”展开：第一段点明这是最重要却最不为人所见的任务，中间几段分别谈现实限制、叙事逻辑、来源争议与观众反馈，最后一段总结。其余选项都只是文中某一细节或并未提及。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, why are paintings on paper and old textiles sometimes rotated in and out of view?",
+     "options": [
+      "Because visitors get bored when they see the same objects for too long.",
+      "Because there is not enough room in the storage rooms.",
+      "Because curators want to show the collection as quickly as possible.",
+      "Because long exposure to light can make them fade."
+     ],
+     "answer": 3,
+     "explain_zh": "第二段原文：“Some objects are too fragile to be exposed to light for long, so paintings on paper or old textiles may be rotated in and out of view to keep them from fading.” 即长期受光会褪色，故需轮换展出。"
+    },
+    {
+     "type": "inference",
+     "q": "What can be inferred about an exhibition that shows only masterpieces?",
+     "options": [
+      "It is always the most popular kind of exhibition with visitors.",
+      "It may give visitors a misleading picture of everyday life in the past.",
+      "It usually contains objects that are too fragile to be shown for long.",
+      "It is normally organized without any help from curators."
+     ],
+     "answer": 1,
+     "explain_zh": "第三段原文：“A museum that shows only masterpieces may give a distorted picture of daily life, which was mostly made up of ordinary things such as cups, tools and letters.” 可推知只展名作会让观众对日常生活产生失真印象。其余选项在文中无依据。"
+    }
+   ]
+  },
+  "culture-3-b": {
+   "hash": "f5422a3e6548c28b",
+   "summary_zh": "有声书曾被视为“次等阅读”，如今因智能手机和耳机迅速流行。它带来便利与情感体验，也为视障和阅读困难者打开书本。文章讨论“听算不算读”，认为有声书与传统阅读并非竞争，而是互相促进，关键是让更多人回到故事中。",
+   "key_points_zh": [
+    "技术让有声书变得方便便宜：智能手机和无线耳机使人们能在通勤、做饭、跑步时听书，并随时接着上次的位置继续。",
+    "朗读者的声音能传递情感，对视障或阅读困难者尤其重要，音频为他们打开了原本难以进入的书本世界。",
+    "研究显示听和读的理解与记忆效果相近，但体验不同；有声书与纸质书更像互相促进，而非彼此取代。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "词汇有一定抽象性（如 visual impairments、dyslexia、format），句式含较多从句和转折，话题为文化评论并需要一定推断，但整体结构清晰、生词可控。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main idea of the article?",
+     "options": [
+      "Audiobooks have become popular and should be seen as another way to enjoy stories, not as a threat to reading.",
+      "Audiobooks are quickly replacing printed books, so traditional reading will soon disappear.",
+      "Only people with reading difficulties can benefit from audiobooks.",
+      "Listening to audiobooks is much harder than reading, so people should avoid them."
+     ],
+     "answer": 0,
+     "explain_zh": "全文先说明有声书从被轻视到流行，再讨论“听算不算读”，最后指出两种格式“feed each other rather than compete”，关键是人继续回到故事中，因此 B 最全面。A 与原文相反；C 与研究中“理解记忆效果相近”不符；D 把“尤其对视障者重要”误读为“只有他们受益”。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what helped make audiobooks more convenient?",
+     "options": [
+      "Audiobooks were sold on bulky cassettes and discs.",
+      "Smartphones and wireless headphones made it easy to carry a library and continue listening.",
+      "Publishers stopped making printed books, so audiobooks became cheaper.",
+      "Libraries began offering audiobooks for free to everyone."
+     ],
+     "answer": 1,
+     "explain_zh": "原文第二段说“Smartphones and wireless headphones removed those obstacles almost overnight. A whole library now fits in a pocket, and a story can pick up exactly where you left off”，对应 C。A 文中未提；B 是过去不方便的情形；D 文中未提。"
+    },
+    {
+     "type": "inference",
+     "q": "What can be inferred from the article about the relationship between audiobooks and printed books?",
+     "options": [
+      "The two formats can support each other and lead people to more books.",
+      "Printed books are better because listeners cannot set their own pace.",
+      "Audiobooks will soon make printed books disappear completely.",
+      "People who listen to audiobooks never read printed books."
+     ],
+     "answer": 0,
+     "explain_zh": "原文第五段说“Many people who listen to books also buy printed ones”以及“The two formats seem to feed each other rather than compete”，可推知 C。A 与“points the other way”相反；B 与“also buy printed ones”矛盾；D 虽提到读者可自定节奏，但文章整体并不因此判定纸质书更好。"
+    }
+   ]
+  },
+  "daily-1-a": {
+   "hash": "412d4430556392ec",
+   "summary_zh": "文章讲述作者过去早晨匆忙、不吃早餐且整天疲惫，后来决定改变。他建立了简单的晨间习惯：把手机放远、喝水洗脸拉伸、慢慢吃早餐，并允许偶尔漏掉步骤。小习惯带来了大改变。",
+   "key_points_zh": [
+    "作者过去晚起、不吃早餐、整天疲惫，去年决定改变早晨。",
+    "新习惯包括把手机放远、喝水、洗脸拉伸、做早餐并慢慢吃且不看手机。",
+    "整套流程约四十分钟，偶尔忘记步骤没关系，关键是简单并坚持。"
+   ],
+   "cefr": "A2",
+   "cefr_reason_zh": "词汇基础具体，句子多为简单句和并列句，话题是日常晨间习惯，抽象程度低。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How the writer built a simple morning routine.",
+      "How to exercise for forty minutes every morning.",
+      "Why people should not use phones at work.",
+      "Why breakfast is the most important meal of the day."
+     ],
+     "answer": 0,
+     "explain_zh": "全文围绕作者如何改变早晨展开，介绍闹钟、喝水、拉伸、早餐等步骤，并强调“keep it simple”，所以主旨是建立简单晨间习惯。"
+    },
+    {
+     "type": "detail",
+     "q": "What is the first small step in the writer's routine?",
+     "options": [
+      "He puts his phone across the room.",
+      "He does five minutes of stretching.",
+      "He drinks a big glass of water.",
+      "He makes eggs and toast."
+     ],
+     "answer": 0,
+     "explain_zh": "原文说“I put my phone across the room... This is my first small step.” 喝水、拉伸和做早餐都是后面的步骤。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about the writer?",
+     "options": [
+      "He does hard exercise every morning.",
+      "He eats breakfast at his workplace.",
+      "He believes simple habits are easier to continue.",
+      "He never forgets any step now."
+     ],
+     "answer": 2,
+     "explain_zh": "原文说“Some days I forget a step... The important thing is to keep it simple.” 说明他认为简单的习惯更容易坚持；文中也说拉伸“not hard exercise”，早餐在家吃。"
+    }
+   ]
+  },
+  "daily-1-b": {
+   "hash": "ed5fac8c23f14a63",
+   "summary_zh": "本文讲述作者独居后学着自己做饭的经历：起初做得太多造成浪费，后来改成每三天采购一次、周日提前备菜；拿手菜是十五分钟就能做好的炒饭，还会故意多做一点带去公司当午餐。一个人做饭时他听音乐或给朋友打电话，简单的饭菜也吃得更香。",
+   "key_points_zh": [
+    "独居后作者必须自己做饭，一开始做太多、扔掉一半，既浪费钱又浪费食物。",
+    "他改变计划：每三天采购一次，买鸡蛋、蔬菜、面条和鸡肉，周日切好蔬菜放进冰箱的小盒子里。",
+    "他最爱做炒饭，快又便宜；他会故意多做一点，第二天带去公司当午餐，并边做饭边听音乐或给朋友打电话。"
+   ],
+   "cefr": "A2",
+   "cefr_reason_zh": "词汇是食物与烹饪的日常词（oil, vegetables, fridge, fried rice），句子短、多为简单句和并列句，话题具体生活化，故评为 A2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the text mainly about?",
+     "options": [
+      "Why the writer does not like his family's big meals.",
+      "Why cooking for a big family is hard work.",
+      "How the writer learned to cook for himself when living alone.",
+      "How to cook fried rice in a restaurant."
+     ],
+     "answer": 2,
+     "explain_zh": "全文围绕“独居后自己做饭”展开：开头说 Cooking for one person is not always easy，接着讲改变采购与备菜方式、做炒饭、带饭上班、边做边听音乐，都是他一个人做饭的经验。B、C、D 文中均无依据。"
+    },
+    {
+     "type": "detail",
+     "q": "What does the writer do on Sunday?",
+     "options": [
+      "He buys food for a whole month.",
+      "He calls a friend to come and cook for him.",
+      "He cuts the vegetables and keeps them in small boxes.",
+      "He cooks dinner for his coworkers."
+     ],
+     "answer": 2,
+     "explain_zh": "原文明确写道：On Sunday I cut the vegetables and keep them in small boxes in the fridge. 他每三天采购一次，不是一次买一个月（A 错）；同事只是说他带的饭很香（C 错）；他打电话是聊天，不是请朋友来做饭（D 错）。"
+    },
+    {
+     "type": "inference",
+     "q": "Why does the writer play music or call a friend while he cooks?",
+     "options": [
+      "He thinks music makes the food cook faster.",
+      "He wants his friends to teach him how to cook.",
+      "He wants to learn some new songs.",
+      "Cooking alone can feel quiet, and these things make the time nicer."
+     ],
+     "answer": 3,
+     "explain_zh": "原文说 Cooking alone can be quiet, so I play music while I cook. Sometimes I call a friend, and we talk. 可见听音乐、打电话是为了让一个人做饭的时间不那么冷清，与学歌、请人教做菜、让食物更快熟无关。"
+    }
+   ]
+  },
+  "daily-2-a": {
+   "hash": "89848443a59228ec",
+   "summary_zh": "作者初到新城市工作，因独自租房太贵而选择合租。起初两人因洗碗、噪音等生活习惯不同而互相困扰，后来通过制定清洁、访客和分摊费用的规则学会相处。合租让作者懂得耐心、尊重空间和及时坦诚沟通。",
+   "key_points_zh": [
+    "合租初期的矛盾多来自洗碗时间、噪音等生活小事，双方没有对错，但需要沟通。",
+    "他们制定清洁表、提前告知访客、在冰箱留共用物品架并月底分摊费用等简单规则。",
+    "房租各付一半，水电和网络用手机应用记账；尊重彼此空间与一起娱乐同样重要。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇多为日常生活常见词（如 afford、schedule、split the cost），句式含少量从句但话题具体、抽象度低，故评为 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to find a cheap flat in a new city.",
+      "Why the writer moved to a new city for work.",
+      "Why roommates should become best friends.",
+      "How the writer learned to live well with a roommate."
+     ],
+     "answer": 3,
+     "explain_zh": "全文围绕作者与 Daniel 合租的经历展开，重点讲他们如何解决生活摩擦、制定规则并学会沟通。"
+    },
+    {
+     "type": "detail",
+     "q": "What did the writer and Daniel do with shared items in the fridge?",
+     "options": [
+      "They wrote their names on every item.",
+      "They asked the landlord to pay for them.",
+      "They kept them on one shelf and split their cost at the end of the month.",
+      "They bought them only when guests came."
+     ],
+     "answer": 2,
+     "explain_zh": "原文说他们决定在冰箱里留一层放牛奶、食用油等共用物品，并在月底分摊这些费用。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about the writer's view of a good roommate?",
+     "options": [
+      "A good roommate must spend every evening with you.",
+      "A good roommate respects your space and talks honestly.",
+      "A good roommate pays all the electricity bills.",
+      "A good roommate never creates any noise."
+     ],
+     "answer": 1,
+     "explain_zh": "原文指出合租者不必成为最好的朋友，尊重彼此空间和及时坦诚沟通很重要，因此可推断作者认为好室友应尊重空间并诚实沟通。"
+    }
+   ]
+  },
+  "daily-2-b": {
+   "hash": "1a74b99fb6894f15",
+   "summary_zh": "作者尝试周末关掉手机，起初不习惯，担心错过重要消息。后来他散步、问路、读书，感到更平静，发现生活节奏变慢。恢复开机后没有紧急消息，他决定保留手机但在吃饭和夜间把它放远。",
+   "key_points_zh": [
+    "周五晚关手机到周一早，想看看手机对空闲时间的控制。",
+    "周末无手机时，他更专注吃饭、散步、问路和阅读，感觉更平静。",
+    "重新开机有40条消息但无紧急事，他仍用手机，但吃饭和晚上十点后把它放别的房间。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "文本以简单过去时叙述具体日常经历，词汇常见，仅有少量抽象表达（如 controlled my free time），句式以短句和简单从句为主。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "A man who decided to stop using phones forever.",
+      "A man who found forty urgent messages on Monday.",
+      "A man who spent a weekend without his phone and learned to use it better.",
+      "A man who bought a new phone for the weekend."
+     ],
+     "answer": 2,
+     "explain_zh": "全文讲作者周五晚关手机到周一早，记录无手机周末的感受，最后说仍会用手机但吃饭和夜间放远，故主旨是“周末不用手机并学会更好使用”。"
+    },
+    {
+     "type": "detail",
+     "q": "What did the writer do on Saturday afternoon?",
+     "options": [
+      "He cleaned his room.",
+      "He walked in the park.",
+      "He read half a book.",
+      "He asked a shopkeeper for directions."
+     ],
+     "answer": 3,
+     "explain_zh": "原文第四段写周六下午没有地图应用，他先写路线，迷路时向店主问路，因此选“向店主问路”。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about the writer after the experiment?",
+     "options": [
+      "He thinks phones are not useful.",
+      "He missed an emergency during the weekend.",
+      "He will use his phone less at certain times.",
+      "He will never turn off his phone again."
+     ],
+     "answer": 2,
+     "explain_zh": "最后一段说手机很有用，不会放弃，但现在吃饭时和晚上十点后把它放在另一个房间，可推断他会在特定时间少用手机。"
+    }
+   ]
+  },
+  "daily-3-a": {
+   "hash": "f0608346e6cb44ea",
+   "summary_zh": "拖延并非源于懒惰，而多是对无聊、困惑或恐惧等不适情绪的回避，因为逃避只带来短暂的轻松。完美主义与模糊目标会让拖延更严重。文章建议把任务拆到极小、减少干扰、善待自己，在逃跑的冲动出现前先迈出一小步。",
+   "key_points_zh": [
+    "拖延本质上是情绪问题而非时间问题：逃避任务能立刻缓解不适，但任务仍在，还会添上内疚。",
+    "完美主义让\"开始\"变得有风险（空白页不会被批评），模糊的目标也让大脑无从下手。",
+    "可行做法：把任务缩到几乎荒唐的小、降低做正事的阻力并提高干扰的阻力、失败后温和复盘而非自责。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "含 procrastination、perfectionism、friction、verdict 等抽象词汇，多条件句与让步从句，讨论的是心理机制的抽象话题，故评为 B2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "Which sentence best states the main idea of the article?",
+     "options": [
+      "Procrastination is mainly caused by laziness and poor time management.",
+      "Procrastination grows out of uncomfortable feelings, and small steps plus self-kindness can help.",
+      "The only real solution to putting things off is a strict daily schedule.",
+      "People who procrastinate are usually less able than other people."
+     ],
+     "answer": 1,
+     "explain_zh": "首段明确说\"把拖延归咎于懒惰太简单\"，第二段说它是\"a problem with feelings, not with time\"，后文给出缩小任务、善待自己等建议，故 B 正确。A、D 与原文相反，C 文中未提。"
+    },
+    {
+     "type": "detail",
+     "q": "What example does the writer give of \"shrinking the task\"?",
+     "options": [
+      "Write the whole essay in one afternoon without stopping.",
+      "Ask a friend to check your work before you start.",
+      "Make a detailed plan for the whole week first.",
+      "Open the document and write one ugly sentence."
+     ],
+     "answer": 3,
+     "explain_zh": "原文第四段：\"Instead of 'write the essay,' try 'open the document and write one ugly sentence.'\" 其余选项文中均未出现。"
+    },
+    {
+     "type": "inference",
+     "q": "What would the writer most likely say to a student who has just missed a deadline?",
+     "options": [
+      "\"Look calmly at why the task felt so hard and how to make it smaller next time.\"",
+      "\"This shows you are not the kind of person who can finish things.\"",
+      "\"Just work harder next time and don't think about what went wrong.\"",
+      "\"Drop the task and pick something easier instead.\""
+     ],
+     "answer": 0,
+     "explain_zh": "第五段说自责会加重导致回避的压力，建议\"a calmer review\"：\"what made this feel so hard, and what would make it feel smaller next time?\" 把挫折当作信息而非对人格的判决。A、B 属于自责与忽视问题，D 与\"迈出一小步\"的建议相悖。"
+    }
+   ]
+  },
+  "daily-3-b": {
+   "hash": "434b8d793196cb24",
+   "summary_zh": "三十五岁的作者从零开始学骑自行车。他发现真正的障碍不是身体，而是成人的恐惧与自我怀疑；在邻居帮助下，他学会平衡、放松视线，并体会到初学者的快乐。最终他明白，暂时做不好并非失败，而是进入新生活的代价。",
+   "key_points_zh": [
+    "作者小时候没学会骑车，三十五岁时决定弥补这个遗憾。",
+    "最大的障碍是心理上的恐惧和自我怀疑，而不是体力；邻居通过卸掉脚踏、降低座垫帮他先练平衡。",
+    "他学会看向目标而不是障碍，并体会到初学新技能的快乐，认为暂时做不好是学习新事物的代价。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "文章包含 obstacle、ironically、admission 等中高级词汇和较多从句、隐喻表达，话题涉及成人学习心理，抽象程度较高。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "The rules of safe cycling on a river path.",
+      "A man who learned to ride a bike at thirty-five and what it taught him.",
+      "How to repair an old bicycle step by step.",
+      "Why cycling is the best way to travel in a city."
+     ],
+     "answer": 1,
+     "explain_zh": "全文讲述作者三十五岁学骑车的经历，从害怕到享受，并总结学习新技能的心态。"
+    },
+    {
+     "type": "detail",
+     "q": "What did the writer say was the real obstacle to learning to ride?",
+     "options": [
+      "The busy streets near his apartment.",
+      "His poor physical condition.",
+      "The negative thoughts and fear in his mind.",
+      "A bicycle that was too large."
+     ],
+     "answer": 2,
+     "explain_zh": "第二段明确说“the real obstacle was in my head”，并提到成年人会想象事故 headline、把每次摇晃当成自己太老的证据。"
+    },
+    {
+     "type": "inference",
+     "q": "What does the writer suggest by saying that being bad at something for a while is 'the price of admission to a new part of life'?",
+     "options": [
+      "Adults should avoid activities that make them feel like beginners.",
+      "Doing something badly at first is a normal part of learning.",
+      "A person must be good at something before trying it.",
+      "Children are naturally better at all physical skills."
+     ],
+     "answer": 1,
+     "explain_zh": "最后一段说“being bad at something for a while is not a failure”，而是进入生活新阶段的代价，说明初学阶段暂时做不好是正常过程。"
+    }
+   ]
+  },
+  "remote-business-1": {
+   "hash": "a76aaa2e7035ff3b",
+   "summary_zh": "餐车老板的一大难题是顾客不知道餐车明天在哪，因此规划路线和设计菜单同样重要。文章介绍了按时间选地点、遵守规则、用社交媒体发布位置，以及记录销售数据来不断调整路线的方法。",
+   "key_points_zh": [
+    "路线决定生意好坏：午餐靠近写字楼，晚上和周末靠近公园、夜市或活动人群。",
+    "选点还要考虑城市规定、许可证、费用、电力、水源和空间等现实条件。",
+    "老板用社交媒体告知位置，并记录天气、地点、时间和销量，找出规律后调整路线。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇较具体但含 permit、pattern 等稍抽象词，句式中等，话题为商业选址，整体适合 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to get a permit for a food truck",
+      "How food truck owners choose and improve their routes",
+      "Why office workers prefer food trucks",
+      "How restaurant owners plan their menus"
+     ],
+     "answer": 1,
+     "explain_zh": "全文围绕餐车路线规划展开：按时间选地点、考虑规则、用社交媒体发布位置，并通过记录不断调整路线。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, where is a good place for a food truck at lunchtime?",
+     "options": [
+      "Near office buildings",
+      "At outdoor concerts",
+      "On narrow streets",
+      "Near night markets"
+     ],
+     "answer": 0,
+     "explain_zh": "原文明确说：At lunch, office workers want a quick meal, so the truck parks near office buildings between eleven and two."
+    },
+    {
+     "type": "inference",
+     "q": "Why might a food truck owner keep a weekly schedule?",
+     "options": [
+      "To park in more than one city in a day",
+      "To make the truck bigger",
+      "To avoid writing notes about sales",
+      "To help regular customers know where to find the truck"
+     ],
+     "answer": 3,
+     "explain_zh": "原文说有些老板保持每周时间表，让人们知道餐车每周二总在同一个街角，因此可推断这是为了帮助常客找到餐车。"
+    }
+   ]
+  },
+  "remote-culture-1": {
+   "hash": "d3780f48ae0e7379",
+   "summary_zh": "手机信息又快又免费，但很多人仍把旧信件留在抽屉里。手写信需要花时间、带有笔迹个性，还能让写信人静下心来整理情感，因此在特别时刻仍值得选择。",
+   "key_points_zh": [
+    "手写信要花时间书写且不易删改，收信人会感到对方为自己付出了心力。",
+    "笔迹的形状、用笔的力度甚至涂改都带有写信人的个性，让人多年不忘。",
+    "写信时没有屏幕打扰，有助于梳理并说出难以当面表达的感谢、道歉或告别。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇多为日常常见词，句子以简单句和并列句为主，话题贴近生活但略带抽象，符合 B1 水平。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main idea of the article?",
+     "options": [
+      "People should stop using phones and write everything by hand.",
+      "Handwriting is a skill that everyone must learn at school.",
+      "Old letters are kept mainly because paper is expensive.",
+      "Handwritten letters still matter today because they take effort and carry personal meaning."
+     ],
+     "answer": 3,
+     "explain_zh": "全文先引出“手机信息很快，但人们仍留着旧信”，随后从花时间、带笔迹个性、帮助写信人整理情感三方面说明手写信的意义，最后一段也说不必放弃手机，但手写信适合特别时刻。故答案是第一项。第二项与最后一段“This does not mean we should stop using phones”矛盾。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, why can even a short handwritten note feel like a gift?",
+     "options": [
+      "Because it is sent more quickly than a text.",
+      "Because the receiver knows the writer spent time and effort on it.",
+      "Because it is longer than a text message.",
+      "Because it is written on expensive paper."
+     ],
+     "answer": 1,
+     "explain_zh": "第二段明确说收信人知道写信要花心力，所以“even a short note can feel like a gift”，并说信表明有人坐下来在你身上花了时间。文中还说“You do not need beautiful writing or fancy paper”，可见第一项错误。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about writing a letter by hand about a hard topic, such as an apology?",
+     "options": [
+      "It is usually a waste of time.",
+      "It is only useful for quick daily plans.",
+      "It may help the writer express feelings that are hard to say out loud.",
+      "It will always make the other person angry."
+     ],
+     "answer": 2,
+     "explain_zh": "第四段说写信时没有屏幕提醒打扰，能帮助人“organize their feelings”，尤其当话题难以当面说出时，如感谢、道歉或告别。由此可推知手写道歉信有助于表达难以说出口的感受。"
+    }
+   ]
+  },
+  "remote-daily-1": {
+   "hash": "e283863d7981e217",
+   "summary_zh": "文章介绍五种让狭小房间显得更大的简单方法。重点包括改善光线、使用浅色、摆放镜子和清空地面，无需花很多钱或改造房屋。",
+   "key_points_zh": [
+    "用自然光和多个小灯改善光线，避免昏暗角落。",
+    "浅色能反射光线，让墙显得更远；亮色只用于小物件。",
+    "镜子放在窗对面可引入日光；清空地面、用带腿家具和墙上搁架让空间更开阔。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇多为日常具体词（curtain, cushion, shelf 等），句子以简单句和并列句为主，话题是生活建议，抽象度较低。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to paint walls in bright colors.",
+      "How to buy expensive furniture for a small room.",
+      "How to make a small room feel bigger with simple changes.",
+      "Why students should move to large homes."
+     ],
+     "answer": 2,
+     "explain_zh": "首段指出，不需要花很多钱或改造房屋，只需在光线、颜色和整洁方面做简单改变，就能让同一空间显得更大。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, where should you put a mirror?",
+     "options": [
+      "Under the bed.",
+      "On the ceiling above a bright lamp.",
+      "Behind heavy curtains.",
+      "Opposite a window."
+     ],
+     "answer": 3,
+     "explain_zh": "镜子一段明确说“Put one opposite a window”，这样可以把日光带入房间更深的地方。"
+    },
+    {
+     "type": "inference",
+     "q": "Why does the writer suggest two or three small lamps instead of one bright lamp on the ceiling?",
+     "options": [
+      "Ceiling lamps cannot be used at night.",
+      "Small lamps cost more than ceiling lamps.",
+      "Soft light in different corners can make the walls look wider.",
+      "Small lamps make curtains thinner."
+     ],
+     "answer": 2,
+     "explain_zh": "文中说夜间应在不同角落用两三个小灯，而不是一盏亮的顶灯，并说明“Soft light on the walls makes the room look wider”。"
+    }
+   ]
+  },
+  "remote-tech-1": {
+   "hash": "87ee50decb8a1deb",
+   "summary_zh": "二维码看似黑白小方块，实为存储文字和网址的网格，手机摄像头可快速读取。它靠角落的大方块定位，并用纠错数据抵抗污损。它最初用于工厂追踪零件，如今广泛使用，但扫码时仍需警惕假链接和被覆盖的贴纸。",
+   "key_points_zh": [
+    "二维码是黑白小方格组成的网格，手机把明暗读成1和0，角落三个大方块帮助定位和判断方向。",
+    "二维码加入纠错数据，局部脏污、划伤或被小贴纸遮住时仍常能读取；数据越多越耐损，但图案更密。",
+    "二维码最初用于汽车工厂追踪零件，手机普及后走进日常生活；扫码前要核对网址，警惕假网站和公共场合覆盖的贴纸。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇涉及 grid、error correction 等科技词，句式以中等长度说明句和被动语态为主，话题为具体科技应用，故评 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to take better photos with a phone camera",
+      "Why posters and bus stops are useful for advertising",
+      "How QR codes store information and how to scan them safely",
+      "Why car factories stopped using barcodes"
+     ],
+     "answer": 2,
+     "explain_zh": "原文第一段说二维码“is really a way to store text”，后文讲读取、纠错和历史，最后一段讲安全使用，因此主旨是工作原理与安全使用。"
+    },
+    {
+     "type": "detail",
+     "q": "What is the job of the three large squares in the corners of a QR code?",
+     "options": [
+      "They keep the code clean and dry.",
+      "They store the name of the website.",
+      "They make the code look more interesting.",
+      "They help the camera find where the code starts and which way it is turned."
+     ],
+     "answer": 3,
+     "explain_zh": "第二段明确说“Three large squares in the corners tell the camera where the code starts and which way it is turned.”"
+    },
+    {
+     "type": "inference",
+     "q": "Why can a QR code often still be read when a small part is dirty or covered?",
+     "options": [
+      "The phone camera can clean the dirty part.",
+      "The covered part never contains any information.",
+      "Extra data in the code lets the phone fill in the missing pieces.",
+      "The three large squares are always kept clean."
+     ],
+     "answer": 2,
+     "explain_zh": "第三段说“Extra data is added to the code so that the phone can fill in the missing pieces”，并举例脏污、划伤仍可用，因此可推断。"
+    }
+   ]
+  },
+  "tech-1-a": {
+   "hash": "d85ad839596cfb62",
+   "summary_zh": "文章介绍离线地图：出发前在有网络时下载城市地图，手机靠GPS卫星信号定位，没有网络也能查看位置。它节省流量、适合旅行，但地图可能过时，也无法显示实时公交和路况。",
+   "key_points_zh": [
+    "离线地图提前下载并保存在手机里，没有网络也能使用。",
+    "手机通过GPS芯片接收卫星信号来确定位置，并在地图上显示。",
+    "离线地图能省流量，但地图可能不是最新，也不能显示实时公交或交通拥堵。"
+   ],
+   "cefr": "A2",
+   "cefr_reason_zh": "词汇基础、句子短，话题具体，但含GPS、satellites、offline等少量技术词。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main idea of the article?",
+     "options": [
+      "Map apps always show traffic jams without the internet.",
+      "Offline maps can help you find your way without the internet.",
+      "You should never use a map on a trip.",
+      "GPS chips can make phone calls in the mountains."
+     ],
+     "answer": 1,
+     "explain_zh": "原文开头说失去信号、地图变白，随后指出“An offline map can help”，并说明它保存在手机里、无需网络即可使用。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what does the phone's GPS chip do?",
+     "options": [
+      "It listens to signals from satellites to find your position.",
+      "It shows bus times without the internet.",
+      "It makes the offline map newer.",
+      "It downloads maps from the internet."
+     ],
+     "answer": 0,
+     "explain_zh": "原文明确说：“It listens to signals from satellites in space. The signals tell the phone where you are.”"
+    },
+    {
+     "type": "inference",
+     "q": "What does the article suggest you do before a trip?",
+     "options": [
+      "Download the map at home using Wi-Fi.",
+      "Use the map only on trains.",
+      "Close all roads on the map.",
+      "Pay for extra internet."
+     ],
+     "answer": 0,
+     "explain_zh": "最后一段建议：“Download your map at home with Wi-Fi. Check it once before you travel.”"
+    }
+   ]
+  },
+  "tech-1-b": {
+   "hash": "95d833d116fbdb0f",
+   "summary_zh": "降噪耳机通过耳罩阻挡部分声音，并用麦克风采集环境噪音，再由内部电脑发出相反声音与噪音相互抵消，从而让你听到更少噪音。它对飞机引擎等持续声效果最好，对说话、狗叫等突然声效果较差，且需要电池供电。注意在路边等场合可能因隔音而不安全。",
+   "key_points_zh": [
+    "降噪耳机有两个办法：耳罩挡住部分声音，麦克风听周围噪音。",
+    "内部电脑发出与噪音相反的声音，两者相遇互相抵消，所以听到的噪音更少。",
+    "对持续声最有效，对突然声较差；需要电池，隔音在路边可能不安全。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "词汇包含 noise-cancelling、microphones、cancel、steady、battery 等科技词，句子多为简单句和短复合句，话题为日常科技说明，抽象度中等。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "How to make headphones use less battery.",
+      "Why people should not listen to music on trains.",
+      "Why sudden sounds are louder than steady sounds.",
+      "How noise-cancelling headphones make loud places quieter."
+     ],
+     "answer": 3,
+     "explain_zh": "全文先提出问题“降噪耳机如何让吵闹地方变安静”，再解释耳罩阻挡、麦克风采集、反相声波抵消等原理。"
+    },
+    {
+     "type": "detail",
+     "q": "What do the tiny microphones in the headphones do?",
+     "options": [
+      "They make the battery stronger.",
+      "They listen to the noise around you.",
+      "They play music louder.",
+      "They cover your ears."
+     ],
+     "answer": 1,
+     "explain_zh": "原文明确说“The microphones listen to the noise around you.”"
+    },
+    {
+     "type": "inference",
+     "q": "Why should you be careful when walking outside with noise-cancelling headphones?",
+     "options": [
+      "They may make sudden sounds louder.",
+      "They may make your music too quiet.",
+      "They may run out of power very quickly.",
+      "They may stop you from hearing danger, such as cars."
+     ],
+     "answer": 3,
+     "explain_zh": "原文说“blocking sound can be unsafe near roads”，可推知隔音会让你听不到车辆等危险声音。"
+    }
+   ]
+  },
+  "tech-2-a": {
+   "hash": "66f97745e1557158",
+   "summary_zh": "手机电池用两三年后变得不耐用，是锂离子电池充放电循环带来的正常老化。高温会加速老化，而现代手机不必每次耗尽再充满，浅充浅放并避免高温有助于延长电池寿命。",
+   "key_points_zh": [
+    "每次充放电循环都会在电池内部积累微小化学变化，使电池能储存的能量逐渐减少。",
+    "高温会加速电池老化；极冷天气的影响通常是暂时的，电池回暖后往往能恢复。",
+    "现代锂电池不宜每次深度放电或充到100%，保持约20%到80%的电量、避免高温可延长寿命。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "文章话题具体、句式多为常见说明文复合句，但包含 lithium-ion、charge cycle、discharge 等少量科技术语，因此定为 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "Why new phones charge faster than older phones.",
+      "How to use a phone in very cold weather.",
+      "Why phone batteries lose power over time and how to slow this down.",
+      "How to build a phone battery from common materials."
+     ],
+     "answer": 2,
+     "explain_zh": "全文围绕手机电池随时间和充放电循环而老化、容量下降展开，并给出避免高温、浅充浅放等延缓老化的建议。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what does heat do to a phone battery?",
+     "options": [
+      "It makes the battery last longer.",
+      "It speeds up unwanted chemical changes.",
+      "It stops the battery from charging.",
+      "It only affects old batteries."
+     ],
+     "answer": 1,
+     "explain_zh": "原文明确说“warmth speeds up the unwanted chemical changes”，即高温会加速不希望发生的化学变化。"
+    },
+    {
+     "type": "inference",
+     "q": "What can we infer about draining a modern phone battery to zero every time?",
+     "options": [
+      "It puts extra stress on the battery and is not recommended.",
+      "It is necessary before charging overnight.",
+      "It is the best way to keep the battery healthy.",
+      "It helps the battery store more energy."
+     ],
+     "answer": 0,
+     "explain_zh": "原文指出把电池耗尽再充电是旧电池类型的旧观念，现代手机每次深度放电和充到100%会给电池增加额外压力，专家建议尽量保持在20%到80%之间。"
+    }
+   ]
+  },
+  "tech-2-b": {
+   "hash": "86d13ac975ec94e3",
+   "summary_zh": "文章解释密码泄露的常见原因：网站被黑客入侵、一个密码多处重复使用、以及钓鱼邮件骗人交出密码；并给出防范建议，如每个重要账户用不同密码、使用密码管理器、选长密码、开启两步验证、定期检查邮箱是否出现在泄露名单中。",
+   "key_points_zh": [
+    "泄露多因网站被入侵，黑客拷走数据库；好网站只存“哈希”这种乱码版本，但加密太弱或密码太简单仍会被还原。",
+    "重复使用同一密码很危险：小网站安全差，一旦被入侵，黑客会用同一邮箱和密码去大量网站快速试登录（credential stuffing）。",
+    "防身四招：重要账户各用不同密码并交给密码管理器记、用四五个随机单词组成长密码、开启两步验证、用可信的泄露查询网站检查邮箱并在必要时立刻改密码。"
+   ],
+   "cefr": "B1",
+   "cefr_reason_zh": "句子以简单句和常见连接词为主，词汇多为日常高频词，虽有 hash、phishing、credential stuffing 等少量技术术语但都在文中解释过，话题属较抽象的网络安全常识，故评为 B1。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the article mainly about?",
+     "options": [
+      "Why companies collect customers' email addresses",
+      "Why long passwords are difficult to remember",
+      "How to build a website database",
+      "How passwords leak and how people can protect themselves"
+     ],
+     "answer": 3,
+     "explain_zh": "文章首段即点明主旨：先讲清密码是怎么泄露的，才能保护自己；后文分别讲泄露原因（被黑、哈希太弱、重复使用、钓鱼）和应对办法（不同密码、密码管理器、长密码、两步验证、泄露查询）。其余选项都只是文中一笔带过的细节或原文未提。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what do good websites store instead of your real password?",
+     "options": [
+      "A hash",
+      "A list of other sites you use",
+      "A breach-checking code",
+      "Your phone number"
+     ],
+     "answer": 0,
+     "explain_zh": "原文第二段明确说：Good websites do not store your real password. They store a scrambled version called a hash.（好网站不存真实密码，而存一种叫哈希的乱码版本。）其余选项均非原文内容。"
+    },
+    {
+     "type": "inference",
+     "q": "Why is it dangerous to use the same password for a small game forum and your email?",
+     "options": [
+      "Game forums never use scrambling, so all passwords there are public.",
+      "If the forum is hacked, criminals will quickly try the same email and password on many other sites.",
+      "The forum will sell your email address to criminals.",
+      "Your email provider will make you change the password every month."
+     ],
+     "answer": 1,
+     "explain_zh": "原文第三段说小论坛可能安全性差，一旦被黑，罪犯会把同一组邮箱和密码拿到许多其他网站去试，这叫 credential stuffing，而且电脑能做得非常快。由此可推出邮箱也会受牵连。A、C 原文未提；D 说“从不加密、密码都公开”过于绝对，与原文不符。"
+    }
+   ]
+  },
+  "tech-3-a": {
+   "hash": "5179eb9d3a1cba68",
+   "summary_zh": "推荐系统并不神秘：它记录你的观看行为、把你与他人比较，并以“参与度”为目标，因此会放大你的偏好。算法并非反派，但你要用“不感兴趣”、主动搜索等方式把主动权握在自己手里。",
+   "key_points_zh": [
+    "系统的主要线索是行为而非言语：完播、划走、重看、分享，以及时间和设备。",
+    "系统通过找与你相似的人、并比较内容本身的主题与风格来推荐你没看过的东西。",
+    "目标是停留时长和回访率，所以 feed 会偏向戏剧化内容，形成“略微弯曲的镜子”。",
+    "用户可以主动应对：用“不感兴趣”、主动搜索、时间顺序或重置推荐。"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "词汇较抽象（engagement、amplify、nudge、chronological），句子含较多从句与让步结构，话题为算法机制的议论性说明，故定为 B2。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main point of the article?",
+     "options": [
+      "Recommendation systems are dangerous and should be avoided completely.",
+      "Recommendation systems only compare the content of videos, not people's behavior.",
+      "Recommendation systems work by maths rather than magic, and they reflect and strengthen your habits, so you should stay in control.",
+      "Recommendation systems always know your taste better than you do."
+     ],
+     "answer": 2,
+     "explain_zh": "全文主旨：开头说“less magical and more mathematical”，中间讲系统如何记录行为、比较并追求 engagement，结尾说“they help us find…”但“stay in the driver's seat”，即要掌握主动权。B、C、D 均与原文相反或片面。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, which of the following does a recommendation system record?",
+     "options": [
+      "The comments you write under videos.",
+      "The video topics you search for by name.",
+      "What you tell your friends about the app.",
+      "Which videos you watch to the end and which ones you replay."
+     ],
+     "answer": 3,
+     "explain_zh": "第二段明确列出：“which videos you finish, which you abandon after three seconds, what you replay and what you share”，以及时间和设备。其余选项文中均未提及。"
+    },
+    {
+     "type": "inference",
+     "q": "If a user keeps stopping on angry posts, what will most probably happen?",
+     "options": [
+      "The feed will show more angry posts, and the user may feel the world is angrier than it really is.",
+      "The user will soon be shown only cooking and gardening videos.",
+      "The system will stop showing angry posts to protect the user.",
+      "The app will warn the user that the content is emotional."
+     ],
+     "answer": 0,
+     "explain_zh": "第五段说 feed 是“a slightly bent mirror”，并举例：“If you linger on angry posts, you will be shown more of them, and soon the feed seems angrier than the world really is.” 由此可推出 A；B、C 与系统追求 engagement 的描述矛盾，D 属无据推断。"
+    }
+   ]
+  },
+  "tech-3-b": {
+   "hash": "edaf43cc4d4832d6",
+   "summary_zh": "智能家居设备价格低廉、承诺省力省钱，但它们最深远的影响在于悄然改变我们的日常习惯，如对自动照明的依赖。文章还提醒读者关注温控设置的合理性、隐私风险和设备依赖问题。作者建议把智能设备当作工具而非魔法，从小处开始，并保留手动开关。",
+   "key_points_zh": [
+    "自动照明等设备让人逐渐停止思考，一旦断网或传感器失灵便手足无措",
+    "智能温控器确实能省电，但前提是设置符合真实作息，需定期检查",
+    "隐私与依赖风险：设备会记录信息，服务或更新停止后硬件可能半废，购买前应看是否支持离线与开放标准"
+   ],
+   "cefr": "B2",
+   "cefr_reason_zh": "词汇较日常但含 privacy、open standards、half useless 等抽象与搭配表达，句式以复合句和让步结构为主，话题涉及隐私与依赖性等抽象讨论。",
+   "questions": [
+    {
+     "type": "main_idea",
+     "q": "What is the main point of the article?",
+     "options": [
+      "Smart home devices are mostly a waste of money for ordinary families.",
+      "The biggest effect of smart devices is on our daily habits, so they should be treated as tools and used with care.",
+      "Smart homes will soon replace all manual light switches.",
+      "Smart thermostats save more energy than any other smart device."
+     ],
+     "answer": 1,
+     "explain_zh": "首段末尾点明主旨：'the most interesting effect of these devices is not technical. It is the way they quietly change our habits.' 结尾又强调 'treating them as tools rather than magic'，故答案选 1。文中并未说设备浪费钱或会取代手动开关。"
+    },
+    {
+     "type": "detail",
+     "q": "According to the article, what decides whether a smart thermostat actually saves money?",
+     "options": [
+      "Whether its settings match your real daily routine.",
+      "How large the house is.",
+      "How new and expensive the device is.",
+      "How many lights are connected to it."
+     ],
+     "answer": 0,
+     "explain_zh": "第三段原文：'the savings depend on setting it up properly. A schedule that never matches your real routine can end up wasting more than it saves'，即设置是否符合真实作息决定是否省钱，故选 1。"
+    },
+    {
+     "type": "inference",
+     "q": "Why does the author advise readers to \"keep a manual switch for the essentials\"?",
+     "options": [
+      "Because voice speakers cannot control lights at all.",
+      "Because manual switches cost less than smart ones.",
+      "Because smart systems can fail, lose the internet or stop working, so a backup is needed.",
+      "Because electricians say manual switches are safer."
+     ],
+     "answer": 2,
+     "explain_zh": "第二段提到传感器失灵或 Wi-Fi 断开时会 'fumbling in the dark'，第五段又提到服务关停会让硬件 'half useless'，因此作者建议保留手动开关作为后备，故选 1。文中未比较价格，也未说语音音箱不能控制灯。"
+    }
+   ]
+  }
+ }
+}

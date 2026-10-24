@@ -4,7 +4,7 @@
 /// new database and an upgraded one always go through the same statements.
 library;
 
-const int kSchemaVersion = 5;
+const int kSchemaVersion = 6;
 
 const List<String> schemaV1 = [
   '''
@@ -211,5 +211,41 @@ const Map<int, List<String>> migrations = {
   5: [
     'ALTER TABLE articles ADD COLUMN readers INTEGER NOT NULL DEFAULT 0',
     'ALTER TABLE articles ADD COLUMN favorites INTEGER NOT NULL DEFAULT 0',
+  ],
+  // v6: AI reading aids generated ahead of time by tool/ai_enrich.py and
+  // bundled in the seed (no foreign key: aids for articles that arrive later
+  // via refresh are imported up front), the user's comprehension-quiz
+  // answers, and live word explanations cached for offline reuse.
+  6: [
+    '''
+  CREATE TABLE article_ai (
+    article_id TEXT PRIMARY KEY,
+    summary_zh TEXT NOT NULL,
+    key_points TEXT NOT NULL, -- JSON array of strings
+    cefr TEXT NOT NULL,
+    cefr_reason TEXT,
+    questions TEXT NOT NULL, -- JSON array of {type, q, options, answer, explain_zh}
+    model TEXT,
+    content_hash TEXT
+  ) WITHOUT ROWID''',
+    '''
+  CREATE TABLE quiz_results (
+    user_id TEXT NOT NULL,
+    article_id TEXT NOT NULL,
+    correct INTEGER NOT NULL,
+    total INTEGER NOT NULL,
+    answers TEXT NOT NULL, -- JSON array of picked option indexes
+    finished_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, article_id)
+  ) WITHOUT ROWID''',
+    '''
+  CREATE TABLE ai_explanations (
+    lemma TEXT NOT NULL,
+    sentence_hash TEXT NOT NULL,
+    body TEXT NOT NULL, -- JSON from the model
+    model TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (lemma, sentence_hash)
+  ) WITHOUT ROWID''',
   ],
 };

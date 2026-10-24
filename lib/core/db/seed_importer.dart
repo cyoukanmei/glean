@@ -2,31 +2,44 @@ import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 
-/// Parsed contents of `assets/seed/articles.json` and `assets/seed/dict.json`.
+/// Parsed contents of `assets/seed/articles.json`, `dict.json` and
+/// `ai.json`.
 class SeedBundle {
   const SeedBundle({
     required this.version,
     required this.articles,
     required this.dictEntries,
     required this.wordForms,
+    this.ai = const {},
+    this.aiModel,
   });
 
   factory SeedBundle.fromJson({
     required String articlesJson,
     required String dictJson,
+    String? aiJson,
   }) {
     final a = jsonDecode(articlesJson) as Map<String, dynamic>;
     final d = jsonDecode(dictJson) as Map<String, dynamic>;
+    final ai = aiJson == null
+        ? const <String, dynamic>{}
+        : jsonDecode(aiJson) as Map<String, dynamic>;
     return SeedBundle(
       version: a['seed_version'] as int,
       articles: (a['articles'] as List).cast<Map<String, dynamic>>(),
       dictEntries: (d['entries'] as List).cast<List<dynamic>>(),
       wordForms: (d['forms'] as Map).cast<String, String>(),
+      ai: (ai['articles'] as Map? ?? const {}).cast<String, dynamic>(),
+      aiModel: ai['model'] as String?,
     );
   }
 
   final int version;
   final List<Map<String, dynamic>> articles;
+
+  /// Article id -> AI reading aids (see tool/ai_enrich.py).
+  final Map<String, dynamic> ai;
+  final String? aiModel;
 
   /// Each entry is `[word, phonetic, definition]`.
   final List<List<dynamic>> dictEntries;
@@ -86,6 +99,25 @@ abstract final class SeedImporter {
           [a['readers'] ?? 0, a['favorites'] ?? 0, a['id']],
         );
       }
+      seed.ai.forEach((id, value) {
+        final ai = value as Map<String, dynamic>;
+        batch.rawInsert(
+          '''
+          INSERT OR REPLACE INTO article_ai (article_id, summary_zh,
+            key_points, cefr, cefr_reason, questions, model, content_hash)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+          [
+            id,
+            ai['summary_zh'],
+            jsonEncode(ai['key_points_zh']),
+            ai['cefr'],
+            ai['cefr_reason_zh'],
+            jsonEncode(ai['questions']),
+            seed.aiModel,
+            ai['hash'],
+          ],
+        );
+      });
       for (final e in seed.dictEntries) {
         batch.rawInsert(
           'INSERT OR REPLACE INTO dict (word, phonetic, definition) '

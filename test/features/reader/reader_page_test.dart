@@ -6,6 +6,7 @@ import 'package:glean/app/providers.dart';
 import 'package:glean/core/navigation/swipe_back_route.dart';
 import 'package:glean/core/widgets/celebration.dart';
 import 'package:glean/core/widgets/collect_button.dart';
+import 'package:glean/features/ai/data/ai_repository.dart';
 import 'package:glean/features/articles/data/article_repository.dart';
 import 'package:glean/features/reader/ui/reader_page.dart';
 import 'package:glean/features/reader/ui/reader_paragraph.dart';
@@ -62,6 +63,7 @@ Future<FakeProgressRepository> _open(
   WordSource? jumpTo,
   ArticleSummary? next,
   FakeMarksRepository? marks,
+  FakeAiRepository? ai,
 }) async {
   final repo = progress ?? FakeProgressRepository();
   SharedPreferences.setMockInitialValues({});
@@ -86,6 +88,7 @@ Future<FakeProgressRepository> _open(
         dictionaryRepositoryProvider.overrideWithValue(
           dictionary ?? FakeDictionaryRepository(),
         ),
+        aiRepositoryProvider.overrideWithValue(ai ?? FakeAiRepository()),
       ],
       child: MaterialApp(
         onGenerateRoute: (settings) => SwipeBackPageRoute<void>(
@@ -450,6 +453,49 @@ void main() {
     await tester.tap(find.byKey(const Key('reader-favorite')));
     await _run(tester, const Duration(milliseconds: 600));
     expect(marks.marks, isEmpty);
+    await _close(tester);
+  });
+
+  testWidgets('AI 导读 opens to key points and the quiz; the article ends '
+      'with a quiz prompt', (tester) async {
+    const ai = ArticleAi(
+      summaryZh: '这篇讲拖延其实是情绪问题。',
+      keyPoints: ['拖延是在躲情绪', '先做五分钟'],
+      cefr: 'B2',
+      cefrReason: '抽象词汇较多',
+      questions: [
+        QuizQuestion(
+          type: 'main_idea',
+          question: 'Main idea?',
+          options: ['a', 'b', 'c', 'd'],
+          answer: 0,
+          explainZh: '',
+        ),
+      ],
+    );
+    await _open(tester, ai: FakeAiRepository(ai));
+    await tester.pumpAndSettle();
+
+    expect(find.text('CEFR B2'), findsOneWidget);
+    expect(find.text('先做五分钟'), findsNothing, reason: 'collapsed');
+    expect(find.byKey(const Key('quiz-prompt')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('ai-guide')));
+    await tester.pumpAndSettle();
+    expect(find.text('先做五分钟'), findsOneWidget);
+    expect(find.text('做 1 道阅读理解题'), findsOneWidget);
+
+    // Bring the button to mid-screen, clear of the floating top bar.
+    final button = find.byKey(const Key('ai-guide-quiz'));
+    await tester.drag(
+      find.byType(Scrollable).last,
+      Offset(0, 300 - tester.getCenter(button).dy),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(find.text('Main idea?'), findsOneWidget);
+    await _close(tester);
     await _close(tester);
   });
 }

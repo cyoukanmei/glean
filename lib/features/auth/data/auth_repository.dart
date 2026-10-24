@@ -85,6 +85,7 @@ class AuthRepository {
     'reading_segments',
     'vocab',
     'article_marks',
+    'quiz_results',
   ];
 
   static final _usernamePattern = RegExp(r'^[A-Za-z0-9_]{3,20}$');

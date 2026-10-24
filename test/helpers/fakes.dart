@@ -1,3 +1,4 @@
+import 'package:glean/features/ai/data/ai_repository.dart';
 import 'package:glean/features/library/data/marks_repository.dart';
 import 'package:glean/features/reader/data/progress_repository.dart';
 import 'package:glean/features/reader/data/reading_time_repository.dart';
@@ -202,6 +203,50 @@ class FakeMarksRepository implements MarksRepository {
     for (final (id, kind) in marks)
       if (id == articleId) kind,
   };
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// AI aids for one article (or none) and in-memory quiz results.
+class FakeAiRepository implements AiRepository {
+  FakeAiRepository([this.ai]);
+
+  final ArticleAi? ai;
+  final results = <String, List<int>>{};
+
+  @override
+  Future<ArticleAi?> forArticle(String articleId) async => ai;
+
+  @override
+  Future<QuizResult?> result(String userId, String articleId) async {
+    final answers = results[articleId];
+    final ai = this.ai;
+    if (answers == null || ai == null) return null;
+    return QuizResult(
+      correct: [
+        for (final (i, q) in ai.questions.indexed)
+          if (answers[i] == q.answer) 1,
+      ].length,
+      total: ai.questions.length,
+      answers: answers,
+      finishedAt: 0,
+    );
+  }
+
+  @override
+  Future<void> saveResult(
+    String userId,
+    String articleId,
+    List<int> answers,
+    List<QuizQuestion> questions,
+  ) async => results[articleId] = [...answers];
+
+  @override
+  Future<Map<String, dynamic>?> cachedExplanation(
+    String lemma,
+    String sentence,
+  ) async => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
