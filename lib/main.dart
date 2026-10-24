@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -233,7 +232,7 @@ class _GleanAppState extends ConsumerState<GleanApp>
       theme: gleanTheme(),
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-        child: kIsWeb ? _PhoneFrame(child: child!) : child!,
+        child: child!,
       ),
       scrollBehavior: const GleanScrollBehavior(),
       debugShowCheckedModeBanner: false,
@@ -242,51 +241,7 @@ class _GleanAppState extends ConsumerState<GleanApp>
       onGenerateRoute: (settings) => SwipeBackPageRoute<void>(
         settings: settings,
         builder: (_) => const AppRoot(),
-      ),
-    );
-  }
-}
-
-/// The H5 build in a wide browser window: the app in a phone-sized frame in
-/// the middle of the page, with MediaQuery reporting the frame's size, so
-/// every layout that reads the screen size behaves as on a phone. On a
-/// phone-width window it fills the window.
-class _PhoneFrame extends StatelessWidget {
-  const _PhoneFrame({required this.child});
-
-  final Widget child;
-
-  static const width = 430.0;
-  static const maxHeight = 932.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    if (media.size.width <= width + 90) return child;
-    final size = Size(width, min(media.size.height - 48, maxHeight));
-    return ColoredBox(
-      color: const Color(0xFFDCD7CE),
-      child: Center(
-        child: Container(
-          width: size.width,
-          height: size.height,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(36),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x40000000),
-                blurRadius: 50,
-                offset: Offset(0, 24),
-                spreadRadius: -20,
-              ),
-            ],
-          ),
-          child: MediaQuery(
-            data: media.copyWith(size: size, padding: EdgeInsets.zero),
-            child: child,
-          ),
-        ),
+        fullWidth: true,
       ),
     );
   }

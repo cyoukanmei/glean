@@ -4,6 +4,7 @@ import '../../../core/design/glean_theme.dart';
 import '../../articles/data/article_repository.dart';
 import '../../articles/ui/labels.dart';
 import 'reader_chrome.dart';
+import '../../../core/design/layout.dart';
 
 /// The top of an article, set like a book's title page: a small line
 /// ("名著 · 第一章"), a short rule, the title centred in the serif face and
@@ -39,54 +40,65 @@ class ReaderTitlePage extends StatelessWidget {
     final p = palette;
     return Padding(
       padding: EdgeInsets.fromLTRB(28, top, 28, 0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            kicker(article),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3,
-              color: p.accent,
-            ),
+      // Wraps at the reader's text width in a wide window, so the book's
+      // first page and the reader set the title alike.
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth:
+                Layout.readingWidth(MediaQuery.sizeOf(context).width) - 56,
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: 56,
-            height: 1,
-            child: ColoredBox(color: p.secondary.withValues(alpha: 0.35)),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            article.title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: serifFamily,
-              fontFamilyFallback: serifFallback,
-              fontSize: 30,
-              height: 1.18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
-              color: p.title,
-            ),
-          ),
-          if (article.author case final author?) ...[
-            const SizedBox(height: 10),
-            Text(
-              author,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: serifFamily,
-                fontFamilyFallback: serifFallback,
-                fontStyle: FontStyle.italic,
-                fontSize: 16,
-                color: p.secondary,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                kicker(article),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 3,
+                  color: p.accent,
+                ),
               ),
-            ),
-          ],
-        ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 56,
+                height: 1,
+                child: ColoredBox(color: p.secondary.withValues(alpha: 0.35)),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                article.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: serifFamily,
+                  fontFamilyFallback: serifFallback,
+                  fontSize: 30,
+                  height: 1.18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: p.title,
+                ),
+              ),
+              if (article.author case final author?) ...[
+                const SizedBox(height: 10),
+                Text(
+                  author,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: serifFamily,
+                    fontFamilyFallback: serifFallback,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                    color: p.secondary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

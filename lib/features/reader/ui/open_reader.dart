@@ -70,6 +70,7 @@ void openReader(
     builder: (_) =>
         ReaderPage(article: article, surface: surface, jumpTo: jumpTo),
     book: book,
+    fullWidth: true,
   );
   final navigator = Navigator.of(context);
   replace ? navigator.pushReplacement(route) : navigator.push(route);

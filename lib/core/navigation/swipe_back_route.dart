@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
+import '../design/glean_colors.dart';
+import '../design/layout.dart';
 import 'book_open_transition.dart';
 
 /// Page route whose swipe-back follows the finger and can be cancelled.
@@ -23,10 +25,19 @@ import 'book_open_transition.dart';
 /// ([BookOpenTransition]) instead of sliding in; the gestures and the
 /// spring are the same, so a back swipe closes the book under the finger.
 class SwipeBackPageRoute<T> extends PageRoute<T> {
-  SwipeBackPageRoute({required this.builder, super.settings, this.book});
+  SwipeBackPageRoute({
+    required this.builder,
+    super.settings,
+    this.book,
+    this.fullWidth = false,
+  });
 
   final WidgetBuilder builder;
   final BookOpening? book;
+
+  /// In a wide window a page is centred at [Layout.pageMaxWidth] on the
+  /// app background; a full-width page (the reader) lays itself out.
+  final bool fullWidth;
 
   /// Same thresholds as Flutter's Cupertino back gesture (cupertino/route.dart):
   /// a fling of at least one screen width per second decides by direction,
@@ -72,7 +83,17 @@ class SwipeBackPageRoute<T> extends PageRoute<T> {
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
-  ) => builder(context);
+  ) => fullWidth
+      ? builder(context)
+      : ColoredBox(
+          color: GleanColors.background,
+          child: CenteredColumn(
+            maxWidth: Layout.isWide(context)
+                ? Layout.pageMaxWidth
+                : double.infinity,
+            child: Builder(builder: builder),
+          ),
+        );
 
   @override
   Widget buildTransitions(

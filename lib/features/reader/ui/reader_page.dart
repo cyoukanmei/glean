@@ -33,6 +33,7 @@ import 'reader_paragraph.dart';
 import 'reader_settings_sheet.dart';
 import 'title_page.dart';
 import 'reading_progress_bar.dart';
+import '../../../core/design/layout.dart';
 
 class ReaderPage extends ConsumerStatefulWidget {
   const ReaderPage({
@@ -633,6 +634,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   ) {
     final article = widget.article;
     final padding = MediaQuery.paddingOf(context);
+    final screen = MediaQuery.sizeOf(context);
     final previous = _previous;
     final next = _next;
     final finishStats = _finishStats;
@@ -768,49 +770,56 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
             top: padding.top + 10,
             left: 16,
             right: 16,
-            child: Row(
-              children: [
-                GlassCircleButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  label: '返回',
-                  palette: palette,
-                  onTap: () => Navigator.of(context).maybePop(),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Layout.readingWidth(screen.width) + 80,
                 ),
-                const Spacer(),
-                // Star pops when it fills.
-                TweenAnimationBuilder<double>(
-                  key: ValueKey(_favorite),
-                  tween: Tween(begin: _favorite ? 0.7 : 1, end: 1),
-                  duration: const Duration(milliseconds: 420),
-                  curve: Curves.elasticOut,
-                  builder: (context, s, child) =>
-                      Transform.scale(scale: s, child: child),
-                  child: GlassCircleButton(
-                    key: const Key('reader-favorite'),
-                    icon: _favorite
-                        ? Icons.star_rounded
-                        : Icons.star_border_rounded,
-                    label: _favorite ? '取消收藏' : '收藏',
-                    palette: palette,
-                    onTap: _toggleFavorite,
-                  ),
+                child: Row(
+                  children: [
+                    GlassCircleButton(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      label: '返回',
+                      palette: palette,
+                      onTap: () => Navigator.of(context).maybePop(),
+                    ),
+                    const Spacer(),
+                    // Star pops when it fills.
+                    TweenAnimationBuilder<double>(
+                      key: ValueKey(_favorite),
+                      tween: Tween(begin: _favorite ? 0.7 : 1, end: 1),
+                      duration: const Duration(milliseconds: 420),
+                      curve: Curves.elasticOut,
+                      builder: (context, s, child) =>
+                          Transform.scale(scale: s, child: child),
+                      child: GlassCircleButton(
+                        key: const Key('reader-favorite'),
+                        icon: _favorite
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
+                        label: _favorite ? '取消收藏' : '收藏',
+                        palette: palette,
+                        onTap: _toggleFavorite,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GlassCircleButton(
+                      key: const Key('reader-settings'),
+                      icon: Icons.text_fields_rounded,
+                      label: '阅读设置',
+                      palette: palette,
+                      onTap: () => ReaderSettingsSheet.show(context),
+                    ),
+                    const SizedBox(width: 10),
+                    GlassCircleButton(
+                      icon: Icons.ios_share_rounded,
+                      label: '分享',
+                      palette: palette,
+                      onTap: _share,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                GlassCircleButton(
-                  key: const Key('reader-settings'),
-                  icon: Icons.text_fields_rounded,
-                  label: '阅读设置',
-                  palette: palette,
-                  onTap: () => ReaderSettingsSheet.show(context),
-                ),
-                const SizedBox(width: 10),
-                GlassCircleButton(
-                  icon: Icons.ios_share_rounded,
-                  label: '分享',
-                  palette: palette,
-                  onTap: _share,
-                ),
-              ],
+              ),
             ),
           ),
           Positioned(
@@ -829,13 +838,22 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
             left: 16,
             right: 16,
             bottom: padding.bottom + 12,
-            child: ReaderBottomBar(
-              progress: _progress,
-              palette: palette,
-              onPrevious: previous == null
-                  ? null
-                  : () => _openNeighbor(previous, 'previous'),
-              onNext: next == null ? null : () => _openNeighbor(next, 'next'),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: screen.width >= Layout.wide ? 560 : double.infinity,
+                ),
+                child: ReaderBottomBar(
+                  progress: _progress,
+                  palette: palette,
+                  onPrevious: previous == null
+                      ? null
+                      : () => _openNeighbor(previous, 'previous'),
+                  onNext: next == null
+                      ? null
+                      : () => _openNeighbor(next, 'next'),
+                ),
+              ),
             ),
           ),
           if (finishStats != null)
@@ -915,85 +933,94 @@ class _Body extends StatelessWidget {
       height: settings.spacing.height,
       color: palette.text,
     );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: Text(
-              byline.join('  ·  '),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: palette.secondary),
-            ),
-          ),
-          // Attribution for the cover picture (CC BY / BY-SA need it).
-          if (CoverCatalog.instance[article.id] case final cover?)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                '封面：${cover.artist} · ${cover.license} · Wikimedia Commons',
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11.5, color: palette.secondary),
+    // A wide window keeps a book-like line length, centred on the paper.
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Layout.readingWidth(MediaQuery.sizeOf(context).width),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  byline.join('  ·  '),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: palette.secondary),
+                ),
               ),
-            ),
-          if (ai case final ai?)
-            AiGuideCard(
-              articleId: article.id,
-              ai: ai,
-              palette: palette,
-              quiz: quiz,
-              onQuiz: () => onQuiz?.call('ai_guide'),
-            ),
-          const SizedBox(height: 8),
-          for (final (i, p) in paragraphs.indexed)
-            Padding(
-              key: paragraphKeys[i],
-              padding: const EdgeInsets.only(top: 16),
-              child: ReaderParagraph(
-                text: p,
-                style: bodyStyle,
-                accent: palette.accent,
-                collected: collected,
-                selected: selection?.$1 == i ? selection!.$2 : null,
-                pulse: pulse?.$1 == i ? (pulse!.$2, pulse!.$3) : null,
-                onWord: (range) => onWord(i, range),
+              // Attribution for the cover picture (CC BY / BY-SA need it).
+              if (CoverCatalog.instance[article.id] case final cover?)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    '封面：${cover.artist} · ${cover.license} · Wikimedia Commons',
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11.5, color: palette.secondary),
+                  ),
+                ),
+              if (ai case final ai?)
+                AiGuideCard(
+                  articleId: article.id,
+                  ai: ai,
+                  palette: palette,
+                  quiz: quiz,
+                  onQuiz: () => onQuiz?.call('ai_guide'),
+                ),
+              const SizedBox(height: 8),
+              for (final (i, p) in paragraphs.indexed)
+                Padding(
+                  key: paragraphKeys[i],
+                  padding: const EdgeInsets.only(top: 16),
+                  child: ReaderParagraph(
+                    text: p,
+                    style: bodyStyle,
+                    accent: palette.accent,
+                    collected: collected,
+                    selected: selection?.$1 == i ? selection!.$2 : null,
+                    pulse: pulse?.$1 == i ? (pulse!.$2, pulse!.$3) : null,
+                    onWord: (range) => onWord(i, range),
+                  ),
+                ),
+              if (ai case final ai? when paragraphs.isNotEmpty)
+                QuizPromptCard(
+                  count: ai.questions.length,
+                  quiz: quiz,
+                  palette: palette,
+                  onTap: () => onQuiz?.call('article_end'),
+                ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: finished
+                    ? const Padding(
+                        key: Key('reader-finished'),
+                        padding: EdgeInsets.only(top: 32),
+                        child: Center(
+                          child: StateIllustration(
+                            asset: StateIllustration.readingComplete,
+                            title: '已读完这篇',
+                            message: '会计入你的阅读统计',
+                            width: 160,
+                          ),
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity),
               ),
-            ),
-          if (ai case final ai? when paragraphs.isNotEmpty)
-            QuizPromptCard(
-              count: ai.questions.length,
-              quiz: quiz,
-              palette: palette,
-              onTap: () => onQuiz?.call('article_end'),
-            ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: finished
-                ? const Padding(
-                    key: Key('reader-finished'),
-                    padding: EdgeInsets.only(top: 32),
-                    child: Center(
-                      child: StateIllustration(
-                        asset: StateIllustration.readingComplete,
-                        title: '已读完这篇',
-                        message: '会计入你的阅读统计',
-                        width: 160,
-                      ),
-                    ),
-                  )
-                : const SizedBox(width: double.infinity),
+              // Room so the last lines can scroll clear of the bottom bar.
+              SizedBox(height: 120 + bottomInset),
+            ],
           ),
-          // Room so the last lines can scroll clear of the bottom bar.
-          SizedBox(height: 120 + bottomInset),
-        ],
+        ),
       ),
     );
   }

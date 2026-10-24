@@ -287,33 +287,76 @@ class _ArticleFeedState extends ConsumerState<ArticleFeed>
         ),
       );
     } else {
-      content = SliverList.builder(
-        itemCount: _items.length,
-        itemBuilder: (context, i) {
-          final article = _items[i];
-          final row = _impressions.wrap(
-            articleId: article.id,
-            position: i,
-            child: GroupedRow(
-              first: i == 0,
-              last: i == _items.length - 1,
-              child: ArticleCard(
-                article: article,
+      Widget card(
+        int i, {
+        required bool first,
+        required bool last,
+        double margin = 16,
+      }) {
+        final article = _items[i];
+        final row = _impressions.wrap(
+          articleId: article.id,
+          position: i,
+          child: GroupedRow(
+            first: first,
+            last: last,
+            margin: margin,
+            child: ArticleCard(
+              article: article,
+              surface: widget.surface,
+              progress: _progress[article.id],
+              onTap: () => openReader(context, article, widget.surface),
+              onLongPress: () => showArticleActions(
+                context,
+                ref,
+                article,
                 surface: widget.surface,
-                progress: _progress[article.id],
-                onTap: () => openReader(context, article, widget.surface),
-                onLongPress: () => showArticleActions(
-                  context,
-                  ref,
-                  article,
-                  surface: widget.surface,
+              ),
+            ),
+          ),
+        );
+        return i < _staggered
+            ? StaggerIn(animation: _stagger, index: i, child: row)
+            : row;
+      }
+
+      // One grouped list on a phone; in a wide window, separate cards in
+      // rows of two or three.
+      content = SliverLayoutBuilder(
+        builder: (context, box) {
+          final columns = (box.crossAxisExtent / 440).floor().clamp(1, 3);
+          if (columns == 1) {
+            return SliverList.builder(
+              itemCount: _items.length,
+              itemBuilder: (context, i) =>
+                  card(i, first: i == 0, last: i == _items.length - 1),
+            );
+          }
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            sliver: SliverList.builder(
+              itemCount: (_items.length / columns).ceil(),
+              itemBuilder: (context, row) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var c = 0; c < columns; c++)
+                      Expanded(
+                        child: row * columns + c < _items.length
+                            ? card(
+                                row * columns + c,
+                                first: true,
+                                last: true,
+                                margin: 6,
+                              )
+                            : const SizedBox(),
+                      ),
+                  ],
                 ),
               ),
             ),
           );
-          return i < _staggered
-              ? StaggerIn(animation: _stagger, index: i, child: row)
-              : row;
         },
       );
     }

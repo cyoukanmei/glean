@@ -191,6 +191,7 @@ class GroupedRow extends StatelessWidget {
     required this.child,
     this.dividerIndent = 14 + ArticleCard.coverSize + 14,
     this.painted = true,
+    this.margin = 16,
   });
 
   final bool first;
@@ -202,11 +203,14 @@ class GroupedRow extends StatelessWidget {
   /// hairline (used for the shimmer layer above the skeleton's background).
   final bool painted;
 
+  /// Space on each side (less between cards side by side).
+  final double margin;
+
   @override
   Widget build(BuildContext context) {
     const r = Radius.circular(14);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: margin),
       child: ClipRRect(
         borderRadius: BorderRadius.vertical(
           top: first ? r : Radius.zero,

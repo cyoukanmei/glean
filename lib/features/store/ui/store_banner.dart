@@ -194,7 +194,19 @@ class _Slide extends StatelessWidget {
                       offset: Offset(d * box.maxWidth * 0.12, 0),
                       child: ImageFiltered(
                         imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                        child: cover(0),
+                        // A wide banner (desktop window) would show the
+                        // cover as a small book on its backdrop; there the
+                        // jacket itself is scaled to fill the slide.
+                        child: box.maxWidth > 600
+                            ? FittedBox(
+                                fit: BoxFit.cover,
+                                clipBehavior: Clip.hardEdge,
+                                child: SizedBox.square(
+                                  dimension: 240,
+                                  child: cover(0),
+                                ),
+                              )
+                            : cover(0),
                       ),
                     ),
                   ),

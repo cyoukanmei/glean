@@ -3,6 +3,8 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 
+import '../design/layout.dart';
+
 /// Where a book-opening transition starts (the tapped cover on the list)
 /// and what its first page shows.
 class BookOpening {
@@ -175,12 +177,21 @@ class _BookOpenTransitionState extends State<BookOpenTransition> {
       bh,
     );
     final held = Rect.lerp(widget.book.origin, closed, lift)!;
-    final page = zoom > 0 ? Rect.lerp(held, Offset.zero & screen, zoom)! : held;
+    // The page grows into the reader's text column: the whole screen on a
+    // phone, the centred reading width in a wide window.
+    final column = Layout.readingWidth(screen.width);
+    final target = Rect.fromLTWH(
+      (screen.width - column) / 2,
+      0,
+      column,
+      screen.height,
+    );
+    final page = zoom > 0 ? Rect.lerp(held, target, zoom)! : held;
     final radius = lerpDouble(widget.book.originRadius, 6, lift)! * (1 - zoom);
     // A slight turn while the book is in hand shows the spine and pages.
     final tilt =
         -BookOpenTransition.maxTilt * sin(pi * (t / 0.4).clamp(0.0, 1.0));
-    final leftGone = zoom > 0 && page.left <= 0.5;
+    final leftGone = zoom > 0 && page.left <= target.left + 0.5;
     final spread = page.width * open * (1 - zoom);
 
     return Stack(
@@ -242,7 +253,7 @@ class _BookOpenTransitionState extends State<BookOpenTransition> {
                         children: [
                           _FirstPage(
                             book: widget.book,
-                            screenWidth: screen.width,
+                            screenWidth: column,
                             radius: radius,
                             gutter: sin(open * pi / 2) * (1 - zoom),
                           ),

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -185,7 +187,8 @@ class _ShelfPageState extends ConsumerState<ShelfPage>
     );
   }
 
-  /// Three covers per row; the first screen cascades in.
+  /// Three covers per row on a phone, more in a wide window (covers about
+  /// 150 wide); the first screen cascades in.
   Widget _grid(
     BuildContext context, {
     required int count,
@@ -195,8 +198,11 @@ class _ShelfPageState extends ConsumerState<ShelfPage>
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverLayoutBuilder(
         builder: (context, constraints) {
-          const columns = 3;
           const gap = 14.0;
+          final columns = max(
+            3,
+            ((constraints.crossAxisExtent + gap) / (150 + gap)).floor(),
+          );
           final w =
               (constraints.crossAxisExtent - gap * (columns - 1)) / columns;
           return SliverGrid.builder(
