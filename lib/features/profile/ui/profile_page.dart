@@ -21,6 +21,7 @@ import '../../library/ui/library_page.dart';
 import '../../../app/home_tab.dart';
 import '../../coread/ui/coread_page.dart';
 import 'analytics_debug_page.dart';
+import 'perf_page.dart';
 import 'edit_profile_page.dart';
 import 'user_avatar.dart';
 
@@ -186,6 +187,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 const _ColorThemeCell(),
                 const _AppearanceCell(),
                 const _SyncCell(),
+                _Cell(
+                  key: const Key('open-perf'),
+                  icon: Icons.speed_rounded,
+                  title: '性能监测',
+                  value: '帧耗时 · 启动 · 图片缓存',
+                  onTap: () => Navigator.of(context).push(
+                    SwipeBackPageRoute<void>(
+                      settings: const RouteSettings(name: '/me/perf'),
+                      builder: (_) => const PerfPage(),
+                    ),
+                  ),
+                ),
                 _Cell(
                   key: const Key('open-analytics-debug'),
                   icon: Icons.insights_rounded,

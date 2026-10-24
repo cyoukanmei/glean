@@ -19,6 +19,8 @@ import 'core/widgets/cover_catalog.dart';
 import 'core/db/app_database.dart';
 import 'core/db/seed_importer.dart';
 import 'core/navigation/swipe_back_route.dart';
+import 'core/perf/frame_monitor.dart';
+import 'core/perf/startup_trace.dart';
 import 'app/app_root.dart';
 import 'app/appearance.dart';
 import 'core/design/glean_colors.dart';
@@ -29,21 +31,34 @@ import 'features/sync/data/mock_sync_server.dart';
 import 'features/sync/sync_service.dart';
 
 Future<void> main() async {
-  final coldStart = Stopwatch()..start();
+  StartupTrace.begin();
   WidgetsFlutterBinding.ensureInitialized();
+  FrameMonitor.instance.start();
+  StartupTrace.mark('binding');
+
+  // Independent I/O runs side by side instead of one after another.
+  final covers = CoverCatalog.load(rootBundle);
+  final package = PackageInfo.fromPlatform();
+  final serverDb = getDatabasesPath().then(
+    (dir) =>
+        MockSyncServer.open(databaseFactory, p.join(dir, 'mock_server.db')),
+  );
   final (db, prefs) = await (
     AppDatabase.open(),
     SharedPreferences.getInstance(),
   ).wait;
+  StartupTrace.mark('database');
 
   // Not awaited: the UI starts right away and reads wait on this, so the
   // first launch shows the list skeleton while the seed is imported.
   final seedReady = _importSeed(db);
-  await CoverCatalog.load(rootBundle);
-  final (user, package) = await (
+  final (user, packageInfo, _, server) = await (
     _restoreSession(db, prefs),
-    PackageInfo.fromPlatform(),
+    package,
+    covers,
+    serverDb,
   ).wait;
+  StartupTrace.mark('session');
 
   final container = ProviderContainer(
     overrides: [
@@ -58,20 +73,16 @@ Future<void> main() async {
     queue: EventQueue(db),
     collector: MockCollector(db, isOnline: online),
     deviceId: _deviceId(prefs),
-    appVersion: '${package.version}+${package.buildNumber}',
+    appVersion: '${packageInfo.version}+${packageInfo.buildNumber}',
     platform: defaultTargetPlatform.name,
     userId: () => container.read(currentUserIdProvider),
     isOnline: online,
   );
   Analytics.attach(analytics);
 
-  final serverDb = await MockSyncServer.open(
-    databaseFactory,
-    p.join(await getDatabasesPath(), 'mock_server.db'),
-  );
   final sync = SyncService(
     db: db,
-    server: MockSyncServer(serverDb, isOnline: online),
+    server: MockSyncServer(server, isOnline: online),
     deviceId: _deviceId(prefs),
     userId: () => container.read(currentUserIdProvider),
     isOnline: online,
@@ -104,9 +115,11 @@ Future<void> main() async {
       ),
     ),
   );
-  // Cold start = process start to the first frame on screen.
+  StartupTrace.mark('run_app');
+  // Cold start (Dart side) = start of main to the first frame on screen.
   await WidgetsBinding.instance.endOfFrame;
-  await analytics.start(coldStartMs: coldStart.elapsedMilliseconds);
+  StartupTrace.mark('first_frame');
+  await analytics.start(coldStartMs: StartupTrace.elapsedMs);
   sync.start();
 }
 

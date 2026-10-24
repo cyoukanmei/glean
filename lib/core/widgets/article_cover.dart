@@ -64,24 +64,13 @@ class ArticleCover extends StatelessWidget {
     return jackets[h % jackets.length];
   }
 
-  static Widget _picture(CoverImage image) => Image.asset(
-    image.asset,
-    fit: BoxFit.cover,
-    // Book art keeps its top (title, faces) when cropped to a square.
-    alignment: image.portrait ? const Alignment(0, -0.4) : Alignment.center,
-    width: double.infinity,
-    height: double.infinity,
-    filterQuality: FilterQuality.medium,
-    gaplessPlayback: true,
-  );
-
   @override
   Widget build(BuildContext context) {
     final image = this.image;
     if (image != null && !image.portrait) {
       return ClipRRect(
         borderRadius: borderRadius,
-        child: ColoredBox(color: image.dominant, child: _picture(image)),
+        child: ColoredBox(color: image.dominant, child: _Picture(image)),
       );
     }
     final color = image?.dominant ?? colorFor(seed);
@@ -115,7 +104,7 @@ class ArticleCover extends StatelessWidget {
                   child: SizedBox(
                     width: bookW,
                     height: bookH,
-                    child: _picture(image),
+                    child: _Picture(image),
                   ),
                 );
           if (t == 0) return book;
@@ -322,6 +311,56 @@ class _Jacket extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The bundled picture, decoded only as large as it is drawn: a 56 pt list
+/// thumbnail does not need the full 720 px bitmap (1.4-2.8 MB in memory,
+/// over 10x the pixels it shows). Sizes snap to a few buckets so a growing
+/// Hero flight re-decodes at most twice; the previous bitmap stays up
+/// meanwhile (gaplessPlayback).
+class _Picture extends StatelessWidget {
+  const _Picture(this.image);
+
+  final CoverImage image;
+
+  /// Decode widths in device pixels; anything larger uses the full picture.
+  static const buckets = [256, 512];
+
+  /// Width to decode [image] at to fill [box] with BoxFit.cover, or null
+  /// for full size.
+  static int? decodeWidth(Size box, double aspect, double dpr) {
+    if (!box.isFinite) return null;
+    // Cover scales the picture until it fills the box on both axes.
+    final need = max(box.width, box.height * aspect) * dpr;
+    for (final b in buckets) {
+      if (need <= b) return b;
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) => Image(
+        image: ResizeImage.resizeIfNeeded(
+          decodeWidth(
+            box.biggest,
+            image.aspect,
+            MediaQuery.devicePixelRatioOf(context),
+          ),
+          null,
+          AssetImage(image.asset),
+        ),
+        fit: BoxFit.cover,
+        // Book art keeps its top (title, faces) when cropped to a square.
+        alignment: image.portrait ? const Alignment(0, -0.4) : Alignment.center,
+        width: double.infinity,
+        height: double.infinity,
+        filterQuality: FilterQuality.medium,
+        gaplessPlayback: true,
       ),
     );
   }
