@@ -32,6 +32,9 @@ class FlushResult {
 ///   when the app goes to the background, when the network comes back, and
 ///   on cold start (after re-queueing a batch a killed process left behind).
 class AnalyticsService extends ChangeNotifier {
+  /// Prefs key of the random per-install device id (also used by sync).
+  static const deviceIdKey = 'analytics.device_id';
+
   AnalyticsService({
     required this.queue,
     required this.collector,

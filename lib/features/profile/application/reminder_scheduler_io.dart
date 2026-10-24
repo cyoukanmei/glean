@@ -4,6 +4,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../../core/platform/local_notifications.dart';
 import 'reminder.dart';
 
 ReminderScheduler createReminderScheduler() => LocalReminderScheduler();
@@ -11,7 +12,7 @@ ReminderScheduler createReminderScheduler() => LocalReminderScheduler();
 /// Daily repeating local notification: an exact alarm when allowed,
 /// otherwise inexact (Android may then hold it for up to an hour).
 class LocalReminderScheduler implements ReminderScheduler {
-  final _plugin = FlutterLocalNotificationsPlugin();
+  final _plugin = LocalNotifications.plugin;
   bool _ready = false;
 
   static const _id = 1;
@@ -26,17 +27,11 @@ class LocalReminderScheduler implements ReminderScheduler {
     } catch (e) {
       debugPrint('[reminder] timezone: $e');
     }
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-      ),
-    );
+    await LocalNotifications.ensureInitialized();
   }
 
-  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
-      .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin
-      >();
+  AndroidFlutterLocalNotificationsPlugin? get _android =>
+      LocalNotifications.android;
 
   @override
   Future<bool> canBeExact() async {

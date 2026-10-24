@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/design/glean_colors.dart';
 import '../../../core/design/ios_widgets.dart';
+import '../background/background_sync.dart';
 import '../sync_service.dart';
 
 /// Human summary of the sync state, shared by this page and 我的.
@@ -40,12 +41,34 @@ class _SyncPageState extends ConsumerState<SyncPage>
     duration: const Duration(milliseconds: 900),
   );
   (int, int) _pending = (0, 0);
+  BackgroundStatus? _background;
 
   @override
   void initState() {
     super.initState();
     _sync?.addListener(_changed);
     _changed();
+    _loadBackground();
+  }
+
+  Future<void> _loadBackground() async {
+    final status = await backgroundStatus();
+    if (mounted) setState(() => _background = status);
+  }
+
+  /// Hands the job to WorkManager, as the hourly run does, then checks back
+  /// for its result.
+  Future<void> _runInBackground() async {
+    final messenger = ScaffoldMessenger.of(context);
+    await runBackgroundSyncNow();
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('已交给系统在后台执行（离线时等联网再跑）')));
+    for (final wait in const [3, 6, 12]) {
+      await Future<void>.delayed(Duration(seconds: wait));
+      if (!mounted) return;
+      await _loadBackground();
+    }
   }
 
   @override
@@ -159,6 +182,25 @@ class _SyncPageState extends ConsumerState<SyncPage>
                     _Row('本机 id', s.deviceId),
                   ],
                 ),
+                if (supportsBackgroundSync) ...[
+                  const _Caption('后台同步'),
+                  InsetGroup(
+                    children: [
+                      _Row('频率', '约每小时 · 联网时'),
+                      _Row('上次', switch (_background) {
+                        null => '还没有运行过',
+                        final b => '${_hm(b.at)} · 带回 ${b.newArticles} 篇新文章',
+                      }),
+                      ListTile(
+                        key: const Key('background-sync-now'),
+                        leading: const Icon(Icons.cloud_sync_outlined),
+                        title: const Text('立即在后台运行一次'),
+                        subtitle: const Text('拉取新文章、同步进度；有新文章会发通知'),
+                        onTap: _runInBackground,
+                      ),
+                    ],
+                  ),
+                ],
                 const _Caption('最近处理的冲突'),
                 InsetGroup(
                   children: [

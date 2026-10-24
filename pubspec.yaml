@@ -53,6 +53,7 @@ dependencies:
   flutter_timezone: ^5.1.1
   sqflite_common_ffi_web: ^1.2.0
   http: ^1.6.0
+  workmanager: ^0.10.10
 
 dev_dependencies:
   flutter_test:

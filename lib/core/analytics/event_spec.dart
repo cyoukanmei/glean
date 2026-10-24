@@ -28,6 +28,10 @@ const eventSpecs = <String, EventSpec>{
   'app_background': EventSpec('App 进入后台', required: {'foreground_ms'}),
   'page_view': EventSpec('底栏切换页面', required: {'page'}),
   'login': EventSpec('登录成功', required: {'user'}),
+  'notification_open': EventSpec(
+    '点通知打开 App（kind: new_articles 新文章）',
+    required: {'kind'},
+  ),
   'register': EventSpec('注册成功', required: {'user'}),
   'logout': EventSpec('退出登录'),
   'profile_update': EventSpec('保存个人资料', optional: {'goal'}),

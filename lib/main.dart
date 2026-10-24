@@ -24,11 +24,13 @@ import 'core/perf/frame_monitor.dart';
 import 'core/perf/startup_trace.dart';
 import 'app/app_root.dart';
 import 'app/appearance.dart';
+import 'app/home_tab.dart';
 import 'core/design/glean_colors.dart';
 import 'core/design/glean_theme.dart';
 import 'features/auth/application/auth.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/profile/application/reminder.dart';
+import 'features/sync/background/background_sync.dart';
 import 'features/sync/data/mock_sync_server.dart';
 import 'features/sync/sync_service.dart';
 
@@ -124,11 +126,14 @@ Future<void> main() async {
   StartupTrace.mark('first_frame');
   await analytics.start(coldStartMs: StartupTrace.elapsedMs);
   sync.start();
+  startBackgroundSync(
+    openStore: () => container.read(homeTabProvider.notifier).go(HomeTab.store),
+  ).catchError((Object e) => debugPrint('[background] not scheduled: $e'));
 }
 
 /// Random id per install, kept in prefs; not tied to the hardware.
 String _deviceId(SharedPreferences prefs) {
-  const key = 'analytics.device_id';
+  const key = AnalyticsService.deviceIdKey;
   final saved = prefs.getString(key);
   if (saved != null) return saved;
   final id = const Uuid().v4();
