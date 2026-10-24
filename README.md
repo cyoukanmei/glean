@@ -2,6 +2,8 @@
 
 离线优先的英语阅读学习 App（Flutter，Android 真机；同一份代码另出 H5 版）。按分类和难度读短文与名著选章，长按取词收藏到单词本，随时从书架回到上次的位置；断网也能完成「列表 → 阅读 → 取词收藏 → 进度落库」整条链路，联网后自动同步。
 
+**在线体验（H5，与 App 同一份代码）**：https://cyoukanmei.github.io/glean/ ，演示账号 demo / glean123。H5 不带 AI 密钥，「AI 解释」按钮隐藏，其余功能与 App 一致；完整体验请用 Android 真机。
+
 - 代码：`lib/`（70 多个文件），测试：`test/`（`fvm flutter test`，全部通过）
 - 设计参考页：`../docs/design/ui-reference.html`（iOS 风格，含 4 项动效的可交互演示）、`../docs/design/redesign-v2.html`（五个 Tab 的结构与暖灰白卡配色）
 
@@ -84,7 +86,7 @@ python -m http.server 8765 --directory build/web    # 浏览器打开 http://127
   - DeepSeek 请求改用 `package:http`；H5 默认不注入密钥，「AI 解释」按钮隐藏，预生成的导读和理解题照常显示。
 - 按窗口宽度排版（`lib/core/design/layout.dart`）：手机浏览器里和 App 一样；窗口宽度 ≥ 900 时按网页排版——底栏换成左侧导航栏，书架封面按宽度多列、书城推荐列表两列，阅读页正文限制在 720 宽居中（翻书转场放大到这一栏），二级页面居中 760 宽，两侧空白处滚轮也能滚动页面。手机屏幕到不了这个宽度，App 的排版不受影响。
 - 已在本机 Edge 上走通：登录 → 书架 → 翻书打开 → 手势返回 → 长按取词 → 刷新后数据仍在。
-- CI 每次都会构建 H5 并作为 Pages 产物上传；在仓库变量里设 `DEPLOY_PAGES=true`（并把 Settings → Pages 的来源设为 GitHub Actions）后，推送 main 会自动发布到 `https://<用户名>.github.io/glean/`。
+- CI 每次都会构建 H5；仓库变量 `DEPLOY_PAGES=true`（Settings → Pages 的来源为 GitHub Actions）时，推送 main 后自动发布到 https://cyoukanmei.github.io/glean/ ，目前已开启。构建不传 DeepSeek 密钥，公开页面里没有密钥。
 
 ## 3. 架构
 
