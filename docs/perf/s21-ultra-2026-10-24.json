@@ -1,0 +1,192 @@
+{
+  "device": "Samsung Galaxy S21 Ultra (SM-G9980), Android 15, 120 Hz, 1080x2400",
+  "build": "release",
+  "source": "我的 → 性能监测 → 输出到日志",
+  "runs": [
+    {
+      "note": "书城列表上下各快速滑动 6 次（阴影修复前的构建）",
+      "scenario": "store_scroll",
+      "frames": {
+        "refresh_rate_hz": 120,
+        "budget_ms": 8.33,
+        "frame_count": 2120,
+        "build_ms": {
+          "avg": 2.25,
+          "p50": 2.25,
+          "p90": 3.41,
+          "p99": 5.79,
+          "worst": 18.47
+        },
+        "raster_ms": {
+          "avg": 3.35,
+          "p50": 2.84,
+          "p90": 5.83,
+          "p99": 9.1,
+          "worst": 23.48
+        },
+        "jank_frames": 44,
+        "jank_percent": 2.08
+      },
+      "image_cache": {
+        "bytes": 54302552,
+        "images": 63,
+        "live": 0
+      },
+      "startup_ms": {
+        "binding": 0,
+        "database": 60,
+        "session": 62,
+        "run_app": 62,
+        "first_frame": 78
+      }
+    },
+    {
+      "note": "书架上依次打开 6 本书、右滑合上（修复前）",
+      "scenario": "book_open_close",
+      "frames": {
+        "refresh_rate_hz": 120,
+        "budget_ms": 8.33,
+        "frame_count": 2564,
+        "build_ms": {
+          "avg": 1.64,
+          "p50": 1.21,
+          "p90": 3.14,
+          "p99": 7.5,
+          "worst": 21.81
+        },
+        "raster_ms": {
+          "avg": 6.16,
+          "p50": 5.83,
+          "p90": 10.32,
+          "p99": 15.43,
+          "worst": 33.99
+        },
+        "jank_frames": 611,
+        "jank_percent": 23.83
+      },
+      "image_cache": {
+        "bytes": 54302552,
+        "images": 63,
+        "live": 0
+      },
+      "startup_ms": {
+        "binding": 0,
+        "database": 60,
+        "session": 62,
+        "run_app": 62,
+        "first_frame": 78
+      }
+    },
+    {
+      "note": "同上，翻书阴影在推进阶段前段淡出后",
+      "scenario": "book_open_close_v2",
+      "frames": {
+        "refresh_rate_hz": 120,
+        "budget_ms": 8.33,
+        "frame_count": 2458,
+        "build_ms": {
+          "avg": 1.39,
+          "p50": 0.93,
+          "p90": 2.71,
+          "p99": 6.75,
+          "worst": 26.25
+        },
+        "raster_ms": {
+          "avg": 5.35,
+          "p50": 5.3,
+          "p90": 7.73,
+          "p99": 15.69,
+          "worst": 33.23
+        },
+        "jank_frames": 195,
+        "jank_percent": 7.93
+      },
+      "image_cache": {
+        "bytes": 31975256,
+        "images": 30,
+        "live": 0
+      },
+      "startup_ms": {
+        "binding": 0,
+        "database": 47,
+        "session": 49,
+        "run_app": 49,
+        "first_frame": 66
+      }
+    },
+    {
+      "note": "底栏 5 个 Tab 轮流切换 3 轮",
+      "scenario": "tab_switch",
+      "frames": {
+        "refresh_rate_hz": 120,
+        "budget_ms": 8.33,
+        "frame_count": 1136,
+        "build_ms": {
+          "avg": 0.95,
+          "p50": 0.9,
+          "p90": 1.06,
+          "p99": 5.18,
+          "worst": 14.69
+        },
+        "raster_ms": {
+          "avg": 4.71,
+          "p50": 4.42,
+          "p90": 7.14,
+          "p99": 11.04,
+          "worst": 42.08
+        },
+        "jank_frames": 64,
+        "jank_percent": 5.63
+      },
+      "image_cache": {
+        "bytes": 31975256,
+        "images": 30,
+        "live": 0
+      },
+      "startup_ms": {
+        "binding": 0,
+        "database": 47,
+        "session": 49,
+        "run_app": 49,
+        "first_frame": 66
+      }
+    },
+    {
+      "note": "书城列表上下各快速滑动 6 次（修复后构建）",
+      "scenario": "store_scroll_v2",
+      "frames": {
+        "refresh_rate_hz": 120,
+        "budget_ms": 8.33,
+        "frame_count": 2042,
+        "build_ms": {
+          "avg": 2.19,
+          "p50": 2.11,
+          "p90": 3.34,
+          "p99": 5.86,
+          "worst": 15.66
+        },
+        "raster_ms": {
+          "avg": 3.42,
+          "p50": 2.91,
+          "p90": 5.93,
+          "p99": 9.33,
+          "worst": 13.82
+        },
+        "jank_frames": 62,
+        "jank_percent": 3.04
+      },
+      "image_cache": {
+        "bytes": 54302552,
+        "images": 63,
+        "live": 0
+      },
+      "startup_ms": {
+        "binding": 0,
+        "database": 47,
+        "session": 49,
+        "run_app": 49,
+        "first_frame": 66
+      }
+    }
+  ]
+}

@@ -5,6 +5,16 @@
 - 代码：`lib/`（70 多个文件），测试：`test/`（`fvm flutter test`，全部通过）
 - 设计参考页：`../docs/design/ui-reference.html`（iOS 风格，含 4 项动效的可交互演示）、`../docs/design/redesign-v2.html`（五个 Tab 的结构与暖灰白卡配色）
 
+**演示**（三星 S21 Ultra 真机，release 包；2、3 为飞行模式）：
+
+| 书架 | 飞行模式 · 书城 | 飞行模式 · 取词收藏 | AI 解释 | 读完庆祝 |
+|---|---|---|---|---|
+| <img src="docs/media/1-shelf.jpg" width="160"> | <img src="docs/media/2-offline-store.jpg" width="160"> | <img src="docs/media/3-offline-collect.jpg" width="160"> | <img src="docs/media/4-ai-explain.jpg" width="160"> | <img src="docs/media/5-finish.jpg" width="160"> |
+
+动效录屏（18 秒：翻书转场 → 右滑合上 → 长按取词 → 收藏弹跳 → 读完庆祝）：[docs/media/demo.mp4](docs/media/demo.mp4)
+
+<img src="docs/media/demo.gif" width="270">
+
 **底栏五个 Tab**：
 
 | Tab | 内容 |
@@ -36,10 +46,10 @@
 
 | 方面 | 选择 | 理由 |
 |---|---|---|
-| 跨端框架 | **Flutter 3.44.9**（FVM 锁定在 `.fvmrc`） | 自绘引擎，动效与手势在 Android/iOS 上表现一致；`Hero`、`AnimationController`、物理模拟（`SpringSimulation`）都是一等公民，本题 30% 的动效分可以不依赖第三方动画库完成 |
+| 跨端框架 | **Flutter 3.44.9**（FVM 锁定在 `.fvmrc`） | 自绘引擎，动效与手势在 Android/iOS 上表现一致；自定义路由、`AnimationController`、3D 变换、物理模拟（`SpringSimulation`）都是一等公民，本题 30% 的动效分可以不依赖第三方动画库完成 |
 | 本地存储 | **sqflite + 手写 SQL**，辅以 `shared_preferences` | 题目要求给出建表 SQL 与迁移策略；手写 SQL 让 UPSERT、keyset 分页、幂等写入都一目了然。KV 只存设置类数据（字号、主题、难度筛选、搜索历史） |
 | 状态管理 | **Riverpod 3**，只做依赖注入、设置和「数据变了」的通知（`Revision` 计数器） | 页面状态留在各自 `State` 里，避免全局 store；仓库都能在测试里替换 |
-| 动效 | 原生 API：`Hero`、自写 `PageRoute`、`AnimationController`、`CustomPainter`（彩纸、进度环） | 庆祝动画自绘，无 Lottie 资源需要授权或加载 |
+| 动效 | 原生 API：自写 `PageRoute`（翻书转场、手势返回）、`AnimationController`、`Matrix4` 透视、`CustomPainter`（彩纸、进度环） | 庆祝动画自绘，无 Lottie 资源需要授权或加载 |
 | 测试 | `flutter_test` + `sqflite_common_ffi`（真实 SQLite 文件） | 仓库、迁移、同步、埋点在桌面 SQLite 上跑真实 SQL；组件测试用内存假仓库 |
 | CI | GitHub Actions：format → analyze → test（含汇总脚本测试）→ `build apk --release` → `build web`，APK 与 H5 产物上传；H5 可选自动发布到 GitHub Pages | `.github/workflows/ci.yml` |
 
@@ -69,7 +79,7 @@ python -m http.server 8765 --directory build/web    # 浏览器打开 http://127
 
 - 和 App 是同一份代码，只有平台相关的几处按条件导入替换（`if (dart.library.js_interop)`）：
   - SQLite 换成 WebAssembly 版（`sqflite_common_ffi_web`，数据存在浏览器 IndexedDB，`web/sqlite3.wasm` 随仓库提交）。建表、迁移、种子导入、同步、埋点都走同一组 SQL，刷新页面后登录态和阅读进度都在。
-  - 本地通知换成空实现，「我的」里不显示阅读提醒（浏览器关掉标签页后无法定时唤醒）。
+  - 本地通知和后台同步换成空实现，「我的」里不显示阅读提醒（浏览器关掉标签页后无法定时唤醒）。
   - 头像不能从相册选图，只用字母头像（浏览器没有可写的文件目录）。
   - DeepSeek 请求改用 `package:http`；H5 默认不注入密钥，「AI 解释」按钮隐藏，预生成的导读和理解题照常显示。
 - 按窗口宽度排版（`lib/core/design/layout.dart`）：手机浏览器里和 App 一样；窗口宽度 ≥ 900 时按网页排版——底栏换成左侧导航栏，书架封面按宽度多列、书城推荐列表两列，阅读页正文限制在 720 宽居中（翻书转场放大到这一栏），二级页面居中 760 宽，两侧空白处滚轮也能滚动页面。手机屏幕到不了这个宽度，App 的排版不受影响。
@@ -90,7 +100,7 @@ lib/
   features/
     shelf/        书架（合并阅读历史与收藏 / 稍后再读）
     store/        书城、banner 轮播、排行榜
-    articles/     文章仓库（分页、搜索、榜单）、列表卡片、书本封面、封面 Hero
+    articles/     文章仓库（分页、搜索、榜单）、列表卡片、书本封面、封面位置登记（翻书转场的起点）
     reader/       阅读页、进度会话、阅读设置、读完卡片
     vocab/        取词、单词本、复习卡片
     coread/       社区（本地 mock：帖子、评论、点赞）
@@ -223,9 +233,34 @@ CREATE TABLE event_queue (
 
 触发时机：启动、每分钟、本地改动后 3 秒（合并连续写入）、回到前台、网络恢复、手动「立即同步」。游客数据不同步；首次登录时把游客数据接管到账号下。「我的 → 同步」页可看待上传数量、最近冲突，并有「模拟另一台设备修改」按钮用于演示。
 
+**Mock 接口清单**：没有自建后端，三个「服务端」都在 App 内用 SQLite 模拟，但请求和响应按下面的 JSON 收发（模拟网络延迟，离线时抛出离线异常），换成真实后端只需把这几个类换成 HTTP 调用。
+
+| 接口 | 方法 | 入参 | 出参 | 实现 |
+|---|---|---|---|---|
+| `/v1/sync/push` | POST | `{user_id, device_id, changes: [{kind: progress\|vocab\|mark, key, payload, base_version}]}` | `{results: [{kind, key, payload, version, conflict}]}`：每条改动返回服务端合并后的记录与新版本号，`conflict` 表示 `base_version` 已过期、发生过合并 | `MockSyncServer.push`（[mock_sync_server.dart](lib/features/sync/data/mock_sync_server.dart)） |
+| `/v1/sync/pull` | GET | `user_id`、`device_id`、`since`（变更序号游标） | `{changes: [...], cursor}`：其他设备在游标之后的改动，以及新游标 | `MockSyncServer.pull` |
+| `/v1/events` | POST | `{batch_id, events: [{event_id, name, ts, session_id, user_id, params, ...公共参数}]}`，每批最多 50 条 | `200 {accepted, duplicates}`：按 `event_id` 去重入库；调试面板可注入 `503` 观察退避重试 | `MockCollector.post`（[collector.dart](lib/core/analytics/collector.dart)） |
+| `/v1/articles/latest` | GET | 本机已有的文章 id | 最多 2 篇本机没有的新文章（随包的远端池，发布时间为当前时间） | `MockArticleRemote.fetchLatest`（[article_remote.dart](lib/features/articles/data/article_remote.dart)），下拉刷新调用 |
+
+登录接口见第 9 节（本地校验 + Mock Token）。
+
+**后台同步与新文章通知**（[background_sync_io.dart](lib/features/sync/background/background_sync_io.dart)）：用 Android WorkManager（`workmanager` 插件）注册一个周期任务，约每小时一次、只在联网时运行，App 关着也会跑。任务在独立的后台引擎里打开同一个数据库，做两件事：拉取新文章写入本地（和书城下拉刷新同一个请求），同步阅读进度与生词；拉到新文章就发一条本地通知「书城上新 N 篇」，点通知打开 App 并切到书城（埋点 `notification_open`）。通知只在用户已经允许通知时发，后台任务不会弹权限申请。「我的 → 同步」页显示上次后台运行的时间和带回的文章数，并有「立即在后台运行一次」按钮：同一个任务交给 WorkManager 跑一次，离线时会等到联网再跑。业务逻辑在 [background_job.dart](lib/features/sync/background/background_job.dart)，有单测。真机验证：安装后周期任务立即跑了一次；飞行模式下两个任务在 `dumpsys jobscheduler` 里都是 `NET unsatisfied`（等网络），关掉飞行模式后自动执行。
+
 ## 6. 动效清单
 
-手感在真机（三星 S21 Ultra，Android 15，120 Hz）上逐项调过。帧率验证方式：`fvm flutter run --profile` 打开性能叠加层（或 DevTools Performance），观察 UI / Raster 两条曲线不超出帧预算；关键时序（延迟、持续时间、弹跳中间值、只播放一次）在组件测试里逐帧断言，见 `test/features/reader/reader_page_test.dart`、`test/features/articles/article_feed_test.dart` 等。
+手感在真机（三星 S21 Ultra，Android 15，120 Hz）上逐项调过。关键时序（延迟、持续时间、弹跳中间值、只播放一次）在组件测试里逐帧断言，见 `test/features/reader/reader_page_test.dart`、`test/features/articles/article_feed_test.dart` 等。
+
+**帧率实测**（release 包，S21 Ultra 120 Hz，帧预算 8.33 ms）。App 内「我的 → 性能监测」用 `FrameTiming` 记录每一帧的 UI（build）和光栅（raster）耗时：重置统计 → 操作 → 「输出到日志」（`adb logcat -s flutter | grep perf`）。原始数据：[docs/perf/s21-ultra-2026-10-24.json](docs/perf/s21-ultra-2026-10-24.json)。
+
+| 场景 | 帧数 | 超预算帧 | UI p90 / p99 | 光栅 p90 / p99 |
+|---|---|---|---|---|
+| 书城列表快速上下滑动（各 6 次） | 2042 | 3.0% | 3.3 / 5.9 ms | 5.9 / 9.3 ms |
+| 底栏 5 个 Tab 轮流切换 3 轮 | 1136 | 5.6% | 1.1 / 5.2 ms | 7.1 / 11.0 ms |
+| 打开 6 本书（翻书转场）+ 右滑合上 | 2458 | 7.9% | 2.7 / 6.8 ms | 7.7 / 15.7 ms |
+
+翻书转场第一次测是 23.8% 超预算、光栅 p90 10.3 ms：书下面的投影是 40 px 的大半径模糊，推进阶段书页长到整屏，投影几乎透明了却还在按整屏做模糊。改为在推进前段淡出、之后不再绘制，降到 7.9%、p90 7.7 ms，观感不变。剩下的超预算帧集中在转场里扉页与阅读页交接的几帧（阅读页整体透明度渐变需要离屏合成），全部在 60 Hz 的 16.7 ms 预算内（p99 15.7 ms）。
+
+启动与内存（同一台手机）：冷启动 Dart 侧从 `main` 到首帧 66–78 ms（两次安装后的冷启动；性能监测页逐步列出，如：数据库 47 ms → 恢复登录 49 ms → `runApp` 49 ms → 首帧 66 ms；数据库、prefs、封面清单等启动 I/O 并行执行，种子导入不阻塞首帧）；封面按显示尺寸解码后，书架页总 PSS 204 → 172 MB，图形内存 98 → 70 MB（`dumpsys meminfo`）。
 
 | # | 动效 | 位置 | 实现 | 关键参数 |
 |---|---|---|---|---|
@@ -238,9 +273,9 @@ CREATE TABLE event_queue (
 | 4 | 收藏按钮形变弹跳 | 取词面板 | `TweenSequence` 缩放 + 图标描边→实心 + 底色青绿→暖金 | 1 → 0.8（80 ms）→ 1.25（140 ms）→ 1（180 ms），共 400 ms；乐观更新，按下同帧开始 |
 | 4 | Tab 指示器滑动 | 底栏悬浮胶囊；书城分类、社区、榜单、收藏与历史的文字 Tab 下划短条；胶囊筛选的底色渐变 | `AnimatedPositioned`；文字 Tab 用选中字号预先量宽，切换时不重排 | 380–420 ms easeOutBack（轻微过冲）；胶囊 220 ms |
 | 4 | 骨架屏 shimmer | 书城列表加载 | 两层：白底分组在下，占位块 + 渐变扫光在上（扫光只作用于占位块） | 1.2 s 周期；加载 < 120 ms 不显示，一旦显示至少停留 400 ms，避免闪烁 |
-| + | 其他 | — | 开屏图标过冲弹入；书城 banner 4.5 s 自动轮播、拖动暂停、图片反向视差；榜单切换淡入上移；新评论展开并淡出高亮；阅读主题 200 ms 渐变；复习卡片 3D 翻面（450 ms）与甩出；跳回原文时词底暖金闪两次；点赞心形弹性放大 | — |
+| + | 其他 | — | 开屏插画淡入回落、品牌名上浮；书城 banner 4.5 s 自动轮播、拖动暂停、图片反向视差；榜单切换淡入上移；新评论展开并淡出高亮；阅读主题 200 ms 渐变；复习卡片 3D 翻面（450 ms）与甩出；跳回原文时词底暖金闪两次；点赞心形弹性放大 | — |
 
-性能取舍：毛玻璃（`BackdropFilter`）只用在底栏、阅读页悬浮按钮和顶栏这类小面积；进度条和彩纸各自 `RepaintBoundary`；封面图片 ≤ 720 px WebP（单张 < 90 KB），一次解码在 Hero 飞行过程中复用。
+性能取舍：毛玻璃（`BackdropFilter`）只用在底栏、阅读页悬浮按钮和顶栏这类小面积；进度条和彩纸各自 `RepaintBoundary`；封面图片 ≤ 720 px WebP（单张 < 90 KB），按显示尺寸解码，翻书转场里的封面与列表共用同一份解码结果。
 
 ## 7. 数据埋点方案
 
@@ -443,4 +478,5 @@ fvm flutter build appbundle --release    # 上架 Google Play（AAB）
 - 社区是本地 mock 内容（引用的原句来自种子文章，内置评论为示例），自己的帖子和评论只存在本机，不参与同步，也没有真实社交关系。
 - AI 内容由模型生成，可能有个别不准确，界面上标注「由 deepseek-flash 预先生成，仅供参考」；阅读理解作答只存本机，不参与同步。
 - 只在 Android 真机验证；H5 在桌面 Edge 上验证过主流程；iOS 未测。
+- 后台同步受系统调度：WorkManager 周期最短 15 分钟，三星等厂商的省电策略可能推迟执行；「推送」只做了本地通知，没有接 FCM（需要 Firebase 项目和服务端），真实推送应由服务端在上新时发 FCM 消息、App 收到后走同一个同步任务。
 - H5 的数据存在当前浏览器的 IndexedDB 里，清除站点数据就会丢；没有阅读提醒和相册头像。H5 没有做离线缓存：打开页面需要联网加载程序和渲染引擎，加载完之后的阅读、取词、收藏都在本地完成。
