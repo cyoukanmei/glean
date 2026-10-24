@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
+import 'book_open_transition.dart';
+
 /// Page route whose swipe-back follows the finger and can be cancelled.
 ///
 /// Two inputs drive the same route animation:
@@ -16,10 +18,15 @@ import 'package:flutter/services.dart';
 /// at the finger's velocity, so there is no speed jump between drag and
 /// settle. While a gesture is in progress the transition maps the animation
 /// linearly, so the page stays under the finger.
+///
+/// With [book] set the page opens like a book from the tapped cover
+/// ([BookOpenTransition]) instead of sliding in; the gestures and the
+/// spring are the same, so a back swipe closes the book under the finger.
 class SwipeBackPageRoute<T> extends PageRoute<T> {
-  SwipeBackPageRoute({required this.builder, super.settings});
+  SwipeBackPageRoute({required this.builder, super.settings, this.book});
 
   final WidgetBuilder builder;
+  final BookOpening? book;
 
   /// Same thresholds as Flutter's Cupertino back gesture (cupertino/route.dart):
   /// a fling of at least one screen width per second decides by direction,
@@ -36,10 +43,12 @@ class SwipeBackPageRoute<T> extends PageRoute<T> {
   );
 
   @override
-  Duration get transitionDuration => const Duration(milliseconds: 420);
+  Duration get transitionDuration =>
+      book == null ? const Duration(milliseconds: 420) : BookOpening.forward;
 
   @override
-  Duration get reverseTransitionDuration => const Duration(milliseconds: 350);
+  Duration get reverseTransitionDuration =>
+      book == null ? const Duration(milliseconds: 350) : BookOpening.reverse;
 
   /// Also required for gesture-driven Hero flights back to this page.
   @override
@@ -51,9 +60,12 @@ class SwipeBackPageRoute<T> extends PageRoute<T> {
   @override
   String? get barrierLabel => null;
 
+  /// A book opens over the list in place, so the list does not slide away.
   @override
   bool canTransitionTo(TransitionRoute<dynamic> nextRoute) =>
-      nextRoute is SwipeBackPageRoute && !nextRoute.fullscreenDialog;
+      nextRoute is SwipeBackPageRoute &&
+      !nextRoute.fullscreenDialog &&
+      nextRoute.book == null;
 
   @override
   Widget buildPage(
@@ -69,14 +81,23 @@ class SwipeBackPageRoute<T> extends PageRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    final page = _SystemBackListener(
+      route: this,
+      child: _SwipeBackDetector(route: this, child: child),
+    );
+    if (book case final book?) {
+      return BookOpenTransition(
+        animation: animation,
+        secondaryAnimation: secondaryAnimation,
+        book: book,
+        child: page,
+      );
+    }
     return _SwipeBackTransition(
       animation: animation,
       secondaryAnimation: secondaryAnimation,
       linear: popGestureInProgress,
-      child: _SystemBackListener(
-        route: this,
-        child: _SwipeBackDetector(route: this, child: child),
-      ),
+      child: page,
     );
   }
 

@@ -14,7 +14,6 @@ import '../../../core/design/ios_widgets.dart';
 import '../../../core/widgets/cover_catalog.dart';
 import '../../../core/widgets/state_illustration.dart';
 import '../../articles/data/article_repository.dart';
-import '../../articles/ui/cover_hero.dart';
 import '../../articles/ui/labels.dart';
 import '../../vocab/application/word_picking.dart';
 import '../../vocab/data/vocab_repository.dart';
@@ -29,6 +28,7 @@ import 'open_reader.dart';
 import 'reader_chrome.dart';
 import 'reader_paragraph.dart';
 import 'reader_settings_sheet.dart';
+import 'title_page.dart';
 import 'reading_progress_bar.dart';
 
 class ReaderPage extends ConsumerStatefulWidget {
@@ -83,8 +83,6 @@ class _Loaded {
 
 class _ReaderPageState extends ConsumerState<ReaderPage>
     with TickerProviderStateMixin {
-  static const _coverHeight = 300.0;
-
   /// Room for the floating buttons under the status bar.
   static const _topBarHeight = 58.0;
 
@@ -605,7 +603,6 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
   ) {
     final article = widget.article;
     final padding = MediaQuery.paddingOf(context);
-    final headerHeight = _coverHeight + padding.top;
     final previous = _previous;
     final next = _next;
     final finishStats = _finishStats;
@@ -621,33 +618,13 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                 key: _contentKey,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(
-                    height: headerHeight,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CoverHero(
-                          article: article,
-                          surface: widget.surface,
-                          borderRadius: CoverHero.headerRadius,
-                        ),
-                        // The illustration dissolves into the page colour.
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              // Late, so the cover's book stays clear.
-                              stops: const [0.78, 1],
-                              colors: [
-                                palette.background.withValues(alpha: 0),
-                                palette.background,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  // Set like a book's title page (the book-opening
+                  // transition shows this same widget on its first page).
+                  // Not part of the fading body, so it never flickers.
+                  ReaderTitlePage(
+                    article: article,
+                    palette: palette,
+                    top: ReaderTitlePage.topFor(padding),
                   ),
                   FadeTransition(
                     key: const Key('reader-body'),
@@ -700,7 +677,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
               ),
             ),
           ),
-          // Top glass: clear over the cover, frosts in once text would scroll
+          // Top glass: clear at the top, frosts in once text would scroll
           // under the system icons and the floating buttons.
           Positioned(
             top: 0,
@@ -712,9 +689,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage>
                 animation: _scroll,
                 builder: (context, _) {
                   final offset = _scroll.hasClients ? _scroll.offset : 0.0;
-                  // Text reaches the buttons _topBarHeight before the cover's end.
-                  final t = ((offset - _coverHeight + _topBarHeight + 40) / 40)
-                      .clamp(0.0, 1.0);
+                  // The title page starts below the buttons; frost in as its
+                  // first line scrolls under them.
+                  final t = ((offset - 16) / 40).clamp(0.0, 1.0);
                   return t == 0
                       ? const SizedBox.shrink()
                       : Opacity(
@@ -893,48 +870,23 @@ class _Body extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: palette.chipBg,
-              borderRadius: BorderRadius.circular(999),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              byline.join('  ·  '),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: palette.secondary),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              child: Text(
-                '${categoryLabels[article.category] ?? article.category} · '
-                '${levelLabels[article.level] ?? 'L${article.level}'}',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: palette.accent,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            article.title,
-            style: TextStyle(
-              fontFamily: serifFamily,
-              fontFamilyFallback: serifFallback,
-              fontSize: 30,
-              height: 1.18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
-              color: palette.title,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            byline.join('  ·  '),
-            style: TextStyle(fontSize: 13, color: palette.secondary),
           ),
           // Attribution for the cover picture (CC BY / BY-SA need it).
           if (CoverCatalog.instance[article.id] case final cover?)
-            Padding(
+            Container(
+              width: double.infinity,
               padding: const EdgeInsets.only(top: 4),
               child: Text(
                 '封面：${cover.artist} · ${cover.license} · Wikimedia Commons',
+                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 11.5, color: palette.secondary),
