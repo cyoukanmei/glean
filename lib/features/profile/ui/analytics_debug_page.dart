@@ -1,7 +1,11 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../app/providers.dart';
 import '../../../core/analytics/analytics_report.dart';
@@ -101,6 +105,49 @@ class _AnalyticsDebugPageState extends ConsumerState<AnalyticsDebugPage> {
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 
+  /// A consistent copy of the database (`VACUUM INTO`) in the app's
+  /// external files folder, which `adb pull` can read; the summary script
+  /// runs on it (README section 7).
+  Future<void> _export() async {
+    final dir = await getExternalStorageDirectory();
+    if (dir == null || !mounted) return;
+    final path = p.join(
+      dir.path,
+      'glean-export-${clock.now().millisecondsSinceEpoch}.db',
+    );
+    await ref.read(databaseProvider).execute('VACUUM INTO ?', [path]);
+    if (!mounted) return;
+    final command = 'adb pull $path';
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('已导出'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            '$command\n\n然后运行：\n'
+            'python -I tool/analytics_report.py '
+            '${p.basename(path)} --html report.html',
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: command));
+              Navigator.pop(context);
+            },
+            child: const Text('复制命令'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context),
+            child: const Text('好'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final service = _service;
@@ -156,6 +203,14 @@ class _AnalyticsDebugPageState extends ConsumerState<AnalyticsDebugPage> {
                           : const Icon(Icons.upload_rounded),
                       onTap: _flushing ? null : _flush,
                     ),
+                    if (!kIsWeb)
+                      ListTile(
+                        key: const Key('debug-export'),
+                        title: const Text('导出数据库'),
+                        subtitle: const Text('给 tool/analytics_report.py 汇总'),
+                        trailing: const Icon(Icons.ios_share_rounded),
+                        onTap: _export,
+                      ),
                     SwitchListTile.adaptive(
                       key: const Key('debug-fail'),
                       title: const Text('模拟上报失败（返回 503）'),
