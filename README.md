@@ -25,9 +25,10 @@
 5. [离线、幂等与同步](#5-离线幂等与同步)
 6. [动效清单](#6-动效清单)
 7. [数据埋点方案](#7-数据埋点方案)
-8. [登录与鉴权（Mock）](#8-登录与鉴权mock)
-9. [打包、签名与上架](#9-打包签名与上架)
-10. [已知缺陷与优化思路](#10-已知缺陷与优化思路)
+8. [AI 功能（DeepSeek）](#8-ai-功能deepseek)
+9. [登录与鉴权（Mock）](#9-登录与鉴权mock)
+10. [打包、签名与上架](#10-打包签名与上架)
+11. [已知缺陷与优化思路](#11-已知缺陷与优化思路)
 
 ---
 
@@ -56,6 +57,7 @@ fvm flutter test           # 全部单测 / 组件测试
 
 - 首次启动会把 `assets/seed/` 里的种子数据（34 篇文章、6 千多条词典）导入 SQLite，开屏期间完成，之后每次启动只读一个 19 字节的 `manifest.json` 判断是否需要重导。
 - 演示账号：**demo / glean123**（登录页点提示条即可填入），也可以注册新账号。
+- AI 导读、阅读理解题、CEFR 难度随种子内置，无需任何密钥。取词面板的「AI 解释」需要在构建时传入 DeepSeek 密钥（不入库）：`fvm flutter run --dart-define=DEEPSEEK_API_KEY=sk-...`；不传则该按钮隐藏，其余功能不受影响。
 - 种子重建（编辑 `content/` 后）：`python -I tool/build_seed.py --ecdict path/to/ecdict.csv`。
 
 ## 3. 架构
@@ -103,7 +105,7 @@ Analytics.track ──▶ event_queue（SQLite）──批量──▶ MockColle
 
 ## 4. 本地数据库：建表、索引与迁移
 
-完整 DDL 在 [`lib/core/db/schema.dart`](lib/core/db/schema.dart)（版本 4）。表关系：
+完整 DDL 在 [`lib/core/db/schema.dart`](lib/core/db/schema.dart)（版本 6）。表关系：
 
 ```
 users 1─* sessions
@@ -111,6 +113,9 @@ users 1─* reading_progress *─1 articles      （PK: user_id + article_id）
 users 1─* reading_segments                    （阅读时长分段，按天统计）
 users 1─* vocab                                （UNIQUE: user_id + lemma，软删除墓碑）
 users 1─* article_marks *─1 articles          （收藏 / 稍后再读，PK: user_id + article_id + kind）
+users 1─* quiz_results                         （阅读理解作答，PK: user_id + article_id）
+article_ai                                     （AI 导读 / 题目 / CEFR，随种子导入，按 article_id 查）
+ai_explanations                                （在线 AI 解释的本地缓存，PK: lemma + 句子哈希）
 dict / word_forms                              （词典与屈折形式 → 原形）
 event_queue → collected_events / upload_log   （埋点队列、模拟数仓、上报日志）
 app_meta                                       （种子版本、同步游标）
@@ -172,6 +177,8 @@ CREATE TABLE event_queue (
 
 - v2：`vocab` 加 `status` 列。
 - v4：`article_marks` 表（收藏 / 稍后再读），同样带 `version`/`dirty`/墓碑，随同步上传。
+- v5：`articles` 加 `readers` / `favorites`（列表上的在读数、收藏数）。
+- v6：AI 相关三张表：`article_ai`（预生成的导读、题目、CEFR；不设外键，下拉刷新才进库的文章也能先导入）、`quiz_results`、`ai_explanations`。
 - v3：名著需要新分类，SQLite 不能修改 CHECK 约束，所以按官方步骤重建 `articles`（建新表 → 拷数据 → 删旧表 → 改名），并给 `users` 加资料列。外键改在 `onOpen` 才打开：迁移期间若外键开着，改名会把 `reading_progress` 的外键改指向旧表。
 
 ## 5. 离线、幂等与同步
@@ -206,8 +213,8 @@ CREATE TABLE event_queue (
 
 | # | 动效 | 位置 | 实现 | 关键参数 |
 |---|---|---|---|---|
-| 1 | 共享元素转场 | 列表卡片、书架封面、榜单 → 阅读页封面 | `Hero` + 自定义 `flightShuttleBuilder`：圆角从列表端的圆角插值到 0；封面在宽框里由「方图」连续过渡为「立着的书」 | 直线 `RectTween`；去程 easeOutCubic 420 ms，回程 easeInCubic 350 ms |
-| 1 | 手势返回（跟手、可取消回弹） | 所有二级页 | 自写 `SwipeBackPageRoute`：页面任意位置右滑（dx > 2·|dy| 才判定，避免误触滚动）+ Android 预测性返回；松手用临界阻尼弹簧 `SpringSimulation` 从手指速度接续 | 刚度 500、阻尼比 1；超过一半或速度 ≥ 1 屏宽/秒即返回，否则回弹；拖动中曲线改为线性保证页面贴手；下层页面 0.3 视差 |
+| 1 | 翻书转场（封面共享元素） | 书城卡片、书架封面、榜单、搜索 → 阅读页 | 自写 `BookOpenTransition`，由路由动画进度驱动（原型见 `docs/design/book-open-v2.html`）：① 拿起书（0–0.28）：封面从列表浮起，略带侧转露出书脊和书页厚度，飞到屏幕中央，背景压暗；② 翻开（0.20–0.60）：封面绕书脊 3D 翻开，两张衬纸稍晚跟着翻到左边（0.26–0.64、0.30–0.66），全部平躺后才开始推进；书在翻开过程中从屏宽 58% 收窄到 45%，书脊移到屏幕中线，摊开的跨页（左页是同色纸张、带装订阴影）完整落在屏幕内；③ 推进（0.68–0.95）：第一页铺满全屏，左侧离场；④ 接上正文（0.95–1）。第一页就是阅读页自己的扉页组件（`ReaderTitlePage`）按屏宽排版后缩放，铺满时与阅读页顶部逐像素重合，所以没有样式切换；阅读页顶部不再放封面大图。列表原位封面在书离开期间隐藏 | 打开 1100 ms、合上 850 ms，时间线性推进、各阶段各自缓动（封面翻开约 440 ms）；封面绕书脊朝观看者抬起再翻向左侧；透视 1/2200；书宽：合上时屏宽 × 0.58（上限 280）、翻开时 × 0.45（上限 220），3:4；背景压暗 30%。阅读页在全过程保持挂载，状态不重建。从上一篇 / 下一篇、banner 进入时没有可见封面，回退为滑入转场 |
+| 1 | 手势返回（跟手、可取消回弹） | 所有二级页（阅读页右滑即「合上书」，进度跟手） | 自写 `SwipeBackPageRoute`：页面任意位置右滑（dx > 2·|dy| 才判定，避免误触滚动）+ Android 预测性返回；松手用临界阻尼弹簧 `SpringSimulation` 从手指速度接续 | 刚度 500、阻尼比 1；超过一半或速度 ≥ 1 屏宽/秒即返回，否则回弹；拖动中曲线改为线性保证页面贴手；下层页面 0.3 视差 |
 | 2 | 列表 stagger 渐入 | 书城列表首屏、书架封面网格（切换筛选时重播） | 一个 `AnimationController` 驱动前 8 项，各自 `Interval` | 每项错开 40 ms、时长 300 ms、上移 16 px，总 580 ms；之后加载的项不再动画 |
 | 2 | 正文首屏淡入位移 | 阅读页 | 等路由转场结束（封面落位）后再淡入 | 延迟 80 ms，280 ms easeOutCubic，上移 12 px；取消的返回手势不会重播 |
 | 3 | 进度环 / 进度条平滑推进 | 继续阅读卡、阅读页顶部 3 pt 条、底部胶囊栏、「我的」目标环 | `TweenAnimationBuilder` 从旧值补间到新值；阅读条独立 `RepaintBoundary`，滚动时只重绘这一条 | 进度环 800 ms easeOutCubic；阅读条 250 ms |
@@ -243,6 +250,7 @@ CREATE TABLE event_queue (
 | 取词 / 收藏 / 发音 / 复习 | `word_lookup`(word, found, article_id)、`word_collect`、`word_delete`、`word_pronounce`、`word_review` |
 | 读完 | `article_finish`(article_id) |
 | 分享与社区 | `article_share`、`coread_share`、`coread_like`、`coread_comment`(post, reply?)、`coread_comment_like`(comment, like) |
+| AI | `ai_guide_open`(article_id)、`quiz_open`(article_id, surface)、`quiz_answer`(article_id, index, correct)、`quiz_complete`(article_id, correct, total)、`ai_explain`(lemma, source=cache/api/error/offline, latency_ms?) |
 | 离线命中 | `offline_hit`(surface) |
 | 其他 | `login`、`register`、`logout`、`profile_update`、`reader_settings`、`appearance_set`、`reminder_set`、`sync_run` |
 
@@ -326,14 +334,50 @@ tech     0            1
 
 （示例输出来自 `test/core/analytics/analytics_report_test.dart` 的测试数据。）
 
-## 8. 登录与鉴权（Mock）
+## 8. AI 功能（DeepSeek）
+
+离线优先不变：能提前算的全部提前生成、随种子打包，只有「解释这个词在这句里的意思」需要联网实时调用。
+
+| 功能 | 位置 | 生成方式 |
+|---|---|---|
+| AI 导读（2–3 句中文摘要 + 3 条要点） | 阅读页标题下的卡片，默认折叠两行，点开看全部 | 预生成 |
+| CEFR 难度分级（A1–C2）+ 一句评级理由 | 导读卡片标签 | 预生成 |
+| 阅读理解 3 题（主旨 / 细节 / 推断，四选一 + 中文解析） | 导读卡片、文末「读懂了吗」卡片、读完弹窗 | 预生成 |
+| AI 解释（本句中的意思、为什么、常见搭配、新例句） | 取词面板 | 在线，结果缓存到本机 |
+
+**预生成**：[`tool/ai_enrich.py`](tool/ai_enrich.py) 对 38 篇文章（34 篇内置 + 4 篇远端池）各调用一次 `deepseek-flash`（OpenAI 兼容的 chat 接口，`response_format: json_object`），产出 [`assets/seed/ai.json`](assets/seed/ai.json)，种子 v5 导入 `article_ai` 表。
+
+- 每条结果都按约定校验（3 题、每题 4 个互不相同的选项、答案下标合法、CEFR 取值合法），不合格自动重试，最多 3 次。
+- 选项用文章 id 作种子重新洗牌，正确答案均匀落在 A–D（实测 27/29/27/31），不会因为模型偏好总是 B。
+- 每条记录文章正文哈希，重跑只请求新增或改过的文章。
+- 本次生成：输入 6.1 万 token、输出 5.3 万 token。
+
+```bash
+DEEPSEEK_API_KEY=sk-... python -I tool/ai_enrich.py            # 只补新增/改动的文章
+DEEPSEEK_API_KEY=sk-... python -I tool/ai_enrich.py --only tech-1-a
+```
+
+**在线 AI 解释**：[`DeepSeekClient`](lib/features/ai/data/deepseek_client.dart) 用 `dart:io` 的 `HttpClient` 直接调用，没有引入额外依赖。
+
+- 请求带上单词、所在句子和文章标题，25 s 超时。
+- 401 / 402 / 429 / 5xx、超时、断网、返回无法解析，都转成一句中文提示，可以重试。
+- 成功的结果按「原形 + 句子哈希」写入 `ai_explanations`，同一处再查直接读本地，离线也能看。
+- 离线时不发请求，提示联网后再试。
+- 真机实测单次约 1.2–1.7 s。
+
+**密钥与安全**：
+
+- 密钥只通过 `--dart-define=DEEPSEEK_API_KEY` 在构建时注入，仓库里没有密钥；CI 构建不带密钥，AI 解释按钮隐藏。
+- 打进 APK 的密钥可以被反编译取出，只适合演示。正式上线应由自有后端代理请求：后端持有密钥，按用户限流、记账，App 只带登录 token。
+
+## 9. 登录与鉴权（Mock）
 
 - 本地 `users` 表：每个用户随机 16 字节盐，存 `sha256(salt + password)`；内置演示账号 demo / glean123。
 - 登录成功生成随机 token（UUID），写入 `sessions(token, user_id, expires_at)`，有效期 7 天；客户端只在 `shared_preferences` 里保存 token。
 - 启动时用 token 查 `sessions` 并校验未过期，有效则直接进首页，否则清掉 token 回登录页。退出登录删除会话。
 - 真实后端时：哈希与发 token 在服务端完成（如 bcrypt/argon2 + 短期 access token + refresh token），客户端 token 存 Android Keystore / iOS Keychain。
 
-## 9. 打包、签名与上架
+## 10. 打包、签名与上架
 
 ```bash
 fvm flutter build apk --release          # 直接安装测试
@@ -345,7 +389,7 @@ fvm flutter build appbundle --release    # 上架 Google Play（AAB）
 - **上架**：Google Play 内部测试 → 封闭测试 → 正式，填写数据安全表单（本 App 数据只存本机；埋点为匿名设备 id）、隐私政策、内容分级。国内商店（华为/小米/OPPO/vivo）需软著与隐私合规检测，首次启动先展示隐私政策再初始化 SDK。
 - **iOS**：`flutter build ipa`，Xcode 配置 Team 与描述文件，通过 App Store Connect 上传，TestFlight 测试后提审。
 
-## 10. 已知缺陷与优化思路
+## 11. 已知缺陷与优化思路
 
 - 同步与埋点的「服务端」都是本机 SQLite 模拟，接口按 JSON 收发以保持边界；换成真实后端只需替换 `MockSyncServer.push/pull` 与 `MockCollector.post`。
 - 取词按 `[A-Za-z]+` 切词：`couldn’t` 会被切成 `couldn` + `t`，名著里少数缩写与人名查不到释义（46 个）。可改为基于 ICU 的分词并补充缩写表。
@@ -353,4 +397,5 @@ fvm flutter build appbundle --release    # 上架 Google Play（AAB）
 - 深色模式切换时整棵树重建一次（保留状态），之后的帧正常；若要零重建需把所有颜色改走 `Theme`/`InheritedWidget`。
 - 每日提醒用非精确闹钟（无需「精确闹钟」权限），系统可能延后几分钟。
 - 社区是本地 mock 内容（引用的原句来自种子文章，内置评论为示例），自己的帖子和评论只存在本机，不参与同步，也没有真实社交关系。
+- AI 内容由模型生成，可能有个别不准确，界面上标注「由 deepseek-flash 预先生成，仅供参考」；阅读理解作答只存本机，不参与同步。
 - 只在 Android 真机验证；iOS 未测。
