@@ -192,6 +192,10 @@ class _BookOpenTransitionState extends State<BookOpenTransition> {
     final tilt =
         -BookOpenTransition.maxTilt * sin(pi * (t / 0.4).clamp(0.0, 1.0));
     final leftGone = zoom > 0 && page.left <= target.left + 0.5;
+    // The drop shadow is a large blur, and the page it sits under grows to
+    // the whole screen: it fades out early in the zoom and is not drawn at
+    // all after that, where it would cost the most and show the least.
+    final shadow = 0.5 * lift * (1 - (zoom / 0.25).clamp(0.0, 1.0));
     final spread = page.width * open * (1 - zoom);
 
     return Stack(
@@ -221,14 +225,13 @@ class _BookOpenTransitionState extends State<BookOpenTransition> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: 0.5 * lift * (1 - zoom),
+                  if (shadow > 0.01)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: shadow),
+                      blurRadius: 40,
+                      offset: const Offset(0, 30),
+                      spreadRadius: -12,
                     ),
-                    blurRadius: 40,
-                    offset: const Offset(0, 30),
-                    spreadRadius: -12,
-                  ),
                 ],
               ),
             ),
