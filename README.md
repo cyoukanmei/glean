@@ -1,6 +1,6 @@
 # 拾读 Glean
 
-离线优先的英语阅读学习 App（Flutter，Android 真机）。按分类和难度读短文与名著选章，长按取词收藏到单词本，随时从书架回到上次的位置；断网也能完成「列表 → 阅读 → 取词收藏 → 进度落库」整条链路，联网后自动同步。
+离线优先的英语阅读学习 App（Flutter，Android 真机；同一份代码另出 H5 版）。按分类和难度读短文与名著选章，长按取词收藏到单词本，随时从书架回到上次的位置；断网也能完成「列表 → 阅读 → 取词收藏 → 进度落库」整条链路，联网后自动同步。
 
 - 代码：`lib/`（70 多个文件），测试：`test/`（`fvm flutter test`，全部通过）
 - 设计参考页：`../docs/design/ui-reference.html`（iOS 风格，含 4 项动效的可交互演示）、`../docs/design/redesign-v2.html`（五个 Tab 的结构与暖灰白卡配色）
@@ -41,9 +41,9 @@
 | 状态管理 | **Riverpod 3**，只做依赖注入、设置和「数据变了」的通知（`Revision` 计数器） | 页面状态留在各自 `State` 里，避免全局 store；仓库都能在测试里替换 |
 | 动效 | 原生 API：`Hero`、自写 `PageRoute`、`AnimationController`、`CustomPainter`（彩纸、进度环） | 庆祝动画自绘，无 Lottie 资源需要授权或加载 |
 | 测试 | `flutter_test` + `sqflite_common_ffi`（真实 SQLite 文件） | 仓库、迁移、同步、埋点在桌面 SQLite 上跑真实 SQL；组件测试用内存假仓库 |
-| CI | GitHub Actions：format → analyze → test → `build apk --release`，产物上传 | `.github/workflows/ci.yml` |
+| CI | GitHub Actions：format → analyze → test（含汇总脚本测试）→ `build apk --release` → `build web`，APK 与 H5 产物上传；H5 可选自动发布到 GitHub Pages | `.github/workflows/ci.yml` |
 
-只交付 Android（minSdk 30：UPSERT 需要 SQLite ≥ 3.24，Android 11 起自带）。iOS 工程可编译，未在真机验证。
+主交付 Android（minSdk 30：UPSERT 需要 SQLite ≥ 3.24，Android 11 起自带）。H5 与 App 同一份 Flutter 代码，见下节。iOS 工程可编译，未在真机验证。
 
 ## 2. 本地启动
 
@@ -59,6 +59,22 @@ fvm flutter test           # 全部单测 / 组件测试
 - 演示账号：**demo / glean123**（登录页点提示条即可填入），也可以注册新账号。
 - AI 导读、阅读理解题、CEFR 难度随种子内置，无需任何密钥。取词面板的「AI 解释」需要在构建时传入 DeepSeek 密钥（不入库）：`fvm flutter run --dart-define=DEEPSEEK_API_KEY=sk-...`；不传则该按钮隐藏，其余功能不受影响。
 - 种子重建（编辑 `content/` 后）：`python -I tool/build_seed.py --ecdict path/to/ecdict.csv`。
+
+**H5（同源构建）**
+
+```bash
+fvm flutter build web --release                     # 产物在 build/web
+python -m http.server 8765 --directory build/web    # 浏览器打开 http://127.0.0.1:8765/
+```
+
+- 和 App 是同一份代码，只有平台相关的几处按条件导入替换（`if (dart.library.js_interop)`）：
+  - SQLite 换成 WebAssembly 版（`sqflite_common_ffi_web`，数据存在浏览器 IndexedDB，`web/sqlite3.wasm` 随仓库提交）。建表、迁移、种子导入、同步、埋点都走同一组 SQL，刷新页面后登录态和阅读进度都在。
+  - 本地通知换成空实现，「我的」里不显示阅读提醒（浏览器关掉标签页后无法定时唤醒）。
+  - 头像不能从相册选图，只用字母头像（浏览器没有可写的文件目录）。
+  - DeepSeek 请求改用 `package:http`；H5 默认不注入密钥，「AI 解释」按钮隐藏，预生成的导读和理解题照常显示。
+- 桌面浏览器里居中显示为 430 宽的手机框，手机浏览器里铺满全屏。
+- 已在本机 Edge 上走通：登录 → 书架 → 翻书打开 → 手势返回 → 长按取词 → 刷新后数据仍在。
+- CI 每次都会构建 H5 并作为 Pages 产物上传；在仓库变量里设 `DEPLOY_PAGES=true`（并把 Settings → Pages 的来源设为 GitHub Actions）后，推送 main 会自动发布到 `https://<用户名>.github.io/glean/`。
 
 ## 3. 架构
 
@@ -334,6 +350,34 @@ tech     0            1
 
 （示例输出来自 `test/core/analytics/analytics_report_test.dart` 的测试数据。）
 
+### 7.6 汇总脚本（离线分析导出的数据库）
+
+调试面板看的是手机上的实时数据；要在电脑上做汇总，用 `tool/analytics_report.py`（只依赖 Python 标准库）：
+
+1. App 里打开 我的 → 埋点调试面板 → **导出数据库**。会用 `VACUUM INTO` 把当前数据库完整复制一份到 App 的外部存储目录，弹窗给出可直接复制的 `adb pull` 命令。
+2. 在电脑上：
+
+```bash
+adb pull /sdcard/Android/data/com.huanming.glean/files/glean-export-<时间戳>.db glean-export.db
+python -I tool/analytics_report.py glean-export.db --days 7 --html report.html
+```
+
+输出 9 组指标，终端里是文字和条形图，`--html` 另存一份卡片式报告：
+
+| 分组 | 内容 |
+|---|---|
+| 概览 | 事件数、用户数、会话数、事件种类、上报批次成功率 |
+| 近 N 日阅读时长 | 每天的分钟数与阅读次数（空的日子也列出） |
+| 单次阅读时长分布 | `< 1 / 1–3 / 3–5 / 5–10 / ≥ 10` 分钟五档 |
+| 打开 → 读过半 → 读完 | 按「用户 × 文章」去重的漏斗与转化率 |
+| 列表曝光与点击 | 各列表（surface）的曝光、打开与点击率 |
+| 会话 | 会话开始原因、进入后台次数、平均前台时长、冷启动耗时中位数 |
+| 学习 | 收藏生词（最多的 5 个）、查词命中、复习打分、阅读理解正确率、AI 解释来源 |
+| 打开最多的文章 | 前 5 篇 |
+| 离线 | 离线时下拉刷新次数、同步成功率 |
+
+口径与 7.4、调试面板一致。脚本自带测试（`python -I tool/test_analytics_report.py`，用已知事件构造临时数据库核对每组数字），CI 里一起跑。
+
 ## 8. AI 功能（DeepSeek）
 
 离线优先不变：能提前算的全部提前生成、随种子打包，只有「解释这个词在这句里的意思」需要联网实时调用。
@@ -398,4 +442,5 @@ fvm flutter build appbundle --release    # 上架 Google Play（AAB）
 - 每日提醒在有「闹钟和提醒」权限（`SCHEDULE_EXACT_ALARM`，Android 14 起默认关闭）时用精确闹钟准点触发；开启提醒时先说明原因再跳系统设置。没有该权限时退回非精确闹钟，系统给的窗口实测为 1 小时（`dumpsys alarm` 中 `window=+1h`），界面标注「可能晚到」。App 启动和回到前台时会重新排一次，强制停止或更新后提醒不会丢，用户后来开了权限也会自动改为准点。
 - 社区是本地 mock 内容（引用的原句来自种子文章，内置评论为示例），自己的帖子和评论只存在本机，不参与同步，也没有真实社交关系。
 - AI 内容由模型生成，可能有个别不准确，界面上标注「由 deepseek-flash 预先生成，仅供参考」；阅读理解作答只存本机，不参与同步。
-- 只在 Android 真机验证；iOS 未测。
+- 只在 Android 真机验证；H5 在桌面 Edge 上验证过主流程；iOS 未测。
+- H5 的数据存在当前浏览器的 IndexedDB 里，清除站点数据就会丢；没有阅读提醒和相册头像。H5 没有做离线缓存：打开页面需要联网加载程序和渲染引擎，加载完之后的阅读、取词、收藏都在本地完成。
