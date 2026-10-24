@@ -10,6 +10,7 @@ import '../../auth/application/auth.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/avatar_store.dart';
 import 'user_avatar.dart';
+import '../../../core/platform/local_files.dart';
 
 /// 编辑资料: avatar (photo or preset), nickname, signature, daily goal.
 /// Nothing is written until 保存; leaving discards a newly picked photo.
@@ -68,10 +69,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       builder: (context) => CupertinoActionSheet(
         title: const Text('更换头像'),
         actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context, 'gallery'),
-            child: const Text('从相册选择'),
-          ),
+          if (supportsLocalFiles)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context, 'gallery'),
+              child: const Text('从相册选择'),
+            ),
           CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context, 'preset'),
             child: const Text('选择预设头像'),

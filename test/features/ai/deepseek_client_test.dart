@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glean/features/ai/data/deepseek_client.dart';
+import 'package:http/http.dart' as http;
 
 String _reply(Object content) => jsonEncode({
   'choices': [
@@ -54,7 +54,7 @@ void main() {
     expect(await fail(() async => (200, _reply('not json'))), 'AI 返回的内容无法解析');
     expect(await fail(() async => (200, _reply({'other': 1}))), 'AI 返回的内容无法解析');
     expect(
-      await fail(() async => throw const SocketException('down')),
+      await fail(() async => throw http.ClientException('down')),
       '网络不可用，联网后再试',
     );
   });

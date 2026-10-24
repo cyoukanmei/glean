@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 /// Why a live AI request did not produce an answer.
 class AiException implements Exception {
@@ -83,10 +84,8 @@ they met it. Reply with one JSON object and nothing else:
       }, body).timeout(timeout);
     } on TimeoutException {
       throw const AiException('AI 响应超时，稍后再试');
-    } on SocketException {
+    } on http.ClientException {
       throw const AiException('网络不可用，联网后再试');
-    } on HttpException {
-      throw const AiException('网络请求失败，稍后再试');
     }
     final (status, text) = response;
     if (status == 401) throw const AiException('AI 密钥无效');
@@ -111,15 +110,7 @@ they met it. Reply with one JSON object and nothing else:
     Map<String, String> headers,
     String body,
   ) async {
-    final client = HttpClient()..connectionTimeout = timeout;
-    try {
-      final req = await client.postUrl(uri);
-      headers.forEach(req.headers.set);
-      req.add(utf8.encode(body));
-      final res = await req.close();
-      return (res.statusCode, await res.transform(utf8.decoder).join());
-    } finally {
-      client.close();
-    }
+    final res = await http.post(uri, headers: headers, body: utf8.encode(body));
+    return (res.statusCode, utf8.decode(res.bodyBytes));
   }
 }

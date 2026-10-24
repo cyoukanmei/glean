@@ -1,5 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -172,7 +173,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ' · ${settings.fontSize.toStringAsFixed(settings.fontSize % 1 == 0 ? 0 : 1)}',
                   onTap: () => ReaderSettingsSheet.show(context),
                 ),
-                const _ReminderCell(),
+                if (!kIsWeb) const _ReminderCell(),
                 _Cell(
                   icon: Icons.download_done_rounded,
                   title: '离线内容',

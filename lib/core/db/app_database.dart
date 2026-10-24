@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -32,6 +33,8 @@ abstract final class AppDatabase {
   }
 
   static Future<void> _configure(Database db) async {
+    // The web build's SQLite (WebAssembly over IndexedDB) has no WAL.
+    if (kIsWeb) return;
     // WAL + NORMAL: committed transactions survive an app crash or kill; only
     // power loss / OS crash may roll back the most recent commits.
     // journal_mode returns a row, so Android requires rawQuery here.

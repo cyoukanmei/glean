@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../../../core/design/ios_widgets.dart';
+import '../../../core/platform/local_files.dart';
 import '../../auth/data/auth_repository.dart';
 
 /// Built-in avatars: an emoji on a gradient.
@@ -41,9 +40,11 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final value = avatar ?? user?.avatar;
     if (value != null && value.startsWith('file:')) {
+      final image = localImage(value.substring(5));
+      if (image == null) return _initial();
       return ClipOval(
-        child: Image.file(
-          File(value.substring(5)),
+        child: Image(
+          image: image,
           width: size,
           height: size,
           fit: BoxFit.cover,

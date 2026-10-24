@@ -1,10 +1,10 @@
-import 'dart:io';
-
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+
+import '../../../core/platform/local_files.dart';
 
 /// Profile photos picked from the gallery, copied into the app's documents
 /// folder (the picker's own file may be a temporary copy).
@@ -21,27 +21,27 @@ class AvatarStore {
       imageQuality: 85,
     );
     if (picked == null) return null;
-    final dir = Directory(
-      p.join((await getApplicationDocumentsDirectory()).path, 'avatars'),
+    final dir = p.join(
+      (await getApplicationDocumentsDirectory()).path,
+      'avatars',
     );
-    await dir.create(recursive: true);
+    await createDirectory(dir);
     final ext = p.extension(picked.path).isEmpty
         ? '.jpg'
         : p.extension(picked.path);
     // A new name per pick, so the image cache never shows the old photo.
     final path = p.join(
-      dir.path,
+      dir,
       '$userId-${clock.now().millisecondsSinceEpoch}$ext',
     );
-    await File(picked.path).copy(path);
+    await copyFile(picked.path, path);
     return 'file:$path';
   }
 
   /// Deletes a stored photo that is no longer used.
   Future<void> discard(String? avatar) async {
     if (avatar == null || !avatar.startsWith('file:')) return;
-    final file = File(avatar.substring(5));
-    if (await file.exists()) await file.delete();
+    await deleteFile(avatar.substring(5));
   }
 }
 

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- Replaced by `flutter build web --base-href` (e.g. /glean/ on Pages). -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="拾读 Glean：离线优先的英语阅读学习 App（H5 版，与 Android 同一份 Flutter 代码）">
+  <meta name="theme-color" content="#24574A">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="拾读">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>拾读 Glean</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    /* Same cream as the in-app splash, shown while Flutter loads. */
+    html, body { margin: 0; height: 100%; background: #FAF1E2; }
+    #boot { position: fixed; inset: 0; display: grid; place-items: center;
+      font: 600 20px/1.4 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #24574A; letter-spacing: 6px; }
+  </style>
+</head>
+<body>
+  <div id="boot">拾读</div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
