@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Live AI explanations (DeepSeek). Flutter only adds INTERNET to the
+         debug and profile manifests, so release builds need it here. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Daily reading reminder (flutter_local_notifications): showing it on
          Android 13+, and re-scheduling it after a reboot. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>

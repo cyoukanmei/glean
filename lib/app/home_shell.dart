@@ -10,6 +10,7 @@ import '../features/profile/ui/profile_page.dart';
 import '../features/shelf/ui/shelf_page.dart';
 import '../features/store/ui/store_page.dart';
 import '../features/vocab/ui/vocab_page.dart';
+import 'home_back_guard.dart';
 import 'home_tab.dart';
 
 /// Bottom navigation: 书架 / 书城 / 社区 / 单词本 / 我的 ([HomeTab]).
@@ -19,7 +20,7 @@ import 'home_tab.dart';
 /// over the content; the body extends under it (Scaffold adds its height to
 /// the body's bottom padding, which the pages' scroll views respect). The
 /// reader is pushed on the root navigator above this shell, which hides the
-/// bar while reading.
+/// bar while reading. System back on the tabs goes through [HomeBackGuard].
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
 
@@ -40,26 +41,28 @@ class HomeShell extends ConsumerWidget {
       Analytics.track('page_view', {'page': tab.page});
     });
     final tab = ref.watch(homeTabProvider);
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(
-        index: tab.index,
-        children: const [
-          ShelfPage(),
-          StorePage(),
-          CoreadPage(),
-          VocabPage(),
-          ProfilePage(),
-        ],
-      ),
-      bottomNavigationBar: _GlassTabBar(
-        index: tab.index,
-        tabs: [
-          for (final t in HomeTab.values)
-            (_icons[t]!.$1, _icons[t]!.$2, t.label),
-        ],
-        onSelect: (i) =>
-            ref.read(homeTabProvider.notifier).go(HomeTab.values[i]),
+    return HomeBackGuard(
+      child: Scaffold(
+        extendBody: true,
+        body: IndexedStack(
+          index: tab.index,
+          children: const [
+            ShelfPage(),
+            StorePage(),
+            CoreadPage(),
+            VocabPage(),
+            ProfilePage(),
+          ],
+        ),
+        bottomNavigationBar: _GlassTabBar(
+          index: tab.index,
+          tabs: [
+            for (final t in HomeTab.values)
+              (_icons[t]!.$1, _icons[t]!.$2, t.label),
+          ],
+          onSelect: (i) =>
+              ref.read(homeTabProvider.notifier).go(HomeTab.values[i]),
+        ),
       ),
     );
   }
