@@ -27,6 +27,7 @@ import 'core/design/glean_colors.dart';
 import 'core/design/glean_theme.dart';
 import 'features/auth/application/auth.dart';
 import 'features/auth/data/auth_repository.dart';
+import 'features/profile/application/reminder.dart';
 import 'features/sync/data/mock_sync_server.dart';
 import 'features/sync/sync_service.dart';
 
@@ -182,6 +183,10 @@ class _GleanAppState extends ConsumerState<GleanApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // A reminder cleared by a force-stop or an update comes back.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(reminderProvider.notifier).restore(),
+    );
   }
 
   @override
@@ -192,6 +197,14 @@ class _GleanAppState extends ConsumerState<GleanApp>
 
   @override
   void didChangePlatformBrightness() => setState(() {});
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Back from settings (e.g. after allowing exact alarms) or a long pause.
+    if (state == AppLifecycleState.resumed) {
+      ref.read(reminderProvider.notifier).restore();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

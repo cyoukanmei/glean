@@ -7,13 +7,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _Scheduler implements ReminderScheduler {
   bool allowed = true;
+
+  /// Whether exact alarms are allowed; [askExact] grants them (the user
+  /// allowed it on the system page).
+  bool exactAllowed = false;
   TimeOfDay? scheduled;
   int cancels = 0;
+  int prompts = 0;
 
   @override
-  Future<bool> schedule(TimeOfDay time) async {
-    if (allowed) scheduled = time;
-    return allowed;
+  Future<bool> canBeExact() async => exactAllowed;
+
+  @override
+  Future<ReminderAccuracy?> schedule(
+    TimeOfDay time, {
+    bool ask = true,
+    bool askExact = false,
+  }) async {
+    if (ask) prompts++;
+    if (!allowed) return null;
+    if (askExact) exactAllowed = true;
+    scheduled = time;
+    return exactAllowed ? ReminderAccuracy.exact : ReminderAccuracy.inexact;
   }
 
   @override
@@ -78,5 +93,38 @@ void main() {
         .enable(const TimeOfDay(hour: 8, minute: 0));
     expect(ok, isFalse);
     expect(c.read(reminderProvider).enabled, isFalse);
+  });
+
+  test(
+    'without the exact-alarm permission it is marked late; asking '
+    'makes it exact, and a restore picks up a permission granted later',
+    () async {
+      final (c, scheduler) = await _container();
+      final notifier = c.read(reminderProvider.notifier);
+      await notifier.enable(const TimeOfDay(hour: 21, minute: 30));
+      expect(c.read(reminderProvider).exact, isFalse);
+
+      await notifier.enable(
+        const TimeOfDay(hour: 21, minute: 30),
+        askExact: true,
+      );
+      expect(c.read(reminderProvider).exact, isTrue);
+
+      // Revoked in settings, granted again: restore follows, without prompts.
+      scheduler.exactAllowed = false;
+      final prompts = scheduler.prompts;
+      await notifier.restore();
+      expect(c.read(reminderProvider).exact, isFalse);
+      scheduler.exactAllowed = true;
+      await notifier.restore();
+      expect(c.read(reminderProvider).exact, isTrue);
+      expect(scheduler.prompts, prompts, reason: 'no prompt on restore');
+    },
+  );
+
+  test('restore does nothing while the reminder is off', () async {
+    final (c, scheduler) = await _container();
+    await c.read(reminderProvider.notifier).restore();
+    expect(scheduler.scheduled, isNull);
   });
 }

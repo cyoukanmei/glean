@@ -129,9 +129,9 @@ const eventSpecs = <String, EventSpec>{
     required: {'pushed', 'pulled', 'conflicts', 'ok'},
   ),
   'reminder_set': EventSpec(
-    '设置每日阅读提醒',
+    '设置每日阅读提醒（exact：是否为准点闹钟）',
     required: {'enabled'},
-    optional: {'time'},
+    optional: {'time', 'exact'},
   ),
 };
 

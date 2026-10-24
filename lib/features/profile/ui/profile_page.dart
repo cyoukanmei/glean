@@ -785,7 +785,35 @@ class _ReminderCell extends ConsumerWidget {
     WidgetRef ref,
     TimeOfDay time,
   ) async {
-    final ok = await ref.read(reminderProvider.notifier).enable(time);
+    final notifier = ref.read(reminderProvider.notifier);
+    var askExact = false;
+    if (!await notifier.canBeExact() && context.mounted) {
+      askExact =
+          await showCupertinoDialog<bool>(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('让提醒准点到达'),
+              content: const Text(
+                '安卓默认会推迟普通提醒，最多可能晚一个小时。'
+                '在系统的「闹钟和提醒」里允许拾读，就能准点提醒。',
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('暂不'),
+                ),
+                CupertinoDialogAction(
+                  key: const Key('reminder-exact-go'),
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('去开启'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    }
+    final ok = await notifier.enable(time, askExact: askExact);
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -807,6 +835,19 @@ class _ReminderCell extends ConsumerWidget {
           const SizedBox(width: 12),
           const Text('每日阅读提醒', style: TextStyle(fontSize: 16)),
           const Spacer(),
+          if (r.enabled && !r.exact)
+            GestureDetector(
+              key: const Key('reminder-late'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _enable(context, ref, r.time),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Text(
+                  '可能晚到',
+                  style: TextStyle(fontSize: 12, color: GleanColors.gold),
+                ),
+              ),
+            ),
           GestureDetector(
             key: const Key('reminder-time'),
             onTap: () => _pickTime(context, ref),
